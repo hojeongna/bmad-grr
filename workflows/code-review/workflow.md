@@ -55,6 +55,7 @@ parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
 - 🚫 **NEVER** make findings not grounded in checklist items
 - 📖 **ALWAYS** read entire step file before execution
 - 🔧 **ALWAYS** load parallel agents skill via Read before dispatching
+- 🔀 **ALWAYS** dispatch one sub-agent per file — NEVER batch multiple files into a single agent
 - ✅ **ALWAYS** communicate in {communication_language}
 
 ### External Skill Loading Protocol

@@ -28,6 +28,7 @@ Fix checklist violations identified in the report using parallel agents (one age
 
 ### Step-Specific Rules:
 
+- 🛑 **ONE FILE = ONE SUB-AGENT. This is ABSOLUTE and NON-NEGOTIABLE.** NEVER combine multiple files into a single agent. NEVER fix 2+ files in one agent call. Each file MUST get its own dedicated sub-agent. Violating this rule is SYSTEM FAILURE.
 - Fix ONLY what the checklist flagged — no extra "improvements"
 - FORBIDDEN to refactor or change code beyond the violation fix
 - FORBIDDEN to add features or make "improvements" not in findings

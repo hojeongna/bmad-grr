@@ -27,6 +27,7 @@ Load the parallel agents skill and dispatch one review agent per file. Each agen
 
 ### Step-Specific Rules:
 
+- 🛑 **ONE FILE = ONE SUB-AGENT. This is ABSOLUTE and NON-NEGOTIABLE.** NEVER combine multiple files into a single agent. NEVER review 2+ files in one agent call. Each file MUST get its own dedicated sub-agent. Violating this rule is SYSTEM FAILURE.
 - Each agent gets the FULL checklist — not a summary, not a subset
 - Each agent gets its file's DIFF CONTENT — not the entire file
 - Agents review ONLY changed/added lines — existing unchanged code is OUT OF SCOPE
