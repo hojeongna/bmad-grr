@@ -45,7 +45,32 @@ Generate, edit, or validate code review checklists for use with `code-review`.
 - **Direct Compatibility**: Output is structured for immediate use by `code-review`
 - **Tri-Modal Architecture**: Separate step folders for create (`steps-c/`), edit (`steps-e/`), and validate (`steps-v/`)
 
-### 4. bug-hunt
+### 4. set-worktree
+
+Multi-repo worktree workspace setup with parallel clone and branch creation.
+
+- **Monorepo-Style Setup**: Clone multiple GitHub repos as git worktrees under one project root
+- **Parallel Execution**: All repos cloned and branched simultaneously via sub-agents
+- **Branch Convention**: Auto-suggests `{type}/{YYMMDD}-{description}` branch names (feature/fix/refactor/chore)
+- **Mapping Document**: Generates `worktree-map.md` with folder paths, repo links, branches for PR workflow reference
+- **Pairs with pr-create**: Mapping document feeds directly into `pr-create` workflow
+
+### 5. pr-create
+
+PR lifecycle management — analyze, split, test, create, track, and rebase.
+
+- **Change Analysis**: Scans all repos for change volume via git diff
+- **Smart Splitting**: Recommends splitting PRs when changes exceed 1000 lines
+- **Responsibility-Based**: Each PR gets a clear role — not arbitrary line splits
+- **Split Options**: AI-proposed grouping or manual user specification
+- **Local Testing**: Runs repo test suite before PR creation — test failures trigger amend/new-commit choice
+- **Auto/Manual PR Creation**: `gh pr create` automatically or provides the command for manual execution
+- **Merge Tracking**: Monitors PR merge status via `gh pr view`
+- **Sequential Rebase**: Handles rebasing between sequential PRs in the same repo
+- **Continuable**: Saves state across sessions — resume after waiting for merges
+- **Pairs with set-worktree**: Reads `worktree-map.md` for repo/branch context
+
+### 6. bug-hunt
 
 Systematic debugging workflow with escalation levels and evidence-based root cause analysis.
 
@@ -106,7 +131,9 @@ bash install.sh
 │   ├── bmad-grr-dev-story.md
 │   ├── bmad-grr-code-review.md
 │   ├── bmad-grr-review-checklist.md
-│   └── bmad-grr-bug-hunt.md
+│   ├── bmad-grr-bug-hunt.md
+│   ├── bmad-grr-set-worktree.md
+│   └── bmad-grr-pr-create.md
 ├── workflows/
 │   ├── dev-story/
 │   │   ├── workflow.md
@@ -121,10 +148,16 @@ bash install.sh
 │   │   ├── steps-e/ (3 step files)
 │   │   ├── steps-v/ (2 step files)
 │   │   └── data/ (analysis-categories.md, checklist-template.md)
-│   └── bug-hunt/
+│   ├── bug-hunt/
+│   │   ├── workflow.md
+│   │   ├── steps-c/ (8 step files)
+│   │   └── data/bug-report-template.md
+│   ├── set-worktree/
+│   │   ├── workflow.md
+│   │   └── steps-c/ (3 step files)
+│   └── pr-create/
 │       ├── workflow.md
-│       ├── steps-c/ (8 step files)
-│       └── data/bug-report-template.md
+│       └── steps-c/ (7 step files)
 └── skills/
     ├── test-driven-development/
     │   ├── SKILL.md
@@ -154,6 +187,12 @@ In any project with BMAD installed:
 
 # Systematic debugging with escalation levels
 /bmad-grr-bug-hunt
+
+# Multi-repo worktree workspace setup
+/bmad-grr-set-worktree
+
+# PR lifecycle management
+/bmad-grr-pr-create
 ```
 
 ## Requirements
@@ -240,6 +279,53 @@ step-05-finalize (END)
 **Edit mode:** `step-01-assess` → `step-02-edit` → `step-03-complete`
 
 **Validate mode:** `step-01-validate` → `step-02-report`
+
+### set-worktree
+
+```
+step-01-init
+    │ Confirm project root
+    │ Gather problem context
+    │ Collect repo links + branch config
+    ↓
+step-02-execute
+    │ Parallel clone all repos (sub-agents)
+    │ Create branches on correct base
+    ↓
+step-03-document-complete (END)
+    │ Generate worktree-map.md
+    │ Completion summary
+```
+
+### pr-create
+
+```
+step-01-init (or step-01b-continue)
+    │ Read worktree-map.md
+    │ Analyze change volume per repo
+    ↓
+step-02-plan
+    │ < 1000 lines → single PR
+    │ >= 1000 lines → split by responsibility
+    │ [A] AI-proposed split / [M] Manual
+    ↓
+step-03-commit-push
+    │ Stage per PR plan → commit → push
+    ↓
+step-04-test-create ← ─ ─ ─ ─ ─ ─ ┐
+    │ Run local tests                │
+    │ Fail → fix → [A]mend/[N]ew    │
+    │ Pass → [A]uto/[M]anual PR     │ (rebase next PR)
+    ↓                                │
+step-05-merge-loop ─ ─ ─ ─ ─ ─ ─ ─ ┘
+    │ Check merge status (gh pr view)
+    │ Merged → rebase next PR → loop
+    │ Not merged → save & exit (continuable)
+    │ All done ↓
+step-06-complete (END)
+    │ Verify all merged
+    │ Completion summary
+```
 
 ### bug-hunt
 
