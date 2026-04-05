@@ -4,6 +4,8 @@ description: 'Validate implementation, mark task complete, and loop or proceed t
 
 nextStepFile: '~/.claude/workflows/dev-story/steps-c/step-06-completion.md'
 loopStepFile: '~/.claude/workflows/dev-story/steps-c/step-03-analyze.md'
+qaSkill: '~/.claude/skills/gstack/qa/SKILL.md'
+reviewSkill: '~/.claude/skills/gstack/review/SKILL.md'
 ---
 
 # Step 5: Validate and Mark Task Complete
@@ -75,7 +77,40 @@ For each task just implemented:
 - Return to step-04 to fix the issue
 - If 3 consecutive failures: HALT and request user guidance
 
-### 3. Check for Remaining Tasks
+### 3. Extended Validation (gstack — when ALL tasks complete)
+
+**Only run this section when ALL tasks are complete (no more incomplete tasks remain).**
+
+#### 3a. Browser QA (if frontend changes detected)
+
+**IF {qaSkill} exists AND implementation includes frontend changes (.tsx, .jsx, .vue, .svelte, .html, .css files):**
+
+Load {qaSkill} via Read tool and follow its directives for diff-aware QA testing:
+- Navigate to affected pages based on changed files
+- Check console for errors
+- Verify visual state matches acceptance criteria
+- Capture screenshot evidence for any issues found
+- If bugs found: fix with atomic commits, re-verify
+
+**IF no frontend changes or {qaSkill} does NOT exist:** Skip this section.
+
+#### 3b. Scope Drift Detection
+
+**IF {reviewSkill} exists:**
+
+Load {reviewSkill} via Read tool and follow its directives for pre-landing review:
+- Compare implementation diff against story AC — did we build exactly what was planned?
+- Flag scope drift: features added beyond story scope, or AC items not fully addressed
+- Check for SQL safety, race conditions, LLM trust boundaries if applicable
+
+"**Extended Validation Results:**
+- Browser QA: {passed/skipped/issues_found}
+- Scope Drift: {none_detected/drift_found}
+{if drift found: list specific items}"
+
+**IF {reviewSkill} does NOT exist:** Skip this section.
+
+### 4. Check for Remaining Tasks
 
 Re-read the story file Tasks/Subtasks section:
 
@@ -98,7 +133,7 @@ Re-read the story file Tasks/Subtasks section:
 
 → Load, read entire file, then execute {nextStepFile}
 
-### 4. Route
+### 5. Route
 
 #### Menu Handling Logic:
 

@@ -4,6 +4,7 @@ description: 'Analyze remaining tasks for independence and decide parallel vs se
 
 nextStepFile: '~/.claude/workflows/dev-story/steps-c/step-04-implement.md'
 parallelAgentsSkill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
+engReviewSkill: '~/.claude/skills/gstack/plan-eng-review/SKILL.md'
 ---
 
 # Step 3: Task Analysis and Parallel/Sequential Decision
@@ -91,7 +92,29 @@ For each pair of incomplete tasks, determine:
 
 **Proceeding to implementation...**"
 
-### 5. Auto-Proceed
+### 5. Pre-Implementation Architecture Review (gstack)
+
+**IF {engReviewSkill} exists (gstack installed):**
+
+Load {engReviewSkill} via Read tool and follow its directives to perform a pre-implementation review:
+
+- **Scope Challenge:** Is there existing code that already solves sub-problems? Are we over-engineering?
+- **Failure Scenarios:** For each new codepath, identify one realistic production failure
+- **Test Coverage Map:** Map planned tasks to expected test coverage
+- **Architecture Validation:** Verify component boundaries and data flow patterns
+
+"**Pre-Implementation Review Complete**
+
+**Scope:** {validated/reduced/expanded}
+**Failure scenarios identified:** {count}
+**Test coverage plan:** {summary}
+
+**Proceeding to implementation...**"
+
+**IF {engReviewSkill} does NOT exist (gstack not installed):**
+Skip this section and proceed directly.
+
+### 6. Auto-Proceed
 
 Display: "**Proceeding to implementation...**"
 

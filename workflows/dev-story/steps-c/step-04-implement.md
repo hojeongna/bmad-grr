@@ -6,6 +6,7 @@ nextStepFile: '~/.claude/workflows/dev-story/steps-c/step-05-validate.md'
 tddSkill: '~/.claude/skills/test-driven-development/SKILL.md'
 tddAntiPatterns: '~/.claude/skills/test-driven-development/testing-anti-patterns.md'
 parallelAgentsSkill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
+investigateSkill: '~/.claude/skills/gstack/investigate/SKILL.md'
 ---
 
 # Step 4: Implement Task(s)
@@ -41,7 +42,8 @@ Execute the current task(s) following strict TDD discipline. For sequential mode
 - 🎯 Follow TDD skill's RED-GREEN-REFACTOR cycle exactly
 - 💾 Update Dev Agent Record with implementation decisions
 - 📖 Only permitted story sections: Tasks/Subtasks checkboxes, Dev Agent Record, File List, Change Log, Status
-- 🚫 HALT if: additional dependencies needed, 3 consecutive failures, missing configuration
+- 🚫 HALT if: additional dependencies needed, missing configuration
+- 🔍 On 3 consecutive test failures: load {investigateSkill} for systematic root cause investigation (if gstack installed), otherwise HALT and request user guidance
 
 ## MANDATORY SEQUENCE
 
@@ -133,6 +135,10 @@ Following the TDD skill's Iron Law:
 
 **If test fails:** Fix the code, not the test.
 **If other tests fail:** Fix the regression NOW.
+
+**If 3 consecutive failures on the same task:**
+- **IF {investigateSkill} exists (gstack installed):** Load {investigateSkill} via Read tool and follow its systematic debugging process — investigate root cause with pattern matching (race conditions, nil propagation, state corruption, config drift, stale cache, integration failures), form hypothesis, test minimally, then fix at root cause
+- **IF {investigateSkill} does NOT exist:** HALT and request user guidance
 
 #### B4. REFACTOR Phase — Clean Up
 

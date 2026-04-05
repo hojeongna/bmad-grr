@@ -23,6 +23,13 @@ project_context: "**/project-context.md"
 tdd_skill: "~/.claude/skills/test-driven-development/SKILL.md"
 tdd_anti_patterns: "~/.claude/skills/test-driven-development/testing-anti-patterns.md"
 parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
+
+# gstack skill dependencies (OPTIONAL - loaded when conditions met)
+eng_review_skill: "~/.claude/skills/gstack/plan-eng-review/SKILL.md"
+investigate_skill: "~/.claude/skills/gstack/investigate/SKILL.md"
+qa_skill: "~/.claude/skills/gstack/qa/SKILL.md"
+review_skill: "~/.claude/skills/gstack/review/SKILL.md"
+health_skill: "~/.claude/skills/gstack/health/SKILL.md"
 ---
 
 # Dev Story

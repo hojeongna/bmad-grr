@@ -4,6 +4,7 @@ description: 'Run Definition of Done checklist and mark story for review'
 
 nextStepFile: '~/.claude/workflows/dev-story/steps-c/step-07-communicate.md'
 checklistFile: '~/.claude/workflows/dev-story/data/checklist.md'
+healthSkill: '~/.claude/skills/gstack/health/SKILL.md'
 ---
 
 # Step 6: Story Completion and DoD Validation
@@ -95,7 +96,26 @@ Story {{story_key}} is ready for review."
 - HALT — "DoD validation failed. Address the following before completion:"
   - [List each failed item]
 
-### 5. Auto-Proceed to Communication
+### 5. Code Health Check (gstack)
+
+**IF {healthSkill} exists (gstack installed):**
+
+Load {healthSkill} via Read tool and follow its directives to run a health check:
+- Type checker, linter, test runner, dead code detector
+- Compute weighted composite score (0-10)
+- Report any degradation from previous baseline
+
+"**Code Health Score:** {score}/10
+- Types: {score}
+- Linting: {score}
+- Tests: {score}
+- Dead Code: {score}
+
+{if score < 7: ⚠️ Health score below threshold — consider addressing issues before review}"
+
+**IF {healthSkill} does NOT exist:** Skip this section.
+
+### 6. Auto-Proceed to Communication
 
 Display: "**Proceeding to completion summary...**"
 
