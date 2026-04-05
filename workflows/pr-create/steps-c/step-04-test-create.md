@@ -3,6 +3,7 @@ name: 'step-04-test-create'
 description: 'Run local tests, handle failures, and create or display PR commands'
 
 nextStepFile: './step-05-merge-loop.md'
+reviewSkill: '~/.claude/skills/gstack/review/SKILL.md'
 ---
 
 # Step 4: Test & Create PR
@@ -124,7 +125,25 @@ git push
 
 Re-run tests. Repeat until tests pass.
 
-### 5. Create PR
+### 5. Pre-PR Quality Gate (gstack)
+
+**IF {reviewSkill} exists (gstack installed):**
+
+Load {reviewSkill} via Read tool and follow its pre-landing review directives on the diff:
+- Scope drift detection: does the diff match the intended PR responsibility?
+- Critical checks: SQL safety, race conditions, shell injection
+- Plan completion audit: if story-based, verify AC coverage in the diff
+
+"**Pre-PR Review:**
+- **Scope drift:** {none/detected}
+- **Critical findings:** {count}
+- **Plan completion:** {complete/gaps found}
+
+{if critical findings: ⚠️ Address findings before creating PR?}"
+
+**IF {reviewSkill} does NOT exist:** Skip to PR creation.
+
+### 6. Create PR
 
 "**How would you like to create the PR?**
 

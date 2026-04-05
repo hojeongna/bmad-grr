@@ -1,6 +1,8 @@
 ---
 name: 'step-06-complete'
 description: 'Verify all PRs merged and complete the workflow'
+
+healthSkill: '~/.claude/skills/gstack/health/SKILL.md'
 ---
 
 # Step 6: Completion
@@ -54,7 +56,26 @@ completedDate: '{date}'
 
 Mark all PRs as MERGED with timestamps.
 
-### 3. Present Completion Summary
+### 3. Post-Merge Health Check (gstack)
+
+**IF {healthSkill} exists (gstack installed):**
+
+Load {healthSkill} via Read tool and run a health check on each merged repo:
+- Type checker, linter, test runner, dead code detector
+- Compute weighted composite score (0-10)
+- Compare against pre-PR baseline if available
+
+"**Post-Merge Health:**
+
+| Repo | Score | Types | Lint | Tests | Dead Code |
+|------|-------|-------|------|-------|-----------|
+| {repo} | {score}/10 | {s} | {s} | {s} | {s} |
+
+{if any score < 7: ⚠️ Health degradation detected}"
+
+**IF {healthSkill} does NOT exist:** Skip to completion summary.
+
+### 4. Present Completion Summary
 
 "**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 

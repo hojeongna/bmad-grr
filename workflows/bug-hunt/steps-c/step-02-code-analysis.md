@@ -7,6 +7,7 @@ skipToFixFile: './step-05-fix.md'
 stateFile: '{output_folder}/bug-hunt-{date}.state.md'
 systematic_debugging_skill: '~/.claude/skills/systematic-debugging/SKILL.md'
 parallel_agents_skill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
+investigateSkill: '~/.claude/skills/gstack/investigate/SKILL.md'
 advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
 partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
 ---
@@ -69,7 +70,21 @@ Read `{stateFile}` to get bug description, context type, and any previous invest
 
 Load `{parallel_agents_skill}` for multi-file analysis capability.
 
-### 2. Phase 1: Root Cause Investigation (Code Analysis)
+### 2. Load Enhanced Pattern Catalog (gstack)
+
+**IF {investigateSkill} exists (gstack installed):**
+
+Load {investigateSkill} via Read tool to enhance the investigation with gstack's pattern matching:
+- 6 bug signature patterns: race conditions, nil propagation, state corruption, integration failures, configuration drift, stale caches
+- Scope lock: restrict edits to affected module only
+- Blast radius check: if fix touches >5 files, require user approval
+- Structured debug report format: symptom → root cause → fix → evidence → regression test
+
+Follow gstack investigate's directives alongside the systematic-debugging skill — gstack enhances, not replaces, the existing methodology.
+
+**IF {investigateSkill} does NOT exist:** Continue with systematic-debugging skill only.
+
+### 3. Phase 1: Root Cause Investigation (Code Analysis)
 
 Following systematic-debugging Phase 1:
 

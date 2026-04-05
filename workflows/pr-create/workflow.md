@@ -15,6 +15,10 @@ installed_path: "~/.claude/workflows/pr-create"
 
 # External skill dependencies
 parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
+
+# gstack skill dependencies (OPTIONAL - loaded when conditions met)
+review_skill: "~/.claude/skills/gstack/review/SKILL.md"
+health_skill: "~/.claude/skills/gstack/health/SKILL.md"
 ---
 
 # PR Create

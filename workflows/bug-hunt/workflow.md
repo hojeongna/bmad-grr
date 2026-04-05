@@ -21,6 +21,10 @@ project_context: "**/project-context.md"
 systematic_debugging_skill: "~/.claude/skills/systematic-debugging/SKILL.md"
 parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
 
+# gstack skill dependencies (OPTIONAL - loaded when conditions met)
+investigate_skill: "~/.claude/skills/gstack/investigate/SKILL.md"
+qa_skill: "~/.claude/skills/gstack/qa/SKILL.md"
+
 # External tool dependencies
 # Chrome DevTools MCP: must be available in environment
 ---

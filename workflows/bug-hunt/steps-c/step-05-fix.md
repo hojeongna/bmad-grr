@@ -9,6 +9,7 @@ loopBackFiles:
   level-3: './step-04-web-search.md'
 stateFile: '{output_folder}/bug-hunt-{date}.state.md'
 parallel_agents_skill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
+qaSkill: '~/.claude/skills/gstack/qa/SKILL.md'
 advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
 partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
 ---
@@ -140,6 +141,23 @@ Use Chrome DevTools MCP to verify:
 **Actual result:** [result after fix]
 **Bug reproduction:** [reproduction attempt → success/failure]
 **Side effects:** [other functionality check results]"
+
+### 5b. Extended QA Verification (gstack)
+
+**IF {qaSkill} exists (gstack installed) AND bug involves frontend:**
+
+Load {qaSkill} via Read tool and follow its diff-aware QA methodology after fix:
+- Test pages affected by the fix
+- Compute before/after health score delta
+- Capture screenshot evidence proving the bug is fixed
+- Check for regressions on related pages
+
+"**Extended QA Results:**
+- **Health score delta:** {before} → {after}
+- **Bug reproduction:** {fixed/still present}
+- **Regression check:** {pass/fail}"
+
+**IF {qaSkill} does NOT exist:** Rely on Chrome DevTools verification from step 5.
 
 ### 6. Evaluate Verification Result
 
