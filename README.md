@@ -71,6 +71,19 @@ PR lifecycle management — analyze, split, test, create, track, and rebase.
 - **Continuable**: Saves state across sessions — resume after waiting for merges
 - **Pairs with set-worktree**: Reads `worktree-map.md` for repo/branch context
 
+### 7. refine-story
+
+Story refinement workflow — analyze, update, and chain back into dev-story.
+
+- **Post dev-story Bridge**: Handles the gap when implementation results differ from expectations or new improvements are needed
+- **Multi-Scope Input**: Single story, multiple stories, or entire epic — user specifies or AI discovers
+- **Visual Verification**: Optional browser inspection via Chrome DevTools MCP / Playwright MCP with server status check
+- **Gap Analysis**: Compares story documents against current implementation state with parallel sub-agent analysis
+- **Smart Decision**: AI determines whether to modify existing stories or create new ones, with user checkpoint
+- **Precise Execution**: Updates AC, Tasks (resets to `[ ]`), Dev Notes with refinement context, sprint_status → `ready-for-dev`
+- **dev-story Chaining**: Optionally chains directly into dev-story in the same session for immediate implementation
+- **Creative Tools**: Party Mode, Advanced Elicitation, and Brainstorming available for feature improvement exploration
+
 ### 6. bug-hunt
 
 Systematic debugging workflow with escalation levels and evidence-based root cause analysis.
@@ -134,7 +147,8 @@ bash install.sh
 │   ├── bmad-grr-review-checklist.md
 │   ├── bmad-grr-bug-hunt.md
 │   ├── bmad-grr-set-worktree.md
-│   └── bmad-grr-pr-create.md
+│   ├── bmad-grr-pr-create.md
+│   └── bmad-grr-refine-story.md
 ├── workflows/
 │   ├── dev-story/
 │   │   ├── workflow.md
@@ -156,9 +170,12 @@ bash install.sh
 │   ├── set-worktree/
 │   │   ├── workflow.md
 │   │   └── steps-c/ (3 step files)
-│   └── pr-create/
+│   ├── pr-create/
+│   │   ├── workflow.md
+│   │   └── steps-c/ (7 step files)
+│   └── refine-story/
 │       ├── workflow.md
-│       └── steps-c/ (7 step files)
+│       └── steps-c/ (5 step files)
 └── skills/
     ├── test-driven-development/
     │   ├── SKILL.md
@@ -194,6 +211,9 @@ In any project with BMAD installed:
 
 # PR lifecycle management
 /bmad-grr-pr-create
+
+# Story refinement after dev-story
+/bmad-grr-refine-story
 ```
 
 ## Requirements
@@ -327,6 +347,33 @@ step-05-merge-loop ─ ─ ─ ─ ─ ─ ─ ─ ┘
 step-06-complete (END)
     │ Verify all merged
     │ Completion summary
+```
+
+### refine-story
+
+```
+step-01-init
+    │ Collect situation + discover stories
+    │ (single / multi / epic with parallel sub-agents)
+    ↓
+step-02-verify (optional)
+    │ Server check → Chrome DevTools / Playwright
+    │ Visual findings captured
+    ↓
+step-03-analyze
+    │ Gap analysis (parallel sub-agents for epic)
+    │ Decide: modify existing vs create new
+    │ [A] Advanced Elicitation / [P] Party Mode / [B] Brainstorming
+    │ CHECKPOINT: user confirms approach
+    ↓
+step-04-execute
+    │ Update AC, Tasks (reset [ ]), Dev Notes
+    │ sprint_status → ready-for-dev
+    │ CHECKPOINT: user confirms results
+    ↓
+step-05-complete (END)
+    │ [D] Chain into dev-story (same session)
+    │ [S] End workflow
 ```
 
 ### bug-hunt

@@ -59,6 +59,12 @@ cp "$SCRIPT_DIR/workflows/pr-create/workflow.md" "$CLAUDE_DIR/workflows/pr-creat
 cp "$SCRIPT_DIR/workflows/pr-create/steps-c/"* "$CLAUDE_DIR/workflows/pr-create/steps-c/"
 echo "  - pr-create (workflow.md + 7 step files)"
 
+# refine-story
+mkdir -p "$CLAUDE_DIR/workflows/refine-story/steps-c"
+cp "$SCRIPT_DIR/workflows/refine-story/workflow.md" "$CLAUDE_DIR/workflows/refine-story/"
+cp "$SCRIPT_DIR/workflows/refine-story/steps-c/"* "$CLAUDE_DIR/workflows/refine-story/steps-c/"
+echo "  - refine-story (workflow.md + 5 step files)"
+
 # review-checklist
 mkdir -p "$CLAUDE_DIR/workflows/review-checklist/steps-c"
 mkdir -p "$CLAUDE_DIR/workflows/review-checklist/steps-e"
@@ -80,12 +86,14 @@ cp "$SCRIPT_DIR/commands/bmad-grr-review-checklist.md" "$CLAUDE_DIR/commands/"
 cp "$SCRIPT_DIR/commands/bmad-grr-bug-hunt.md" "$CLAUDE_DIR/commands/"
 cp "$SCRIPT_DIR/commands/bmad-grr-set-worktree.md" "$CLAUDE_DIR/commands/"
 cp "$SCRIPT_DIR/commands/bmad-grr-pr-create.md" "$CLAUDE_DIR/commands/"
+cp "$SCRIPT_DIR/commands/bmad-grr-refine-story.md" "$CLAUDE_DIR/commands/"
 echo "  - /bmad-grr-dev-story command"
 echo "  - /bmad-grr-code-review command"
 echo "  - /bmad-grr-review-checklist command"
 echo "  - /bmad-grr-bug-hunt command"
 echo "  - /bmad-grr-set-worktree command"
 echo "  - /bmad-grr-pr-create command"
+echo "  - /bmad-grr-refine-story command"
 
 echo ""
 echo "=== Installation Complete! ==="
@@ -97,5 +105,6 @@ echo "  /bmad-grr-review-checklist   - Generate/edit/validate code review checkl
 echo "  /bmad-grr-bug-hunt           - Systematic debugging with escalation levels"
 echo "  /bmad-grr-set-worktree       - Multi-repo worktree workspace setup"
 echo "  /bmad-grr-pr-create          - PR lifecycle management with split & merge tracking"
+echo "  /bmad-grr-refine-story       - Story refinement after dev-story with dev-story chaining"
 echo ""
 echo "Requirement: Project must have BMAD Method installed (config.yaml required)"
