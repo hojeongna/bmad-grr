@@ -74,6 +74,29 @@ Ask the user:
 - Do NOT assume an answer — the user must explicitly choose
 - After story status is handled, proceed to step 2 (Completion Summary)
 
+### 1b. Reflect Code Review Changes to Story Documents
+
+**After status update, for EACH story document:**
+
+**Step A: Load and Analyze**
+- Load the story document completely using Read tool
+- Gather code review findings (from step-04 report) and applied fixes (from step-05 results)
+- Identify which changes are relevant to this specific story
+
+**Step B: Update Existing Plans That Changed**
+- If code review fixes changed implementation approach, data flow, file structure, or architecture described in the story → update those sections directly in the story document
+- Keep the story document consistent with the actual code state after review
+
+**Step C: Append Additional Changes**
+- Look for an existing section that records changes (e.g., "## Changes", "## Notes", "## Review Notes", "## Code Review Changes")
+- **If found →** append code review changes there
+- **If not found →** append a new `## Code Review Changes` section at the end with:
+  - Date
+  - Files modified and summary of changes per file
+  - Checklist items that triggered the changes
+
+**Repeat for all story documents if multiple exist.**
+
 ### 2. Completion Summary
 
 "**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
@@ -107,6 +130,7 @@ Workflow complete. Remain available for user questions.
 - Story status updated to "done" (when story_file is known)
 - User asked about story document (when review_source != "story")
 - Sprint status updated (when story-based and sprint file exists)
+- Code review changes reflected in each story document (plans updated + changes appended)
 - Clear completion summary presented with all metrics
 - Next steps suggested
 
@@ -115,7 +139,9 @@ Workflow complete. Remain available for user questions.
 - Not updating story status when story_file is known
 - Not asking user about story document when review_source != "story"
 - Corrupting sprint-status.yaml comments or structure
+- Not reflecting code review changes in story documents
+- Only updating status without writing review changes to story
 - Incomplete summary missing key metrics
 - Making code changes in this step
 
-**Master Rule:** Always handle story status — update if known, ASK if not. Skipping both is SYSTEM FAILURE.
+**Master Rule:** Always handle story status — update if known, ASK if not. After status update, ALWAYS reflect code review changes into story documents. Skipping either is SYSTEM FAILURE.

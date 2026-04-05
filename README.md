@@ -30,6 +30,7 @@ Checklist-based code review — zero subjective judgment allowed.
 - **Priority Classification**: HIGH / MEDIUM / LOW for every finding
 - **Scope Classification**: SMALL / LARGE for every finding
 - **3 Review Sources**: Story document / git diff / manual file list
+- **Story Document Reflection**: After review, updates story documents with actual changes — modified plans are updated in-place, additional changes are appended
 
 ### 3. review-checklist
 
@@ -251,6 +252,7 @@ step-05-fix (parallel)
     ↓
 step-06-complete (END)
     │ Update story status (if story-based)
+    │ Reflect review changes into story documents
     │ Completion summary
 ```
 
