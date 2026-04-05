@@ -7,6 +7,7 @@ nextStepFile: './step-04-execute.md'
 advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
 partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
 brainstormingTask: '{project-root}/_bmad/core/tasks/brainstorming.xml'
+engReviewSkill: '~/.claude/skills/gstack/plan-eng-review/SKILL.md'
 ---
 
 # Step 3: Analysis & Decision
@@ -109,6 +110,25 @@ Present the decision for each story:
 **전체 접근 방향:**
 - 기존 수정: {count}개 스토리
 - 신규 생성: {count}개 스토리"
+
+### 2b. Architecture Impact Analysis (gstack)
+
+**IF {engReviewSkill} exists (gstack installed) AND changes involve architectural modifications:**
+
+Load {engReviewSkill} via Read tool and follow its directives to assess impact:
+
+- **Scope Challenge:** Are proposed changes over-engineered? Is there simpler existing code to reuse?
+- **Failure Scenarios:** For each proposed code change, identify one realistic production failure
+- **Cross-Story Impact:** Could these changes break other stories in the same epic?
+- **Test Coverage Gap:** Map proposed changes to required test coverage
+
+"**Architecture Impact:**
+- **Complexity assessment:** {simple/moderate/high}
+- **Failure risks:** {list}
+- **Cross-story impact:** {none/list of affected stories}
+- **Test coverage needed:** {summary}"
+
+**IF {engReviewSkill} does NOT exist:** Skip this section.
 
 ### 3. Propose Specific Changes
 

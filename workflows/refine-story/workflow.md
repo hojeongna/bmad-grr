@@ -16,6 +16,10 @@ project_context: "**/project-context.md"
 
 # Workflow chaining
 dev_story_command: "{project-root}/bmad-grr/commands/bmad-grr-dev-story.md"
+
+# gstack skill dependencies (OPTIONAL - loaded when conditions met)
+qa_skill: "~/.claude/skills/gstack/qa/SKILL.md"
+eng_review_skill: "~/.claude/skills/gstack/plan-eng-review/SKILL.md"
 ---
 
 # Refine Story

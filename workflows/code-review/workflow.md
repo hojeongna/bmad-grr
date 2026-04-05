@@ -20,6 +20,10 @@ project_context: "**/project-context.md"
 
 # External skill dependencies
 parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
+
+# gstack skill dependencies (OPTIONAL - loaded when conditions met)
+review_skill: "~/.claude/skills/gstack/review/SKILL.md"
+cso_skill: "~/.claude/skills/gstack/cso/SKILL.md"
 ---
 
 # Code Review

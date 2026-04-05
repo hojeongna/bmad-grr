@@ -3,6 +3,7 @@ name: 'step-02-verify'
 description: 'Optionally verify issues visually using browser tools before analysis'
 
 nextStepFile: './step-03-analyze.md'
+qaSkill: '~/.claude/skills/gstack/qa/SKILL.md'
 ---
 
 # Step 2: Visual Verification (Optional)
@@ -90,6 +91,14 @@ Optionally verify the reported issues or improvement areas by visually inspectin
 
 ### 4. Visual Inspection
 
+**IF {qaSkill} exists (gstack installed):**
+Load {qaSkill} via Read tool and follow its diff-aware QA methodology:
+- Focus testing on pages/routes affected by the reported changes
+- Use the 8-category health score rubric (Console, Links, Visual, Functional, UX, Performance, Content, Accessibility)
+- Capture before/after screenshot evidence for each finding
+- One commit per fix if fixes are needed
+
+**IF {qaSkill} does NOT exist:**
 Using Chrome DevTools MCP or Playwright MCP (whichever is available):
 
 1. Navigate to the specified URL

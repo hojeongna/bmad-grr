@@ -4,6 +4,7 @@ description: 'Aggregate review results, assign priorities, and present code revi
 
 fixStepFile: '~/.claude/workflows/code-review/steps-c/step-05-fix.md'
 completeStepFile: '~/.claude/workflows/code-review/steps-c/step-06-complete.md'
+reviewSkill: '~/.claude/skills/gstack/review/SKILL.md'
 ---
 
 # Step 4: Report — Aggregate Results and Present Findings
@@ -87,7 +88,25 @@ If zero violations found:
 
 Auto-proceed: immediately load, read entire file, then execute {completeStepFile}
 
-### 5. Ask About Fixes (only if violations exist)
+### 5. Scope Drift Detection (gstack)
+
+**IF {reviewSkill} exists (gstack installed) AND review_source == "story":**
+
+Load {reviewSkill} via Read tool and follow its scope drift detection directives:
+
+- Compare the git diff against the story's AC and Tasks — did we build exactly what was planned?
+- Flag **scope drift**: features added beyond story scope, or AC items not fully addressed
+- Flag **missing requirements**: planned items that don't appear in the diff
+- Check for SQL safety, race conditions, LLM trust boundary violations if applicable
+
+"**Scope Drift Analysis:**
+- **Drift detected:** {none / list of drifts}
+- **Missing from plan:** {none / list of gaps}
+- **Safety concerns:** {none / list}"
+
+**IF {reviewSkill} does NOT exist OR review_source != "story":** Skip this section.
+
+### 6. Ask About Fixes (only if violations exist)
 
 "**Would you like to fix the violations?**
 **[F]** Full — Fix all findings unconditionally

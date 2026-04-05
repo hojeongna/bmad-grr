@@ -1,6 +1,8 @@
 ---
 name: 'step-06-complete'
 description: 'Update story status if applicable, ask for story if unknown, and present completion summary'
+
+csoSkill: '~/.claude/skills/gstack/cso/SKILL.md'
 ---
 
 # Step 6: Complete — Final Summary and Status Update
@@ -97,7 +99,24 @@ Ask the user:
 
 **Repeat for all story documents if multiple exist.**
 
-### 2. Completion Summary
+### 2. Security Audit (gstack)
+
+**IF {csoSkill} exists (gstack installed):**
+
+Load {csoSkill} via Read tool and follow its directives for a focused security check on the reviewed files:
+
+- Check for OWASP Top 10 vulnerabilities in changed code (SQL injection, XSS, CSRF, etc.)
+- Scan for hardcoded secrets or credentials
+- Verify input validation on system boundaries
+- Flag any security findings with concrete exploit scenarios
+
+"**Security Check:**
+- **Findings:** {count} ({critical_count} critical, {warning_count} warnings)
+{for each finding: - {severity}: {description} in {file}:{line}}"
+
+**IF {csoSkill} does NOT exist:** Skip this section.
+
+### 3. Completion Summary
 
 "**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
 **Code Review Complete!**
