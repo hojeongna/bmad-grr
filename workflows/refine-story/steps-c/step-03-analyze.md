@@ -6,7 +6,7 @@ nextStepFile: './step-04-execute.md'
 
 advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
 partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
-brainstormingTask: '{project-root}/_bmad/core/tasks/brainstorming.xml'
+brainstormingWorkflow: '{project-root}/_bmad/core/workflows/brainstorming/workflow.md'
 engReviewSkill: '~/.claude/skills/gstack/plan-eng-review/SKILL.md'
 ---
 
@@ -130,6 +130,21 @@ Load {engReviewSkill} via Read tool and follow its directives to assess impact:
 
 **IF {engReviewSkill} does NOT exist:** Skip this section.
 
+### 2c. Root Cause Analysis (gstack/investigate — OPTIONAL)
+
+**IF `{investigate_skill}` exists AND the gap's root cause is NOT obvious from the Architecture Impact Analysis above:** Load the FULL file via Read tool and apply its 4-phase systematic debugging framework to understand WHY this gap arose in the first place:
+
+1. **Investigate** — What evidence do we have? What was the expected state (from story) vs actual state (from implementation)? What changed between story creation and now?
+2. **Analyze** — Pattern match against common root causes: race conditions, nil propagation, stale state, config drift, integration failures, AC ambiguity, hidden dependencies, framework behavior misunderstanding
+3. **Hypothesize** — Form ONE clear hypothesis about WHY the gap emerged (was an AC misread? A hidden dependency missed? A state management issue? An API contract change?)
+4. **Implement** — Incorporate the root cause understanding into the refinement proposal. **This is still planning — no code changes here.** The refined AC/Tasks should address the root cause, not just the symptom surface.
+
+Capture as `root_cause_notes` — 2-3 concise bullets explaining the why. These get written into Dev Notes "Refinement" subsection in step-04.
+
+**IF the gap's root cause IS obvious** (e.g., user-confirmed visual finding from step-02, simple additive scope change): Skip this section — no need to invoke investigate.
+
+**IF `{investigate_skill}` does NOT exist:** Silently skip.
+
 ### 3. Propose Specific Changes
 
 For each story being modified, outline specific changes:
@@ -175,7 +190,7 @@ Display: **Select an Option:** [A] Advanced Elicitation [P] Party Mode [B] Brain
 
 - IF A: Execute {advancedElicitationTask}, and when finished redisplay the menu
 - IF P: Execute {partyModeWorkflow}, and when finished redisplay the menu
-- IF B: Execute {brainstormingTask}, and when finished redisplay the menu
+- IF B: Execute {brainstormingWorkflow}, and when finished redisplay the menu
 - IF C: Load, read entire file, then execute {nextStepFile}
 - IF Any other comments or queries: help user respond then [Redisplay Menu Options](#5-present-menu-options)
 

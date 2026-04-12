@@ -1,8 +1,9 @@
 ---
 name: 'step-06-complete'
-description: 'Verify all PRs merged and complete the workflow'
+description: 'Verify all PRs merged, run post-merge health check, save PR learnings to gstack/learn, present completion summary'
 
 healthSkill: '~/.claude/skills/gstack/health/SKILL.md'
+learnSkill: '~/.claude/skills/gstack/learn/SKILL.md'
 ---
 
 # Step 6: Completion
@@ -73,7 +74,35 @@ Load {healthSkill} via Read tool and run a health check on each merged repo:
 
 {if any score < 7: ⚠️ Health degradation detected}"
 
-**IF {healthSkill} does NOT exist:** Skip to completion summary.
+**IF {healthSkill} does NOT exist:** Skip to next section.
+
+### 3b. Save PR Learnings (gstack/learn — OPTIONAL)
+
+**IF `{learnSkill}` exists (gstack installed):** PR lifecycles reveal reusable patterns and pitfalls — save them so future `pr-create` runs benefit.
+
+Load the FULL `{learnSkill}` file via Read tool, then save 1-3 distinct learning entries based on what this PR cycle revealed:
+
+**Candidates for learning entries:**
+
+- **PR splitting pattern** (type `pattern`) — e.g., "Schema migrations should be their own PR separate from code changes that depend on them, to allow independent rollback"
+- **Test failure pattern** (type `pitfall`) — e.g., "Local tests pass but CI fails due to missing env var X — always verify CI env before pushing"
+- **Merge timing learning** (type `preference`) — e.g., "This project prefers squash-merges for feature PRs, merge commits for release PRs"
+- **Review friction** (type `pitfall`) — e.g., "PRs over 500 lines consistently get bounced — split more aggressively"
+- **Operational learning** (type `operational`) — e.g., "CI takes ~8min — batch related PRs to avoid wasted CI runs"
+
+Each entry:
+
+- **key**: short kebab-case (e.g., `schema-migration-separate-pr`)
+- **insight**: one-sentence lesson (the *why*, not the specific fix)
+- **confidence**: 6-10 based on how reproducible the pattern is
+- **files**: relevant state file or mapping document path
+- **source**: `pr-create`
+
+Do NOT log obvious, one-off, or trivially documented learnings — only genuine reusable insights. Bar: "Would knowing this save 5+ minutes on the next PR cycle?"
+
+"**PR learnings saved** ({n} entries) — future PR cycles will see these patterns."
+
+**IF `{learnSkill}` does NOT exist:** Silently skip.
 
 ### 4. Present Completion Summary
 
@@ -97,7 +126,7 @@ Load {healthSkill} via Read tool and run a health check on each merged repo:
 
 **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**"
 
-### 4. Workflow Complete
+### 5. Workflow Complete
 
 This is the final step. No next step to load.
 

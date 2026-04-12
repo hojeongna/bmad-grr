@@ -64,6 +64,13 @@ Apply the fixScope from step-04:
 - **fixScope='SMALL'**: Include only SMALL scope findings (any priority)
 - **fixScope='HIGH'**: Include only HIGH priority findings (any scope)
 
+**If `includeAuxiliary` is true (user selected +A in step-04):**
+- Add `review_auxiliary_findings` and `cso_auxiliary_findings` to the fix queue
+- Auxiliary findings are clearly tagged as `[AUX]` in agent prompts so agents know these are NOT checklist items
+- Apply the same fixScope filter to auxiliary findings (e.g., if fixScope='HIGH', only include HIGH-priority auxiliary findings)
+
+**If `includeAuxiliary` is false or not set:** Only primary checklist findings are included.
+
 Group filtered findings by file.
 
 Present fix plan:

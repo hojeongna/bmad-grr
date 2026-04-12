@@ -133,6 +133,112 @@ Rules:
 - Prioritize items that catch real bugs over style preferences
 - Return ONLY the structured checklist items"
 
+**Agent S — Security Checklist (AUTO-ENABLED IF gstack/cso installed):**
+
+**IF `{csoSkill}` exists:** Load the FULL file via Read tool. Internalize its Chief Security Officer framework (OWASP Top 10, STRIDE, secrets archaeology, dependency supply chain, LLM-specific security).
+
+Prompt must include:
+
+1. Tech stack (from step-01)
+2. The full cso framework (you just loaded it)
+3. Instruction: "Using the cso skill framework you internalized, generate a dedicated **Security** category of checklist items. Cover: input validation, injection attacks (SQL, XSS, command, LDAP, template), authentication/authorization, session management, secrets handling (env vars, key rotation, accidental commits), dependency supply chain risks, CI/CD pipeline security, LLM-specific security (prompt injection, tool trust boundaries), CSRF, SSRF, file upload safety, and STRIDE-derived items relevant to the tech stack.
+
+Output format:
+```
+## Security
+- [ ] [Specific verifiable security checklist item]
+```
+
+Rules:
+- Items must be objectively verifiable (pass/fail by reading code or running a specific tool/command)
+- Ground each item in a specific threat (e.g., 'Prevents SQL injection via parameterized queries' not 'Is secure')
+- Include items specific to the tech stack's common vulnerabilities
+- Prioritize high-severity OWASP items
+- Return ONLY the structured checklist items"
+
+**IF `{csoSkill}` does NOT exist:** Skip Agent S silently.
+
+**Agent R — Structural Review Checklist (AUTO-ENABLED IF gstack/review installed):**
+
+**IF `{reviewSkill}` exists:** Load the FULL file via Read tool. Internalize its pre-landing review framework (SQL safety, LLM trust boundary, conditional side effects, scope drift, structural coupling).
+
+Prompt must include:
+
+1. Tech stack (from step-01)
+2. The full review framework (you just loaded it)
+3. Instruction: "Using the review skill framework you internalized, generate a dedicated **Structural** category of checklist items for issues that are hard to catch line-by-line. Cover: SQL safety, race conditions, LLM trust boundary violations, conditional side effects spanning multiple files, coupling/layering violations, dependency inversion, null propagation pitfalls, error rescue maps.
+
+Output format:
+```
+## Structural
+- [ ] [Specific verifiable structural checklist item]
+```
+
+Rules:
+- Each item must be objectively verifiable by a reviewer
+- Focus on issues that catch real bugs in production (not style)
+- Return ONLY the structured checklist items"
+
+**IF `{reviewSkill}` does NOT exist:** Skip Agent R silently.
+
+**Agent L — Learnings-Based Checklist (AUTO-ENABLED IF gstack/learn installed):**
+
+**IF `{learnSkill}` exists:** Load the FULL file via Read tool. Then retrieve ALL project learnings of type `architecture`, `pattern`, and `pitfall` via its search/export capability.
+
+Prompt must include:
+
+1. Project slug (from `gstack-slug`)
+2. Exported learnings data
+3. Instruction: "Using the retrieved project learnings, generate a dedicated **Project-Specific Rules** category of checklist items. Each item must enforce a lesson the team has already captured — this is how the project's institutional knowledge becomes automated review coverage.
+
+Output format:
+```
+## Project-Specific Rules (from prior learnings)
+- [ ] [Checklist item derived from learning {learning_key}] (learning: {learning_key}, confidence: {N}/10)
+```
+
+Rules:
+- Every item must map to a specific learning entry — include the learning key for traceability
+- High-confidence learnings (8+): phrase as hard rules ('MUST', 'NEVER')
+- Lower-confidence learnings: phrase as recommendations ('SHOULD', 'AVOID')
+- Skip operational learnings that aren't code-review-relevant (e.g., 'use X CLI flag')
+- Include the team's actual language from the learning when possible
+- Return ONLY the structured checklist items with learning key references"
+
+**IF `{learnSkill}` does NOT exist:** Skip Agent L silently. (This is the source of real project intelligence — strongly recommend installing gstack for full value.)
+
+**Agent Au — Technical Audit Checklist (AUTO-ENABLED IF gstack/audit installed):**
+
+**IF `{auditSkill}` exists:** Load the FULL file via Read tool. Internalize its accessibility / performance / theming / responsive / anti-pattern framework.
+
+Prompt must include:
+
+1. Tech stack (from step-01)
+2. The full audit framework (you just loaded it)
+3. Instruction: "Using the audit skill framework you internalized, generate dedicated checklist categories for **Accessibility** (WCAG 2.x AA), **Performance** (Core Web Vitals, bundle size, rendering), **Theming** (design token consistency), **Responsive** (breakpoints, touch targets), and **Anti-patterns**.
+
+Output format:
+```
+## Accessibility
+- [ ] [Specific verifiable a11y item with WCAG reference if applicable]
+
+## Performance
+- [ ] [Specific verifiable perf item with measurable threshold where possible]
+
+## Theming
+- [ ] [Specific verifiable theming consistency item]
+
+## Responsive
+- [ ] [Specific verifiable responsive design item]
+```
+
+Rules:
+- Every item must be objectively verifiable
+- Include measurable thresholds where possible (e.g., 'Bundle size under 200KB gzipped', 'LCP under 2.5s')
+- Return ONLY the structured checklist items"
+
+**IF `{auditSkill}` does NOT exist:** Skip Agent Au silently.
+
 ### 3. Dispatch Agents
 
 - Dispatch agents using the Agent tool — one agent per selected automatic mode

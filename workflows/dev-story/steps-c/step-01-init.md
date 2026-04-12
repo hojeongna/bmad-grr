@@ -102,6 +102,28 @@ HALT and wait for user response.
 **If no incomplete tasks:** Story is already complete — inform user and HALT.
 **If story file inaccessible:** HALT: "Cannot develop story without access to story file"
 
+### 3b. Query Prior Learnings (gstack/learn — OPTIONAL)
+
+**IF `{learn_skill}` exists (gstack installed):** Before writing any implementation code, check what the project has already learned about the area this story touches.
+
+Load the FULL `{learn_skill}` file via Read tool and invoke its search capability using keywords derived from:
+
+- Story title and key
+- Touchpoint files mentioned in Dev Notes
+- Domain area (auth, payment, API, UI, data, integration, etc.)
+
+Focus on entries of type `architecture`, `pattern`, and `pitfall` — these bind the implementation:
+
+- `architecture` — project-wide architectural rules to respect (don't violate)
+- `pattern` — reusable implementation patterns to follow (don't reinvent)
+- `pitfall` — known traps to avoid (don't repeat past mistakes)
+
+Capture as `prior_learnings` in context. These should influence implementation decisions throughout step-04 — **the TDD skill rules still govern HOW to implement (RED-GREEN-REFACTOR is non-negotiable), but prior_learnings inform WHAT patterns to apply and WHAT pitfalls to avoid within that TDD cycle.**
+
+"**Prior learnings loaded** ({n} relevant entries) — implementation will respect these."
+
+**IF `{learn_skill}` does NOT exist:** Silently skip. (Strongly recommend installing gstack for full project intelligence.)
+
 ### 4. Load TDD Skill (CRITICAL)
 
 **This is non-negotiable. You MUST load the TDD skill before any implementation begins.**

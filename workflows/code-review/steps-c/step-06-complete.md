@@ -131,14 +131,15 @@ Load {csoSkill} via Read tool and follow its directives for a focused security c
 
 **━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**"
 
-### 3. Suggest Next Steps
+### 4. Suggest Next Steps
 
 "**Next steps:**
 - Review and test the modified code
 - Update the checklist if new items need to be added
-{{IF story updated: - Check the sprint-status}}"
+{{IF story updated: - Check the sprint-status}}
+- **If UI changes were involved**, run `/bmad-grr-design-pass {url}` on the live result for a UX audit and improvement proposal (design-pass Branch B)"
 
-### 4. End
+### 5. End
 
 Workflow complete. Remain available for user questions.
 

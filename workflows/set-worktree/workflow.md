@@ -13,8 +13,19 @@ date: system-generated
 # Workflow components
 installed_path: "~/.claude/workflows/set-worktree"
 
+# Story and sprint references
+implementation_artifacts: "{config_source}:implementation_artifacts"
+sprint_status: "{implementation_artifacts}/sprint-status.yaml"
+project_context: "**/project-context.md"
+
 # External skill dependencies
 parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
+
+# gstack skill dependencies (OPTIONAL - loaded when conditions met)
+guard_skill: "~/.claude/skills/gstack/guard/SKILL.md"              # careful + freeze combined (P0)
+freeze_skill: "~/.claude/skills/gstack/freeze/SKILL.md"             # directory edit boundary (P1)
+checkpoint_skill: "~/.claude/skills/gstack/checkpoint/SKILL.md"     # initial state checkpoint (P2)
+learn_skill: "~/.claude/skills/gstack/learn/SKILL.md"               # past worktree lessons (P2)
 ---
 
 # Set Worktree
@@ -51,6 +62,17 @@ parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
 - ⏸️ **ALWAYS** halt at menus and wait for user input
 - 📋 **NEVER** create mental todo lists from future steps
 - ✅ **ALWAYS** communicate in {communication_language}
+
+### External Skill Loading Protocol
+
+When a step instructs you to load a skill (gstack, superpowers, or any other external skill):
+
+1. Use Read tool to load the FULL skill file from the specified path
+2. Read the skill completely before acting — internalize its directives, voice, and decision framework
+3. Follow the skill's directives EXACTLY as written
+4. Do NOT summarize, abbreviate, or skip any of the skill's rules
+5. The skill's rules override any conflicting inline instructions within the scope where it was loaded
+6. **IF the skill file does not exist (gstack/superpowers not installed):** Emit a clear warning ("⚠️ `{skill_name}` not installed — reduced quality for {purpose}. Install gstack to enable.") and continue the workflow gracefully. Never fail, never silently skip.
 
 ---
 

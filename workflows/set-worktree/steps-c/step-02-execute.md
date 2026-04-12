@@ -59,6 +59,30 @@ To execute all git operations in parallel: clone each repository, set up worktre
 
 Load and read `{parallel_agents_skill}` completely. This skill governs how to dispatch sub-agents for parallel work.
 
+### 1b. Load Safety Guard (gstack/guard — OPTIONAL)
+
+**IF `{guard_skill}` exists (gstack installed):** Load the FULL file via Read tool. Internalize its combined safety framework:
+
+- **careful** portion — Warns before destructive git commands (`git reset --hard`, force-push to main, `git checkout .`, `rm -rf`, etc.), with per-command override
+- **freeze** portion — Directory-scoped edit boundaries (concept internalized now, applied later in step-03 if user wants to focus on one worktree)
+
+For this step specifically, apply the **careful** portion of guard: before executing any `git clone`, `git checkout`, or branch creation in section 2, mentally check each command against the careful safety rules:
+
+- Is the target folder already present with uncommitted work?
+- Does the new branch name collide with an existing branch?
+- Is the current working directory dirty (uncommitted changes that could be lost)?
+- Is the branch base a protected branch (main/master) that shouldn't be force-checked-out?
+
+**If any check fails**: HALT and ask the user before proceeding. Do NOT silently overwrite or reset.
+
+**IF `{guard_skill}` does NOT exist:** Apply common-sense safety checks inline:
+
+- Check if target folders already exist (`ls` or `test -d`)
+- Check if branches already exist locally or remotely (`git branch -a | grep`)
+- Check working tree cleanliness on current worktree before creating new ones (`git status --porcelain`)
+
+Continue without the formal gstack framework.
+
 ### 2. Execute Parallel Clone & Branch Setup
 
 **For EACH repo from step-01's confirmed plan, launch a sub-agent that performs:**

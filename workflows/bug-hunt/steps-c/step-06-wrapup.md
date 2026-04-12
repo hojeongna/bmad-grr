@@ -161,6 +161,29 @@ debugLogs: []  # All removed
 stepsCompleted: [..., 'step-06-wrapup']
 ```
 
+### 5b. Save Bug Learning (gstack/learn — OPTIONAL)
+
+**IF `{learn_skill}` exists (gstack installed):** Save the distilled lesson from this bug hunt so future sessions can benefit from this experience.
+
+Load the FULL `{learn_skill}` file via Read tool, then use its `learn add` capability (or the `gstack-learnings-log` binary directly) to persist a learning entry:
+
+- **type**: `pitfall` (for bug-related learning) OR `pattern` (if the root cause revealed a reusable pattern)
+- **key**: short kebab-case key describing the lesson (e.g., `auth-token-refresh-race`, `async-state-stale-closure`)
+- **insight**: ONE SENTENCE describing the root cause and the fix principle. Focus on the *why* and *how* so future agents recognize the pattern, NOT the specific line change
+- **confidence**: judgment call based on how reproducible and how well understood the root cause is (1-10)
+- **files**: related files from the fix (so staleness detection can flag this entry if the files are deleted)
+- **source**: `bug-hunt`
+
+**Example entry:**
+
+> type: `pitfall` • key: `auth-token-refresh-race` • insight: "Token refresh runs concurrently with request retry — guard with a shared promise or mutex to avoid double refresh" • confidence: 8 • files: ["src/auth/refresh.ts"] • source: `bug-hunt`
+
+This entry becomes available to future `/learn search` calls, including step-01 of the next bug-hunt, dev-story, refine-story, and review-checklist generation. That's how the project gets smarter over time.
+
+"**Learning saved** ✓ — Future bug hunts will see this pattern in their prior-learnings query."
+
+**IF `{learn_skill}` does NOT exist:** Silently skip.
+
 ### 6. Final Summary
 
 "**Bug Hunt Complete! 🎉**

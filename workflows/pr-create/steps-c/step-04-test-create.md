@@ -1,9 +1,11 @@
 ---
 name: 'step-04-test-create'
-description: 'Run local tests, handle failures, and create or display PR commands'
+description: 'Run local tests, optional health check, optional ship metadata assist, pre-PR review gate, and create or display PR commands'
 
 nextStepFile: './step-05-merge-loop.md'
 reviewSkill: '~/.claude/skills/gstack/review/SKILL.md'
+healthSkill: '~/.claude/skills/gstack/health/SKILL.md'
+shipSkill: '~/.claude/skills/gstack/ship/SKILL.md'
 ---
 
 # Step 4: Test & Create PR
@@ -125,6 +127,54 @@ git push
 
 Re-run tests. Repeat until tests pass.
 
+### 4b. Code Health Check (gstack/health — OPTIONAL)
+
+**IF `{healthSkill}` exists (gstack installed):** Load the FULL file via Read tool and run its health check pipeline on the current PR's changed files/module:
+
+- Type checker pass
+- Linter pass
+- Test runner pass (already done above, but included in composite score)
+- Dead code detector
+- Shell linting (if applicable)
+
+Report the composite score:
+
+"**Code Health:** {score}/10
+- Types: {score}
+- Linting: {score}
+- Dead Code: {score}
+- Shell: {score}
+
+{if score < 7: ⚠️ Health score below threshold — consider addressing before opening PR}"
+
+**IF score < 7**: Surface issues to user and ask whether to fix before PR or proceed as-is (user decision).
+
+**IF `{healthSkill}` does NOT exist:** Skip silently.
+
+### 4c. Ship Metadata Assist (gstack/ship — OPTIONAL)
+
+**IF `{shipSkill}` exists (gstack installed):** Load the FULL file via Read tool. Use its CHANGELOG/VERSION logic to prepare PR metadata — we only borrow the metadata formatting, NOT the full ship workflow (grr pr-create remains the primary PR management):
+
+- Detect if the repo has a CHANGELOG.md
+- Compose a CHANGELOG entry for this PR's changes (following the repo's existing format)
+- Suggest VERSION bump if applicable (patch/minor/major based on change nature — additive feature = minor, bug fix = patch, breaking = major)
+- Propose conventional commit message format for the PR body if the repo uses conventional commits
+
+Present to user:
+
+"**Ship metadata prepared:** 📦
+- **CHANGELOG entry:** {entry}
+- **Version bump suggestion:** {patch/minor/major/none}
+- **PR body draft:** {draft}
+
+**Include this in the PR?**
+- **[Y]** Yes — use this for PR body and update CHANGELOG
+- **[N]** No — use manual PR body only"
+
+**IF Y**: Store as `pr_metadata` for section 6 (Create PR) to use.
+
+**IF `{shipSkill}` does NOT exist:** Skip silently.
+
 ### 5. Pre-PR Quality Gate (gstack)
 
 **IF {reviewSkill} exists (gstack installed):**
@@ -174,11 +224,11 @@ gh pr create --title \"{title}\" --body \"{body}\" --base {base}
 
 Let me know when you've created it."
 
-### 6. Update State File
+### 7. Update State File
 
 Update current PR status to OPEN. Record PR URL if available.
 
-### 7. Present MENU OPTIONS
+### 8. Present MENU OPTIONS
 
 Display: **[C] Continue to Merge Tracking**
 

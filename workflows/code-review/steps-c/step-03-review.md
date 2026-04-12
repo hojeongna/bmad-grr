@@ -1,9 +1,13 @@
 ---
 name: 'step-03-review'
-description: 'Load parallel agents skill and dispatch per-file review agents to review ONLY changed/added lines against checklist'
+description: 'Parallel per-file checklist review (PRIMARY), followed by optional holistic auxiliary review via gstack/review and gstack/cso (SECONDARY, clearly labeled, checklist-supreme)'
 
 nextStepFile: '~/.claude/workflows/code-review/steps-c/step-04-report.md'
 parallelAgentsSkill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
+
+# gstack auxiliary layer (OPTIONAL — secondary findings, NEVER override checklist)
+reviewSkill: '~/.claude/skills/gstack/review/SKILL.md'
+csoSkill: '~/.claude/skills/gstack/cso/SKILL.md'
 ---
 
 # Step 3: Parallel Diff-Level Review
@@ -73,14 +77,41 @@ For each file with diff content (collected in step-02), prepare an agent prompt 
 
 "**{{agent_count}} review agents dispatched. Reviewing changed lines...**"
 
-### 4. Collect Results
+### 4. Collect Primary Checklist Results
 
-When all agents return:
+When all per-file agents return:
+
 - Collect all findings from every agent
 - Group findings by checklist category
-- Verify each finding references a changed/added line (not unchanged code)
+- Verify each finding references a changed/added line AND a specific checklist item (this is the AUTHORITATIVE primary layer)
 - Note which files passed with no violations
-- Store the complete results for the report step
+- Store as `primary_findings` for the report step
+
+### 4b. Auxiliary Structural & Security Review (OPTIONAL — gstack/review + gstack/cso)
+
+> **🎖️ CHECKLIST SUPREMACY REMINDER:** The grr checklist is the **PRIMARY authority** for this workflow. Any findings from this auxiliary layer are **SECONDARY**, **informational**, and clearly separated in the report. If a gstack finding is not covered by a checklist item, it is NOT a checklist violation — it is auxiliary intelligence. The user decides in step-04 whether to act on auxiliary findings alongside primary. The checklist ALWAYS wins.
+
+**IF `{reviewSkill}` exists (gstack installed):** Load the **FULL** file via Read tool. Apply its pre-landing review framework holistically to the FULL diff (not per-file this time). Focus on issues that are hard to express as line-by-line checklist items:
+
+- SQL safety (injection, unsafe query construction)
+- LLM trust boundary violations
+- Conditional side effects spanning multiple files
+- Structural issues (coupling, layering, dependency inversion)
+- Scope drift vs the intended responsibility
+
+Collect as `review_auxiliary_findings` — each labeled "🔗 Auxiliary (gstack/review) — NOT in checklist".
+
+**IF `{csoSkill}` exists (gstack installed):** Load the **FULL** file via Read tool. Apply its Chief Security Officer framework holistically to the FULL diff:
+
+- OWASP Top 10 relevant categories
+- STRIDE threat modeling on the change
+- Secrets archaeology (accidental token/key commits)
+- Dependency supply chain risks
+- LLM-specific security (prompt injection, tool trust boundaries)
+
+Collect as `cso_auxiliary_findings` — each labeled "🔐 Auxiliary (gstack/cso) — NOT in checklist".
+
+**IF both skills missing:** Skip this section silently. No warning needed — this is purely auxiliary. The primary checklist review is complete without them.
 
 ### 5. Auto-Proceed
 

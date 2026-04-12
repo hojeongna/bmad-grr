@@ -1,9 +1,13 @@
 ---
 name: 'step-04b-architecture'
-description: 'Architecture review after 3+ hypothesis failures - document findings and reset approach'
+description: 'Architecture review after 3+ hypothesis failures - run module health baseline, document findings, reset approach'
 
 restartStepFile: './step-02-code-analysis.md'
+nextStepFile: './step-06-wrapup.md'
 stateFile: '{output_folder}/bug-hunt-{date}.state.md'
+healthSkill: '~/.claude/skills/gstack/health/SKILL.md'
+advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
+partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
 ---
 
 # Step 4b: Architecture Review
@@ -62,6 +66,35 @@ Read `{stateFile}` completely. Gather:
 - All escalation levels tried
 - All findings from code analysis, debug logs, web search
 - Debug logs currently in code
+
+### 1b. Module Health Baseline (gstack/health — OPTIONAL)
+
+**IF `{healthSkill}` exists (gstack installed):** Before questioning the architecture, establish an objective baseline of the module's current health. If the module is broadly unhealthy (not just the bug), the architecture review should account for that — maybe the bug is a symptom of larger rot.
+
+Load the FULL file via Read tool and run its health check pipeline scoped to the affected module(s):
+
+- Type checker (existing type errors?)
+- Linter (existing violations?)
+- Test runner (other tests failing, not just the bug?)
+- Dead code detector (dead paths interfering with this flow?)
+- Shell linting (if applicable)
+
+Report:
+
+"**Module Health Baseline:** {score}/10
+- Types: {score}
+- Linting: {score}
+- Tests: {score}
+- Dead Code: {score}
+
+**Interpretation:**
+{if score ≥ 8: '✅ Module is healthy — bug is likely isolated. Architecture review should focus on the specific flow.'}
+{if score 5-7: '⚠️ Module has several issues — consider whether the bug is a symptom of broader drift.'}
+{if score < 5: '🚨 Module is broadly unhealthy — architecture review should seriously consider larger refactoring, not just this bug.'}"
+
+Store as `health_baseline` in state — the architecture discussion in section 3 should reference this.
+
+**IF `{healthSkill}` does NOT exist:** Skip silently — architecture review proceeds without objective baseline.
 
 ### 2. Present Failed Attempts Summary
 
@@ -151,9 +184,24 @@ Append to Investigation Log.
 
 ### 7. Present MENU OPTIONS
 
+**Check `architectureReviews` count in state file.**
+
+**IF this is the 2nd or later architecture review (architectureReviews.length >= 2):**
+
+Display: "**⚠️ This is architecture review #{N}. We've exhausted multiple approaches.**
+
+**Select:**
+[C] Continue — Restart from Level 1 with new direction (another attempt)
+[U] Unresolved — Close as unresolved, document what we know for future investigation
+[A] Advanced Elicitation [P] Party Mode"
+
+**IF this is the 1st architecture review:**
+
 Display: "**Architecture review complete! Documented. Restarting from Level 1 (code analysis) with new direction.**
 
-**Select:** [C] Continue - Restart from Step 02"
+**Select:**
+[C] Continue — Restart from Step 02
+[A] Advanced Elicitation [P] Party Mode"
 
 #### EXECUTION RULES:
 
@@ -163,6 +211,9 @@ Display: "**Architecture review complete! Documented. Restarting from Level 1 (c
 #### Menu Handling Logic:
 
 - IF C: Update state file, then load, read entire file, then execute {restartStepFile}
+- IF U: Update state file with `status: UNRESOLVED`, then load, read entire file, then execute {nextStepFile} (step-06-wrapup) — wrapup will document as unresolved
+- IF A: Execute {advancedElicitationTask}, and when finished redisplay the menu
+- IF P: Execute {partyModeWorkflow}, and when finished redisplay the menu
 - IF Any other: help user, then redisplay menu
 
 ---

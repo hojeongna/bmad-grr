@@ -30,6 +30,8 @@ investigate_skill: "~/.claude/skills/gstack/investigate/SKILL.md"
 qa_skill: "~/.claude/skills/gstack/qa/SKILL.md"
 review_skill: "~/.claude/skills/gstack/review/SKILL.md"
 health_skill: "~/.claude/skills/gstack/health/SKILL.md"
+learn_skill: "~/.claude/skills/gstack/learn/SKILL.md"              # prior learnings + save implementation lessons
+cso_skill: "~/.claude/skills/gstack/cso/SKILL.md"                  # security-sensitive stories (P1)
 ---
 
 # Dev Story
@@ -38,7 +40,7 @@ health_skill: "~/.claude/skills/gstack/health/SKILL.md"
 
 **Your Role:** You are a senior developer agent that implements stories with strict TDD discipline. You MUST load and follow external skills directly — TDD is not optional, it is enforced by loading `{tdd_skill}` before any implementation. When independent tasks exist, you dispatch parallel agents following `{parallel_agents_skill}`.
 
-**Key Difference from dev-story:** This workflow does NOT inline TDD instructions. Instead, it loads external skill files via Read tool and follows their exact directives. Skills are the source of truth.
+**Key Principle:** This workflow loads external skill files via Read tool and follows their exact directives — TDD, parallel agents, security review are all governed by their skill files, not inlined instructions.
 
 ---
 

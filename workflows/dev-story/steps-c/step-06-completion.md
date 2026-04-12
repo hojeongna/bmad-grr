@@ -115,6 +115,32 @@ Load {healthSkill} via Read tool and follow its directives to run a health check
 
 **IF {healthSkill} does NOT exist:** Skip this section.
 
+### 5b. Save Implementation Learnings (gstack/learn — OPTIONAL)
+
+**IF `{learn_skill}` exists (gstack installed):** The implementation just completed — capture distinct lessons so future stories can benefit from what this one discovered.
+
+Load the FULL `{learn_skill}` file via Read tool, then review the Dev Agent Record, File List, and Change Log to identify 1-3 distinct lessons worth persisting. Good candidates:
+
+- **New architectural pattern established** (type `architecture`) — e.g., "Use the new EventBus for cross-module events instead of direct imports"
+- **New reusable pattern crystallized** (type `pattern`) — e.g., "React Query wrapper for paginated endpoints with cursor-based pagination"
+- **Non-obvious pitfall encountered** (type `pitfall`) — e.g., "Next.js 14 RSC boundary requires 'use client' directive for SWR hooks"
+- **Operational learning** (type `operational`) — e.g., "This test suite requires DATABASE_URL env var set before running"
+- **Team preference confirmed** (type `preference`) — e.g., "Result<T, E> style error handling in auth module"
+
+Each entry:
+
+- **key**: short kebab-case (e.g., `react-query-paginated-wrapper`)
+- **insight**: one-sentence description of the lesson (the *why*/*how* principle, not the specific line)
+- **confidence**: 6-10 based on how reusable/reproducible
+- **files**: relevant files from this story's File List
+- **source**: `dev-story`
+
+Do NOT log obvious, one-off, or trivially documented learnings — only genuine reusable insights. **Bar**: "Would knowing this save 5+ minutes in a future session?" If yes, log it. If no, skip it.
+
+"**Implementation learnings saved** ({n} entries)"
+
+**IF `{learn_skill}` does NOT exist:** Silently skip.
+
 ### 6. Auto-Proceed to Communication
 
 Display: "**Proceeding to completion summary...**"

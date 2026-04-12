@@ -40,9 +40,10 @@ cso_skill: "~/.claude/skills/gstack/cso/SKILL.md"
 
 ### Core Principles
 
-- **Checklist Authority**: The checklist md file is the sole basis for all review findings
-- **No Subjective Judgment**: If it's not in the checklist, don't flag it
-- **Parallel Review**: Each file is reviewed independently by a separate agent
+- **Checklist Supremacy**: The checklist md file is the PRIMARY and AUTHORITATIVE source of findings. No subjective "good code" judgments allowed in the primary layer.
+- **Auxiliary Intelligence Layer (optional)**: When `gstack/review` or `gstack/cso` are installed, they run as a SECONDARY layer producing auxiliary findings — clearly labeled, separated from primary, and informational only. They do NOT override the checklist, and they do NOT count as checklist violations.
+- **No Subjective Judgment in Primary**: If it's not in the checklist, it's not a primary finding (auxiliary findings are a separate category)
+- **Parallel Review**: Each file is reviewed independently by a separate agent against the checklist
 - **Micro-file Design**: Each step is a self-contained instruction file
 - **Just-In-Time Loading**: Only the current step file is in memory
 
@@ -56,10 +57,12 @@ cso_skill: "~/.claude/skills/gstack/cso/SKILL.md"
 ### Critical Rules (NO EXCEPTIONS)
 
 - 🛑 **NEVER** proceed without a checklist — HALT immediately
-- 🚫 **NEVER** make findings not grounded in checklist items
+- 🎖️ **CHECKLIST SUPREMACY**: The checklist is the PRIMARY authority. Primary findings MUST reference a specific checklist item. The checklist ALWAYS wins over any auxiliary intelligence source.
+- 🚫 **NEVER** make PRIMARY findings not grounded in checklist items
+- 🔗 **AUXILIARY FINDINGS ARE SEPARATE**: `gstack/review` and `gstack/cso` findings (when installed) are an auxiliary SECONDARY layer. They are clearly labeled "🔗 Auxiliary — NOT in checklist", reported separately, and do NOT override or merge into the checklist findings.
 - 📖 **ALWAYS** read entire step file before execution
 - 🔧 **ALWAYS** load parallel agents skill via Read before dispatching
-- 🔀 **ALWAYS** dispatch one sub-agent per file — NEVER batch multiple files into a single agent
+- 🔀 **ALWAYS** dispatch one sub-agent per file — NEVER batch multiple files into a single agent for primary review
 - ✅ **ALWAYS** communicate in {communication_language}
 
 ### External Skill Loading Protocol

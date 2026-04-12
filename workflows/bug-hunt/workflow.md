@@ -15,6 +15,7 @@ installed_path: "~/.claude/workflows/bug-hunt"
 
 # Story and sprint references
 implementation_artifacts: "{config_source}:implementation_artifacts"
+sprint_status: "{implementation_artifacts}/sprint-status.yaml"
 project_context: "**/project-context.md"
 
 # External skill dependencies
@@ -24,6 +25,9 @@ parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
 # gstack skill dependencies (OPTIONAL - loaded when conditions met)
 investigate_skill: "~/.claude/skills/gstack/investigate/SKILL.md"
 qa_skill: "~/.claude/skills/gstack/qa/SKILL.md"
+learn_skill: "~/.claude/skills/gstack/learn/SKILL.md"
+health_skill: "~/.claude/skills/gstack/health/SKILL.md"
+checkpoint_skill: "~/.claude/skills/gstack/checkpoint/SKILL.md"
 
 # External tool dependencies
 # Chrome DevTools MCP: must be available in environment

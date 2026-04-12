@@ -73,6 +73,7 @@ If user asks questions: provide clear, contextual explanations.
 - Review the implemented story and test the changes
 - Run `code-review` workflow for peer review
 - Check sprint status to see project progress
+- **If this is a UI/UX story**, run `/bmad-grr-design-pass {url}` on the live result for a live UX audit and improvement proposal (design-pass Branch B)
 
 **Tip:** For best results, run `code-review` using a **different** LLM than the one that implemented this story."
 

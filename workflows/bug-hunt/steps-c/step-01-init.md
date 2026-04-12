@@ -91,6 +91,35 @@ Any of these would also help:
 
 **Wait for user response.** Accept whatever level of detail they provide.
 
+### 3b. Query Prior Bug Learnings (gstack/learn — OPTIONAL)
+
+**IF `{learn_skill}` exists (gstack installed):** Before proceeding, check whether this bug (or a similar one) was encountered before on this project.
+
+Load the FULL `{learn_skill}` file via Read tool and invoke its search capability using keywords derived from the bug description (error message fragments, symptom keywords, related file/module names).
+
+Focus on entries where `type` is one of:
+
+- `pitfall` — known traps previously encountered
+- `pattern` — architectural or implementation patterns that might be involved
+- `architecture` — architectural constraints/decisions that the bug may be violating
+
+**If matches found:**
+
+"**I found prior learnings that may be relevant:** 💡
+
+- **{learning_1_key}**: {insight} (confidence {N}/10)
+- **{learning_2_key}**: {insight} (confidence {N}/10)
+
+**Does this look related to what you're seeing?**
+
+- **[Y]** Yes — use as starting hypothesis in Level 1 investigation
+- **[N]** No — unrelated, proceed with fresh investigation
+- **[?]** Not sure — keep in mind but proceed with fresh investigation"
+
+**Wait for user response.** Store the user-confirmed relevant learnings as `prior_learnings` in the state file — step-02 will reference them as starting hypotheses (not conclusions — Iron Law still applies, evidence before conclusion).
+
+**If no matches found OR skill missing:** Silently skip — no warning needed.
+
 ### 4. Determine Documentation Target
 
 "**Do you have a story file?**
