@@ -1,66 +1,29 @@
 ---
-name: 'step-04-story-wrapup'
-description: 'Wrap up current story QA: update story doc with deferred issues, check for more stories in epic, loop or proceed to final report'
-
+name: step-04-story-wrapup
+description: 'Wrap the current story — write deferred issues into the story doc, present the story summary, route to next story or final report'
 nextStepFile: './step-05-final-report.md'
 testPlanStepFile: './step-02-test-plan.md'
 stateFile: '{output_folder}/qa-test-{date}.state.md'
-refine_story_command: '{project-root}/bmad-grr/commands/bmad-grr-refine-story.md'
-learn_skill: '~/.claude/skills/gstack/learn/SKILL.md'
 implementation_artifacts: '{config_source}:implementation_artifacts'
 ---
 
-# Step 4: Story Wrapup
+# Step 4 — Story Wrap-up
 
-## STEP GOAL:
+## Outcome
 
-Finalize QA results for the current story. If there are deferred issues, write them into the story document so they're tracked for follow-up. If this is an epic QA session with more stories remaining, loop back to step-02 for the next story. If all stories are done, proceed to the final report.
+The current story has a clean conclusion: deferred issues are written into the story document so they're tracked for follow-up via `refine-story` or `dev-story`, the story status is updated in state, and the user sees per-story metrics (total cases, pass/fixed/deferred/blocked, fixes applied with files, deferred issues with severity). If more stories remain in an epic queue, the workflow loops back to step-02 for the next story; otherwise it advances to the final report.
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Approach
 
-### Universal Rules:
+### Load context
 
-- 📖 CRITICAL: Read the complete step file before taking any action
-- 🔄 CRITICAL: When loading next step, ensure entire file is read
-- 🤝 You facilitate DECISIONS (present options, wait for user choices). You execute TASKS autonomously within approved scope.
-- ✅ YOU MUST ALWAYS SPEAK OUTPUT in {communication_language}
-- ⚙️ TOOL/SUBPROCESS FALLBACK: If any instruction references a tool you do not have access to, achieve the outcome in your main context thread
+Read `{stateFile}` for current story info, scope, full story queue with statuses, deferred issues, fixes applied, `qaSpecPath`, and `qaReportPath`. Read the QA spec and report to verify every test case has a recorded result.
 
-### Role Reinforcement:
+### Write deferred issues into the story
 
-- ✅ You ensure nothing falls through the cracks between stories
-- ✅ Deferred issues must be documented in the story doc — not just the QA report
-- ✅ Each story gets a clean conclusion before moving to the next
+If the current story has any deferred issues, append (or update) a `## QA Feedback` section in the story document:
 
-### Step-Specific Rules:
-
-- 🎯 Focus on wrapping up the current story and deciding what's next
-- 📝 Deferred issues MUST be written into the story document
-- 🔄 Epic mode: always check if more stories remain
-
-## MANDATORY SEQUENCE
-
-**CRITICAL:** Follow this sequence exactly.
-
-### 1. Load Context
-
-Read `{stateFile}` to get:
-- Current story info and test results
-- Scope (story vs epic)
-- Full stories list with statuses
-- Deferred issues list
-- Fixes applied list
-- `qaSpecPath` and `qaReportPath` for current story
-
-Read the QA Test Specification and QA Report documents to verify all test cases have results recorded.
-
-### 2. Handle Deferred Issues
-
-**IF deferred issues exist for current story:**
-
-Read the current story document. Add a `## QA Feedback` section (or update existing) at the end of the story with:
-
-```markdown
+```
 ## QA Feedback
 
 **QA Date:** {date}
@@ -70,98 +33,37 @@ Read the current story document. Add a `## QA Feedback` section (or update exist
 
 | # | Issue | Severity | Suggested Fix |
 |---|-------|----------|---------------|
-| 1 | {issue description} | {P0/P1/P2} | {fix approach} |
-| 2 | ... | ... | ... |
+| 1 | … | P0/P1/P2 | … |
 
 ### Notes for Developer
-{any context that would help the developer fixing these issues}
+{anything the developer needs to know}
 ```
 
-"**Story document updated** — {N} deferred issues written to {story path}.
+Tell the user briefly: `Story document updated — {N} deferred issues written`. If there are no deferred issues, say so.
 
-These issues are now tracked in the story document for follow-up via `refine-story` or `dev-story`."
+### Update state
 
-**IF no deferred issues:**
-
-"**All tests passed or were fixed on the spot.** No deferred issues for this story."
-
-### 3. Save QA Learnings (gstack/learn)
-
-**IF `{learn_skill}` exists (gstack installed):**
-
-Load the FULL `{learn_skill}` file via Read tool. Save notable learnings from this story's QA:
-
-- Recurring bug patterns discovered
-- Test approaches that revealed hidden issues
-- Fix strategies that worked well
-- Areas that needed more test coverage than expected
-
-Only save insights that would be valuable for future QA sessions — not routine findings.
-
-**IF skill missing:** Silently skip.
-
-### 4. Update Story Status in State
-
-```bash
+```
 uv run {installed_path}/scripts/qa-state.py update --state-file "{stateFile}" \
   --updates '{"addStep":"step-04-story-wrapup","storyStatus":"completed","logEntry":"Story wrapup: {story title}"}'
 ```
 
-### 5. Present Story Summary
+### Story summary
 
-"**Story QA Complete: {story title}**
+Present:
 
 | Metric | Value |
 |--------|-------|
-| Total test cases | {N} |
-| ✅ Passed | {N} |
-| 🔧 Fixed during QA | {N} |
-| ⏸️ Deferred | {N} |
-| 🚫 Blocked | {N} |
-| **Pass Rate** | **{percentage}%** |
+| Total test cases | … |
+| ✅ Passed | … |
+| 🔧 Fixed during QA | … |
+| ⏸️ Deferred | … |
+| 🚫 Blocked | … |
+| **Pass Rate** | … % |
 
-**QA Spec:** `{qaSpecPath}`
-**QA Report:** `{qaReportPath}`
+Plus paths (spec, report), the list of fixes applied (with files), and the list of deferred issues (one line each).
 
-**Fixes applied:** {count}
-{list of fixes with file names}
+### Route
 
-**Deferred issues:** {count}
-{list of deferred issues — one line each}"
-
-### 6. Route Decision
-
-**IF epic mode AND more stories remain:**
-
-```bash
-uv run {installed_path}/scripts/qa-state.py update --state-file "{stateFile}" --updates '{"nextStory":true,"logEntry":"Moving to next story"}'
-```
-
-"**Next story: {next story title}** ({remaining} stories left)
-
-Proceeding to generate test plan for the next story..."
-
-→ Load, read entire file, then execute `{testPlanStepFile}` (loop back to step-02 for next story)
-
-**IF all stories complete (or single story mode):**
-
-→ Load, read entire file, then execute `{nextStepFile}` (proceed to final report)
-
----
-
-## SYSTEM SUCCESS/FAILURE METRICS
-
-### ✅ SUCCESS:
-
-- Deferred issues written into story document (not just QA report)
-- QA learnings saved for future sessions
-- Story status correctly updated in state
-- Clear summary presented with all metrics
-- Correct routing: next story or final report
-
-### ❌ SYSTEM FAILURE:
-
-- Deferred issues not written to story document
-- Skipping remaining stories in epic mode
-- Not updating state file between stories
-- Proceeding to final report with stories still pending
+- **Epic mode AND more stories remain** — update state with `nextStory:true`, tell the user the next story title and how many remain, and route to `{testPlanStepFile}` (loop back to step-02).
+- **All stories done (or single-story mode)** — route to `{nextStepFile}`.

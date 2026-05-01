@@ -1,114 +1,34 @@
 ---
-name: 'step-01-validate'
-description: 'Validate checklist quality: specificity, completeness, duplicates, and code-review compatibility'
-
+name: step-01-validate
+description: 'Validate checklist quality — specificity, duplicates, completeness, code-review compatibility, item quality'
 nextStepFile: './step-02-report.md'
 analysisCategories: '../data/analysis-categories.md'
 ---
 
-# Step 1: Validate — Checklist Quality Check
+# Step 1 — Validate
 
-## STEP GOAL:
+## Outcome
 
-Validate an existing checklist md file for quality, specificity, completeness, and compatibility with code-review workflow.
+Findings are collected for an existing checklist file across five quality dimensions, each with severity (HIGH / MEDIUM / LOW) and a suggested fix. The checklist file is not modified — only assessed. Results are passed to the report step.
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Approach
 
-### Universal Rules:
+### Load the checklist
 
-- CRITICAL: Read the complete step file before taking any action
-- YOU MUST ALWAYS SPEAK OUTPUT in {communication_language}
+Read the user-provided path completely. If the path wasn't already provided (standalone validation), ask for it once and halt for input.
 
-### Role Reinforcement:
+### Run five checks
 
-- You are a code review checklist quality auditor
-- You validate objectively against clear criteria
-- Every finding must reference a specific validation rule
+- **Specificity** — every item is specific enough that a reviewer can objectively decide pass/fail. Vague items ("Follow naming conventions") get flagged with a more concrete rewrite suggested ("Components use PascalCase naming").
+- **Duplicates** — scan for duplicate or near-duplicate items within and across categories.
+- **Completeness** — load `{analysisCategories}` and check whether categories that should apply to the declared tech stack are missing.
+- **Compatibility with `code-review`** — frontmatter present (project, techStack, generatedDate); `## Category` headers; `- [ ] item` format; items reviewable by reading code (not requiring runtime testing).
+- **Item quality** — actionable (reviewer knows what to check), non-overlapping with other items, relevant to the tech stack.
 
-### Step-Specific Rules:
+### Collect findings
 
-- Focus ONLY on validation — do NOT fix issues
-- FORBIDDEN to modify the checklist file
-- Report findings for the report step to summarize
+For each finding capture: check name, severity, specific item or location, what's wrong, suggested fix. Store the list for the report step.
 
-## MANDATORY SEQUENCE
+## Next
 
-### 1. Load Checklist
-
-**IF checklist path not already provided (standalone validation):**
-
-"**Checklist Validate Mode**
-
-Please provide the checklist file path to validate:"
-
-Use Read tool to load the FULL checklist file.
-
-**IF already loaded (from create or edit flow):**
-Use the already loaded checklist.
-
-### 2. Run Validation Checks
-
-Perform these checks systematically:
-
-**Check 1: Specificity**
-For each item, verify it is specific enough to objectively assess pass/fail.
-
-Bad: "Follow naming conventions" (vague)
-Good: "Components use PascalCase naming" (specific, verifiable)
-
-Flag items that are too vague or subjective.
-
-**Check 2: Duplicates**
-Scan for duplicate or near-duplicate items within or across categories.
-
-**Check 3: Completeness**
-Load {analysisCategories} and check for missing categories that should be covered based on the tech stack in the frontmatter.
-
-**Check 4: code-review Compatibility**
-Verify:
-- File has valid frontmatter (project, techStack, generatedDate)
-- Uses `## Category` headers for sections
-- Uses `- [ ] item` format for checklist items
-- Items are reviewable by reading code (not requiring runtime testing)
-
-**Check 5: Item Quality**
-For each item:
-- Is it actionable? (reviewer knows what to check)
-- Is it non-overlapping? (doesn't duplicate another item's scope)
-- Is it relevant? (applies to the stated tech stack)
-
-### 3. Store Findings
-
-Collect all findings with:
-- Check name (Specificity/Duplicates/Completeness/Compatibility/Quality)
-- Severity (HIGH/MEDIUM/LOW)
-- Specific item or location
-- What's wrong
-- Suggested fix
-
-"**Validation complete. Generating report...**"
-
-Auto-proceed to {nextStepFile}
-
-#### Menu Handling Logic:
-
-- After all checks complete, immediately load, read entire file, then execute {nextStepFile}
-
----
-
-## SYSTEM SUCCESS/FAILURE METRICS
-
-### SUCCESS:
-
-- All 5 validation checks performed
-- Each finding references a specific check and item
-- Severity assigned to each finding
-- No modifications made to checklist file
-
-### FAILURE:
-
-- Skipping any of the 5 checks
-- Modifying the checklist during validation
-- Findings without severity or specific references
-
-**Master Rule:** Validate objectively. Do NOT fix — only report.
+Load and follow `{nextStepFile}`.

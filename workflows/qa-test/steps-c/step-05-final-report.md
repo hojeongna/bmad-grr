@@ -1,189 +1,70 @@
 ---
-name: 'step-05-final-report'
-description: 'Generate final QA report, present decision: stop here, chain to refine-story, or chain to dev-story'
-
+name: step-05-final-report
+description: 'Finalize the QA report; present clear summary; halt at the decision menu (Stop / Refine / Dev / Elicit / Party)'
 stateFile: '{output_folder}/qa-test-{date}.state.md'
 refine_story_command: '{project-root}/bmad-grr/commands/bmad-grr-refine-story.md'
 dev_story_command: '{project-root}/bmad-grr/commands/bmad-grr-dev-story.md'
-learn_skill: '~/.claude/skills/gstack/learn/SKILL.md'
 implementation_artifacts: '{config_source}:implementation_artifacts'
 advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
 partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
 ---
 
-# Step 5: Final Report & Decision
+# Step 5 — Final Report
 
-## STEP GOAL:
+## Outcome
 
-Finalize the QA report document with complete results across all tested stories. Present a clear decision gate: stop here, chain to refine-story for deferred issues, or chain directly to dev-story for immediate fixes.
+The QA report file contains the full session record (per-story results, fixes applied, deferred issues, overall pass rate, health assessment). The user sees a clear summary and chooses the next step: stop, chain into `refine-story` for deferred issues, chain directly into `dev-story` for known fixes, or expand the discussion via elicitation/party mode. The state file is marked completed with the chosen disposition.
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Approach
 
-### Universal Rules:
+### Load and finalize
 
-- 📖 CRITICAL: Read the complete step file before taking any action
-- 🤝 You facilitate DECISIONS (present options, wait for user choices). You execute TASKS autonomously within approved scope.
-- ✅ YOU MUST ALWAYS SPEAK OUTPUT in {communication_language}
-- ⚙️ TOOL/SUBPROCESS FALLBACK: If any instruction references a tool you do not have access to, achieve the outcome in your main context thread
+Read `{stateFile}` for all story results, fixes, deferred issues, and session metadata. Read the QA report to verify it's up to date.
 
-### Role Reinforcement:
+Update the report's final summary section:
 
-- ✅ You deliver a clear, actionable QA report
-- ✅ The user decides what happens next — you present options with context
-- ✅ Nothing is ambiguous in the final report
+- **Header** — date, scope, app URL.
+- **Per-story results** — test-case table per story (pass/fail/fixed/deferred per case).
+- **Fixes applied** — complete list with file changes.
+- **Deferred issues** — complete list with severity and suggested fixes.
+- **Overall summary** — aggregate pass rate, health assessment.
 
-### Step-Specific Rules:
+### Present summary
 
-- 📝 QA report must be complete and saved to file before presenting options
-- 🎯 Decision options must be clear with trade-offs explained
-- ⏹️ ALWAYS halt at the decision menu — never auto-proceed
-
-## MANDATORY SEQUENCE
-
-**CRITICAL:** Follow this sequence exactly.
-
-### 1. Load Context
-
-Read `{stateFile}` to get:
-- All story results
-- All fixes applied across the session
-- All deferred issues across all stories
-- Session metadata
-
-Read the QA report document to verify it's up to date.
-
-### 2. Finalize QA Report
-
-Update the QA report document with the final summary section:
-
-**For single story mode:** Report covers one story.
-**For epic mode:** Report covers all stories with per-story breakdowns and epic-level summary.
-
-Ensure the report includes:
-- **Header**: QA session metadata (date, scope, app URL)
-- **Per-Story Results**: test case table with pass/fail/fixed/deferred per case
-- **Fixes Applied**: complete list with file changes
-- **Deferred Issues**: complete list with severity and suggested fixes
-- **Overall Summary**: aggregate pass rate, health assessment
-
-### 3. Present Final Summary
-
-**For single story:**
-
-"**QA Report Complete: {story title}**
-📄 Report saved: `{report-path}`
+For single story, show one summary table; for epic, show per-story rows plus an epic-level aggregate.
 
 | Metric | Value |
 |--------|-------|
-| Total test cases | {N} |
-| ✅ Passed | {N} |
-| 🔧 Fixed during QA | {N} |
-| ⏸️ Deferred | {N} |
-| 🚫 Blocked | {N} |
-| **Overall Pass Rate** | **{percentage}%** |
+| Stories tested | … |
+| Total test cases | … |
+| ✅ Passed | … |
+| 🔧 Fixed during QA | … |
+| ⏸️ Deferred | … |
+| 🚫 Blocked | … |
+| **Overall Pass Rate** | … % |
 
-**Fixes applied during this session:** {count}
-**Deferred issues written to story:** {count}"
+Plus total fixes applied and total deferred.
 
-**For epic:**
+### Decision menu
 
-"**QA Report Complete: Epic {epic-id}**
-📄 Report saved: `{report-path}`
+Halt for input. Show context-appropriate options:
 
-### Per-Story Results
+**With deferred issues**
+- `[R]` Refine — chain to `{refine_story_command}` with the affected story (story doc already has the QA Feedback section).
+- `[D]` Dev — chain directly to `{dev_story_command}` if the deferred issues are clear enough to implement.
+- `[S]` Stop — end the session; deferred issues remain in the story doc and QA report for later.
+- `[A]` Advanced Elicitation
+- `[P]` Party Mode
 
-| Story | Pass | Fixed | Deferred | Blocked | Rate |
-|-------|------|-------|----------|---------|------|
-| {story 1} | {N} | {N} | {N} | {N} | {%} |
-| {story 2} | {N} | {N} | {N} | {N} | {%} |
-| ... | ... | ... | ... | ... | ... |
+**No deferred issues**
+- `[S]` Stop — session complete.
+- `[A]` Advanced Elicitation
+- `[P]` Party Mode
 
-### Epic Summary
+### Execute the decision
 
-| Metric | Value |
-|--------|-------|
-| Stories tested | {N} |
-| Total test cases | {N} |
-| ✅ Passed | {N} |
-| 🔧 Fixed during QA | {N} |
-| ⏸️ Deferred | {N} |
-| 🚫 Blocked | {N} |
-| **Overall Pass Rate** | **{percentage}%** |
-
-**Total fixes applied:** {count}
-**Total deferred issues:** {count}"
-
-### 4. Save Session Learnings (gstack/learn)
-
-**IF `{learn_skill}` exists (gstack installed):**
-
-Load the FULL `{learn_skill}` file via Read tool. Save session-level learnings:
-
-- Overall QA patterns for this project (common failure areas, reliable components)
-- Test plan strategies that provided good coverage
-- Areas that consistently need more attention
-
-**IF skill missing:** Silently skip.
-
-### 5. Present Decision Menu
-
-**IF deferred issues exist:**
-
-"**Deferred issues need resolution. What would you like to do?**
-
-- **[R]** Refine Story → Chain to `grr-refine-story` with the deferred issues documented in the story file. The story doc already has the QA feedback section — refine-story will process it.
-- **[D]** Dev Story → Chain directly to `grr-dev-story` for the story with deferred issues. Use when the issues are well-defined enough to implement without further refinement.
-- **[S]** Stop here → End QA session. Deferred issues are saved in the story doc and QA report for later action.
-- **[A]** Advanced Elicitation → Deeper analysis before deciding
-- **[P]** Party Mode → Get multiple agent perspectives"
-
-**IF no deferred issues (all passed or fixed):**
-
-"**All tests passed! What would you like to do?**
-
-- **[S]** Stop here → QA session complete. Report saved.
-- **[A]** Advanced Elicitation → Explore additional testing ideas
-- **[P]** Party Mode → Get multiple agent perspectives"
-
-**HALT and wait for user input.**
-
-### 6. Execute Decision
-
-#### Menu Handling Logic:
-
-- **IF R:** Update state file status to `COMPLETED-REFINE`. Load and execute `{refine_story_command}` with the story path that has deferred issues. If epic mode with multiple stories having deferred issues, process them in order.
-
-- **IF D:** Update state file status to `COMPLETED-DEV`. Load and execute `{dev_story_command}` with the story path that has deferred issues.
-
-- **IF S:** Update state file status to `COMPLETED`.
-
-  "**QA session complete.**
-  📄 Report: `{report-path}`
-  All results are saved. Deferred issues (if any) are documented in the story files for future action."
-
-- **IF A:** Execute `{advancedElicitationTask}`, when finished redisplay the decision menu.
-
-- **IF P:** Execute `{partyModeWorkflow}`, when finished redisplay the decision menu.
-
-- **IF any other:** Help user understand options, then redisplay menu.
-
----
-
-## SYSTEM SUCCESS/FAILURE METRICS
-
-### ✅ SUCCESS:
-
-- QA report finalized with all results
-- Report saved to file with correct naming (story/epic ID + date)
-- Clear summary presented with actionable metrics
-- Decision menu presented with context-appropriate options
-- User choice executed correctly
-- State file marked as completed
-
-### ❌ SYSTEM FAILURE:
-
-- Report not saved to file
-- Missing test results in final report
-- Auto-proceeding without user decision
-- Not chaining correctly to refine-story or dev-story
-- Deferred issues not reflected in decision options
+- `R` → state status `COMPLETED-REFINE`, then load and follow `{refine_story_command}` with the deferred-issues story path. (For epic mode with multiple deferring stories, process them in order.)
+- `D` → state status `COMPLETED-DEV`, then load and follow `{dev_story_command}` with the deferred-issues story path.
+- `S` → state status `COMPLETED`. Tell the user "QA session complete" and where the report lives.
+- `A` → execute `{advancedElicitationTask}` and re-display the menu.
+- `P` → execute `{partyModeWorkflow}` and re-display the menu.

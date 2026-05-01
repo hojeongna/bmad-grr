@@ -1,178 +1,69 @@
 ---
-name: 'step-01-init'
-description: 'Initialize QA session: find story/epic, load context, determine scope, identify app URL'
-
+name: step-01-init
+description: 'Initialize or resume a QA session; determine scope (story or epic), resolve story files, capture app URL, create the state file'
 nextStepFile: './step-02-test-plan.md'
-continueFile: './step-01b-continue.md'
 stateFile: '{output_folder}/qa-test-{date}.state.md'
-learn_skill: '~/.claude/skills/gstack/learn/SKILL.md'
 implementation_artifacts: '{config_source}:implementation_artifacts'
 sprint_status: '{implementation_artifacts}/sprint-status.yaml'
+
+# Resume routing — used when an active state file is found
+nextStepOptions:
+  step-02-test-plan: './step-02-test-plan.md'
+  step-03-execute-and-fix: './step-03-execute-and-fix.md'
+  step-04-story-wrapup: './step-04-story-wrapup.md'
+  step-05-final-report: './step-05-final-report.md'
 ---
 
-# Step 1: Initialize QA Test Session
+# Step 1 — Init / Resume
 
-## STEP GOAL:
+## Outcome
 
-Determine the QA scope (single story or full epic), load story documents, identify the target application URL, and create the state tracking file for this QA session.
+A QA session is set up (or resumed): scope decided (single story vs. full epic), every story file resolved and queued, the app URL captured, and the state file created. Browser testing has not started yet — that's step-03.
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Approach
 
-### Universal Rules:
+### Resume detection (merged from old step-01b)
 
-- 📖 CRITICAL: Read the complete step file before taking any action
-- 🔄 CRITICAL: When loading next step, ensure entire file is read
-- 🤝 You facilitate DECISIONS (present options, wait for user choices). You execute TASKS autonomously within approved scope.
-- ✅ YOU MUST ALWAYS SPEAK OUTPUT in {communication_language}
-- ⚙️ TOOL/SUBPROCESS FALLBACK: If any instruction references a tool you do not have access to, achieve the outcome in your main context thread
+Run `uv run {installed_path}/scripts/qa-state.py find-active --directory {output_folder}`. If an active state file exists, load it completely. Welcome the user back, present current progress (last completed step, stories progress `{completed}/{total}`, current story title, paths to QA spec and report). Update `lastContinued`. Route based on `lastStep` to the matching file in `{nextStepOptions}` — `step-01-init` → step-02, `step-02-test-plan` → step-03, `step-03-execute-and-fix` → step-04, `step-04-story-wrapup` → step-02 (next story) or step-05 (all stories done). Skip the rest of this step.
 
-### Role Reinforcement:
+### Scope decision
 
-- ✅ You are a meticulous QA engineer who tests like a real user
-- ✅ Browser evidence is the only proof — code alone means nothing
-- ✅ Fix immediately when possible, document thoroughly when not
+Parse `$ARGUMENTS` if provided. Otherwise ask the user, in `{communication_language}`:
 
-### Step-Specific Rules:
+- `[S]` Single story — provide story file path
+- `[E]` Full epic — provide epic identifier or path
 
-- 🎯 Focus ONLY on gathering scope and setting up the session
-- 🚫 FORBIDDEN to start testing anything
-- 🚫 FORBIDDEN to open the browser yet
-- 💬 Collect story/epic reference and app URL
+Also ask for the app URL (e.g., `http://localhost:3000`).
 
-## EXECUTION PROTOCOLS:
+### Resolve story files
 
-- 🎯 Check for existing state file FIRST (continuation detection)
-- 💾 Create state file with QA scope info
-- 🚫 This is init — set up everything, test nothing
+**Single story** — verify the file exists; read it to extract title, AC count, task count. Store as `stories: [{ path, title, status: 'pending' }]`.
 
-## CONTEXT BOUNDARIES:
-
-- This is the first step — no prior context exists
-- User may provide a story path, epic reference, or just say "test this"
-- Must determine: QA scope (story vs epic), story files, app URL
-- No testing happens here — that's step-03
-
-## MANDATORY SEQUENCE
-
-**CRITICAL:** Follow this sequence exactly. Do not skip, reorder, or improvise.
-
-### 1. Check for Existing Session
-
-Run: `uv run {installed_path}/scripts/qa-state.py find-active --directory {output_folder}`
-
-- **If active sessions found:** Load and execute `{continueFile}` to resume.
-- **If none found:** Continue to step 2 below.
-
-### 2. Internalize Core Principle
-
-The verification skill will be loaded in step-03 when browser testing begins. For now, internalize the core QA principle:
-
-```
-NO CLAIM WITHOUT EVIDENCE. Run it. See it. Screenshot it.
-```
-
-### 3. Determine QA Scope
-
-Parse $ARGUMENTS if provided. If not sufficient, ask:
-
-"**QA Test session started!**
-
-What are we testing today?
-
-- **[S]** Single story — provide story file path
-- **[E]** Full epic — provide epic identifier or path
-
-Also, what's the **app URL**? (e.g., http://localhost:3000)"
-
-**Wait for user response.**
-
-### 3b. Resolve Story Files
-
-**If Single Story mode:**
-- Verify the story file exists at the given path
-- Read the story file to extract: title, acceptance criteria count, task count
-- Store as `stories: [{ path, title, status: 'pending' }]`
-
-**If Epic mode:**
-- Read the epic document or sprint status at `{sprint_status}`
-- Identify ALL stories belonging to the epic
-- Sort stories by dependency order (if specified) or document order
-- Store as `stories: [{ path, title, status: 'pending' }, ...]`
-- Display the full story list to the user:
-
-"**Epic QA scope — {N} stories to test:**
+**Epic** — read the epic doc or `{sprint_status}`. Identify every story in the epic. Sort by dependency order if specified, otherwise document order. Store all stories. Show the user the full list:
 
 | # | Story | Status |
 |---|-------|--------|
-| 1 | [story title] | pending |
-| 2 | [story title] | pending |
-| ... | ... | ... |
+| 1 | … | pending |
 
-We'll test each story in order, completing one before moving to the next."
+Tell the user the queue size and that stories will be tested one at a time, completing each before moving to the next.
 
-### 4. Query Prior QA Learnings (gstack/learn)
+### Confirm setup
 
-**IF `{learn_skill}` exists (gstack installed):**
+Present a tight session summary (scope, story count, app URL) and confirm before creating the state file.
 
-Load the FULL `{learn_skill}` file via Read tool. Search for prior QA learnings using keywords from the story/epic (feature names, page names, component names).
-
-Focus on entries where `type` is:
-- `pitfall` — known QA traps
-- `pattern` — recurring test failure patterns
-- `architecture` — constraints that affect testing
-
-**If matches found:** Present to user and note in state file as `prior_learnings`.
-**If no matches or skill missing:** Silently skip.
-
-### 5. Confirm App URL and Environment
-
-Verify the app URL is accessible (but do NOT start testing yet):
-
-"**Session ready!**
-
-- **Scope:** [single story / epic with N stories]
-- **Target:** [story title or epic name]
-- **App URL:** [URL]
-- **Stories to test:** [count]
-
-Ready to generate the test plan for the first story?"
-
-**Wait for user confirmation.**
-
-### 6. Create State File
+### Create state file
 
 Run:
-```bash
+
+```
 uv run {installed_path}/scripts/qa-state.py create \
-  --output "{output_folder}/qa-test-{date}.state.md" \
+  --output "{stateFile}" \
   --scope [story|epic] \
-  --app-url "[app URL]" \
-  --epic-id "[epic id or omit]" \
+  --app-url "{app_url}" \
+  --epic-id "{epic_id_or_omit}" \
   --stories "path1|title1" "path2|title2" ...
 ```
 
-### 7. Auto-Proceed to Next Step
+## Next
 
-This is an init step with no menu choices at the end.
-
-After state file created and scope confirmed, immediately load, read entire file, then execute `{nextStepFile}` to begin test plan generation for the first story.
-
----
-
-## SYSTEM SUCCESS/FAILURE METRICS
-
-### ✅ SUCCESS:
-
-- Continuation check performed
-- QA scope determined (story vs epic)
-- All story files identified and verified
-- App URL collected
-- State file created with complete scope info
-
-### ❌ SYSTEM FAILURE:
-
-- Starting any testing in this step
-- Opening the browser in this step
-- Not verifying story files exist
-- Not collecting app URL
-- Skipping continuation check
+Load and follow `{nextStepFile}` to generate the QA spec for the first story.

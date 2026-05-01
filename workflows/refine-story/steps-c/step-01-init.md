@@ -1,168 +1,44 @@
 ---
-name: 'step-01-init'
-description: 'Collect situation context, discover and load relevant story documents'
-
+name: step-01-init
+description: 'Collect situation context, discover and load relevant story documents; apply receiving-code-review discipline when the situation is reviewer/QA feedback'
 nextStepFile: './step-02-verify.md'
-
-# Story and sprint references (from workflow.md config)
-# implementation_artifacts, sprint_status, project_context are available from workflow config
+receivingCodeReviewSkill: '~/.claude/skills/receiving-code-review/SKILL.md'
 ---
 
-# Step 1: Initialize & Situation Assessment
+# Step 1 — Init
 
-## STEP GOAL:
+## Outcome
 
-Collect the user's situation description (what went wrong, what needs improvement), discover and load all relevant story documents, and prepare the context for analysis.
+The user's situation is understood (what went wrong or what needs improvement), all relevant story documents are loaded, and the project context is in place. Ready to verify visually (step-02) or jump straight to gap analysis.
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Approach
 
-### Universal Rules:
+### Collect the situation
 
-- 📖 CRITICAL: Read the complete step file before taking any action
-- 🔄 CRITICAL: When loading next step, ensure entire file is read
-- ⚙️ TOOL/SUBPROCESS FALLBACK: If any instruction references a subprocess, subagent, or tool you do not have access to, you MUST still achieve the outcome in your main context thread
-- ✅ YOU MUST ALWAYS SPEAK OUTPUT in {communication_language}
+Ask the user, in `{communication_language}`, what's happening. Useful prompts (don't insist on structure):
 
-### Role Reinforcement:
+- What went wrong or what needs improvement?
+- Story file path, story key, or epic number — if known.
+- A URL to verify visually, if applicable.
 
-- ✅ You are a senior development analyst specializing in gap analysis between story docs and implementation
-- ✅ You bring analytical expertise, the user brings their domain knowledge and feedback
-- ✅ Collaborative dialogue — understand the situation before acting
+If the situation is reviewer or QA feedback (the user is bringing comments from a code review, a QA report, or a stakeholder), load `{receivingCodeReviewSkill}` and apply its discipline through the analysis: read every item completely before reacting, restate each requirement, verify against the actual codebase before implementing, ask for clarification on items you don't fully understand instead of guessing, push back with technical reasoning when a comment is wrong (don't silently agree). No performative "you're absolutely right!" responses — actions over words.
 
-### Step-Specific Rules:
+### Parse and discover stories
 
-- 🎯 Focus ONLY on collecting situation context and loading story documents
-- 🚫 FORBIDDEN to start analyzing or modifying documents in this step
-- 🚫 FORBIDDEN to skip user situation input
-- 💬 Ask clarifying questions if the situation description is unclear
-- 🎯 Use sub-agents for parallel story loading when handling epic-level input (Pattern 4)
-- 🎯 Use grep/search across files to discover relevant stories (Pattern 1)
+From the user's response, extract: situation summary, story references (paths/keys/epic), URLs, and scope (single story vs multiple vs epic).
 
-## EXECUTION PROTOCOLS:
+- **Specific path provided** — load the file directly.
+- **Epic number provided** — load `{sprint_status}`, find every story in that epic, dispatch one sub-agent per story file (parallel) to load and summarize each. Sub-agents return `{story_key, status, tasks_summary, ac_summary}`. Sequential fallback if sub-agents are unavailable.
+- **No specific reference** — load `{sprint_status}` for the full picture; grep `{implementation_artifacts}` for keywords from the situation; present discovered stories `[1] {story_key} - {title} (status)` and ask the user to pick.
 
-- 🎯 Follow the MANDATORY SEQUENCE exactly
-- 💾 Track all discovered story paths and their current status
-- 📖 Load all context before proceeding
-- 🚫 FORBIDDEN to proceed without at least one story document loaded
+### Load project context
 
-## CONTEXT BOUNDARIES:
+Read `{project_context}` if present. Note any standards or constraints likely to affect refinement decisions.
 
-- Available: sprint-status.yaml, project-context.md, story files in {implementation_artifacts}
-- Focus: Situation understanding and document discovery
-- Limits: Do NOT analyze or modify anything yet
-- Dependencies: None — this is the first step
+### Communicate
 
-## MANDATORY SEQUENCE
+Briefly: situation summary, the loaded stories with status and task progress, and the scope (single/multi/epic).
 
-**CRITICAL:** Follow this sequence exactly. Do not skip, reorder, or improvise.
+## Next
 
-### 1. Collect Situation Context
-
-Greet the user and ask for their situation:
-
-"**Story Refinement 워크플로우를 시작할게요!**
-
-어떤 상황인지 알려주세요:
-- 어떤 문제가 있었나요? / 어떤 개선이 필요한가요?
-- 관련 스토리 파일 경로나 에픽 번호가 있으면 함께 알려주세요.
-- 확인할 URL이 있으면 그것도요."
-
-**HALT and wait for user response.**
-
-### 2. Parse User Input
-
-From the user's response, extract:
-
-- **Situation description**: What went wrong or what needs improvement
-- **Story references** (if provided): File paths, story keys, or epic numbers
-- **URLs** (if provided): For visual verification later
-- **Scope**: Single story, multiple stories, or epic-level
-
-### 3. Discover Story Documents
-
-**IF user provided specific story file path(s):**
-- Read COMPLETE story file(s) directly
-- Extract story_key from filename or metadata
-- Note current status from frontmatter
-
-**IF user provided an epic number:**
-- Load {sprint_status} (sprint-status.yaml)
-- Find all story keys belonging to the specified epic
-- Launch sub-agents in parallel to load each story file (Pattern 4: Parallel Execution)
-  - Each sub-agent loads one story file and returns: story_key, status, tasks summary, AC summary
-  - If sub-agents unavailable: load stories sequentially in main thread
-- Collect all story documents for the epic
-
-**IF user described situation without specific references:**
-- Load {sprint_status} to see all stories and their status
-- Search {implementation_artifacts} for story files matching the user's description
-- Launch a subprocess to grep across story files for relevant keywords (Pattern 1: Grep)
-  - Returns: matching file paths and relevant lines
-  - If subprocess unavailable: search sequentially in main thread
-- Present discovered stories to user for confirmation:
-
-"이런 스토리들을 찾았어요:
-[1] {story_key_1} - {title} (status: {status})
-[2] {story_key_2} - {title} (status: {status})
-...
-
-어떤 스토리가 관련이 있나요? (번호로 선택, 쉼표로 구분)"
-
-**HALT and wait for user selection if presenting choices.**
-
-### 4. Load Project Context
-
-- Load {project_context} for coding standards and project patterns (if exists)
-- Note any relevant architectural context that may affect the refinement
-
-### 5. Present Context Summary and Proceed
-
-"**컨텍스트 로딩 완료!**
-
-**상황:** {situation_summary}
-**대상 스토리:** {story_count}개
-{for each story: - {story_key}: {title} (status: {status}, tasks: {complete}/{total})}
-**스코프:** {single_story/multi_story/epic}
-
-**다음 단계: 시각적 검증으로 넘어갈게요...**"
-
-### 6. Auto-Proceed
-
-Display: "**Proceeding to visual verification...**"
-
-#### Menu Handling Logic:
-
-- After situation context is collected and story documents are loaded, immediately load, read entire file, then execute {nextStepFile}
-
-#### EXECUTION RULES:
-
-- This is an auto-proceed init step
-- Proceed directly to next step after context is loaded
-- ONLY halt if user input is needed (story selection, clarification)
-
-## CRITICAL STEP COMPLETION NOTE
-
-ONLY WHEN situation context is collected and at least one story document is loaded will you proceed to step-02-verify.
-
----
-
-## SYSTEM SUCCESS/FAILURE METRICS
-
-### SUCCESS:
-
-- User's situation clearly understood and documented
-- All relevant story documents discovered and loaded
-- Story status and task completion state noted for each
-- Project context loaded (if exists)
-- Context summary communicated to user
-- Auto-proceeded to step-02
-
-### FAILURE:
-
-- Proceeding without user's situation description
-- Not loading complete story files
-- Skipping story discovery when no direct path provided
-- Starting analysis or modification in this step
-- Not presenting choices when multiple stories discovered
-
-**Master Rule:** Understand the situation and load ALL relevant context. Skipping this is SYSTEM FAILURE.
+Load and follow `{nextStepFile}`.

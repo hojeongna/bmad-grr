@@ -1,6 +1,6 @@
 ---
 name: pr-create
-description: 'Manage PR lifecycle: analyze changes, split large PRs by responsibility, commit/push/test, create PRs, track merges and rebase. Use when the user says "pr create" or "create pr" or "submit prs"'
+description: 'Manage the PR lifecycle for multi-repo workspaces — analyze changes, split when needed, commit/push/test, create PRs, track merges, rebase between sequential PRs. Use when the user says "pr create" or "create pr" or "submit prs"'
 web_bundle: true
 
 # Critical variables from config
@@ -12,85 +12,30 @@ date: system-generated
 
 # Workflow components
 installed_path: "~/.claude/workflows/pr-create"
-
-# Story and sprint references
 implementation_artifacts: "{config_source}:implementation_artifacts"
 sprint_status: "{implementation_artifacts}/sprint-status.yaml"
 project_context: "**/project-context.md"
 
-# External skill dependencies
+# Required external skill (superpowers — bundled with bmad-grr)
 parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
-
-# gstack skill dependencies (OPTIONAL - loaded when conditions met)
-review_skill: "~/.claude/skills/gstack/review/SKILL.md"
-health_skill: "~/.claude/skills/gstack/health/SKILL.md"
-ship_skill: "~/.claude/skills/gstack/ship/SKILL.md"                       # CHANGELOG/VERSION metadata
-land_and_deploy_skill: "~/.claude/skills/gstack/land-and-deploy/SKILL.md"  # post-merge deploy chaining
-learn_skill: "~/.claude/skills/gstack/learn/SKILL.md"                     # past PR lessons
 ---
 
 # PR Create
 
-**Goal:** Manage the full PR lifecycle for multi-repo workspaces: analyze change volume, split large changes into role-based PRs, commit/push/test locally, create PRs (auto or manual), track merge status, and handle rebasing between sequential PRs.
+## Overview
 
-**Your Role:** You are a PR management partner. You bring expertise in git workflows, PR best practices, and change decomposition. The user brings their code changes and domain context. Work together to ship clean, well-scoped PRs.
+Drive the full PR lifecycle for multi-repo workspaces created by `set-worktree`: read the worktree map, analyze change volume per repo, split large changes by responsibility, commit and push, run local tests with amend/new-commit recovery, create the PRs (auto via `gh pr create` or manual command), track merge status, and rebase sequential PRs between merges. The workflow is continuable — state is saved between sessions so it can span multi-day merge cycles.
 
-**Key Principle:** Each PR should have a clear, single responsibility. Large changes get split by role, not by arbitrary line count.
+## Your Role
 
----
+A PR management partner. Bring git/PR expertise (responsibility-based splits, merge sequencing, rebase recovery); the user brings code changes and domain context.
 
-## WORKFLOW ARCHITECTURE
+## Key Principle
 
-### Core Principles
+Each PR has a clear, single responsibility. Splits are by role, not by line count. Tests must pass before a PR is created. Merges happen on GitHub — the workflow tracks status and rebases the next PR when its predecessor lands.
 
-- **Responsibility-Based Splitting**: PRs are split by role/purpose, not just size
-- **Test Before Ship**: Local tests must pass before PR creation
-- **Sequential Merge**: PRs merge in order with rebase between them
-- **Continuable**: Workflow can span multiple sessions (waiting for merges)
-- **Micro-file Design**: Each step is a self-contained instruction file
-- **Just-In-Time Loading**: Only the current step file is in memory
+## Activation
 
-### Step Processing Rules
+Load configuration from `{config_source}`. If config is missing, fall back to sensible defaults.
 
-1. **READ COMPLETELY**: Always read the entire step file before taking any action
-2. **FOLLOW SEQUENCE**: Execute all numbered sections in order, never deviate
-3. **WAIT FOR INPUT**: If a menu is presented, halt and wait for user selection
-4. **CHECK CONTINUATION**: If the step has a menu with Continue as an option, only proceed to next step when user selects 'C' (Continue)
-5. **SAVE STATE**: Update state file before loading next step
-6. **LOAD NEXT**: When directed, load, read entire file, then execute the next step file
-
-### Critical Rules (NO EXCEPTIONS)
-
-- 🛑 **NEVER** load multiple step files simultaneously
-- 📖 **ALWAYS** read entire step file before execution
-- 🚫 **NEVER** skip steps or optimize the sequence
-- 💾 **ALWAYS** update state file when PR status changes
-- 🎯 **ALWAYS** follow the exact instructions in the step file
-- ⏸️ **ALWAYS** halt at menus and wait for user input
-- 📋 **NEVER** create mental todo lists from future steps
-- ✅ **ALWAYS** communicate in {communication_language}
-
-### External Skill Loading Protocol
-
-When a step instructs you to load a skill (gstack, superpowers, or any other external skill):
-
-1. Use Read tool to load the FULL skill file from the specified path
-2. Read the skill completely before acting — internalize its directives, voice, and decision framework
-3. Follow the skill's directives EXACTLY as written
-4. Do NOT summarize, abbreviate, or skip any of the skill's rules
-5. The skill's rules override any conflicting inline instructions within the scope where it was loaded
-6. **IF the skill file does not exist (gstack/superpowers not installed):** Emit a clear warning ("⚠️ `{skill_name}` not installed — reduced quality for {purpose}. Install gstack to enable.") and continue the workflow gracefully. Never fail, never silently skip.
-
----
-
-## INITIALIZATION SEQUENCE
-
-### 1. Module Configuration Loading
-
-Load and read full config from {project-root}/_bmad/bmm/config.yaml and resolve:
-
-- `user_name`, `communication_language`, `document_output_language`, `output_folder`
-
-### 2. First Step Execution
-
-Load, read the full file and then execute `~/.claude/workflows/pr-create/steps-c/step-01-init.md` to begin the workflow.
+Then load and follow `~/.claude/workflows/pr-create/steps-c/step-01-init.md` to begin.

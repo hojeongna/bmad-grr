@@ -1,188 +1,65 @@
 ---
-name: 'step-01-init'
-description: 'Find story, load context, load TDD skill, and prepare for implementation'
-
-nextStepFile: '~/.claude/workflows/dev-story/steps-c/step-02-setup.md'
-continueFile: '~/.claude/workflows/dev-story/steps-c/step-01b-continue.md'
-
+name: step-01-init
+description: 'Find or resume story, load context, detect BDD runner, load TDD skill, mark in-progress'
+nextStepFile: '~/.claude/workflows/dev-story/steps-c/step-02-analyze.md'
 tddSkill: '~/.claude/skills/test-driven-development/SKILL.md'
 ---
 
-# Step 1: Initialize Story and Load Skills
+# Step 1 — Init
 
-## STEP GOAL:
+## Outcome
 
-Find the next ready story, load all project context and story information, load the TDD skill, and prepare for implementation.
+A story is selected (or resumed), its full context is loaded, the project's BDD runner is known, the TDD skill is loaded into context, and the story is marked in-progress in sprint tracking.
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Approach
 
-### Universal Rules:
+### Story selection
 
-- 📖 CRITICAL: Read the complete step file before taking any action
-- 🔄 CRITICAL: When loading next step, ensure entire file is read
-- ✅ YOU MUST ALWAYS SPEAK OUTPUT in {communication_language}
+Check for an in-progress story first. If `{implementation_artifacts}` contains a story file with status `in-progress`, resume that one. Read it completely, count completed vs incomplete scenarios/tasks, and route to whichever stage matches the story's actual state — typically step-02 if scenarios aren't drafted yet, step-03 if scenarios are drafted but not all green, step-04 if all green but not yet validated.
 
-### Role Reinforcement:
+If no in-progress story exists:
 
-- ✅ You are a senior developer agent implementing stories with strict TDD discipline
-- ✅ You follow story file tasks/subtasks exactly as written
-- ✅ You MUST load external skills via Read tool and follow their directives
+- If the user passed a `{story_file}` argument, use it.
+- Else if `{sprint_status}` exists, load the full file and pick the first entry whose key matches `<epic>-<story>-<slug>` (not an epic or retrospective entry) with status `ready-for-dev`.
+- Else search `{implementation_artifacts}` for `*-*-*.md` files with status `ready-for-dev`.
 
-### Step-Specific Rules:
+If nothing is ready, surface the situation to the user (run `create-story`, or specify a path) and HALT.
 
-- 🎯 Focus ONLY on finding story, loading context, and loading TDD skill
-- 🚫 FORBIDDEN to start any implementation in this step
-- 🚫 FORBIDDEN to skip TDD skill loading
-- 💬 This is an autonomous init step — auto-proceed when ready
+### Context loading
 
-## EXECUTION PROTOCOLS:
+Read the entire story file. Parse: Story, Acceptance Criteria, Tasks/Subtasks, Dev Notes, Dev Agent Record, File List, Change Log, Status. Load `{project_context}` if present. Extract any developer guidance from Dev Notes that constrains implementation.
 
-- 🎯 Follow the MANDATORY SEQUENCE exactly
-- 💾 Track story_key and story_path for later steps
-- 📖 Load all context before proceeding
-- 🚫 FORBIDDEN to proceed without TDD skill loaded
+If the story file is inaccessible, HALT — implementation cannot proceed without it.
 
-## CONTEXT BOUNDARIES:
+### BDD runner detection
 
-- Available: sprint-status.yaml, project-context.md, story files
-- Focus: Story discovery and context preparation
-- Limits: Do NOT implement anything yet
-- Dependencies: None — this is the first step
+Inspect the project to identify the BDD runner. Order of preference: explicit project config > package manifest signals > one-time user choice persisted to config.
 
-## MANDATORY SEQUENCE
+Manifest signals to check:
 
-**CRITICAL:** Follow this sequence exactly. Do not skip, reorder, or improvise.
+- `package.json` dependencies — `@cucumber/cucumber`, `playwright-bdd`, `cypress-cucumber-preprocessor`
+- `pyproject.toml` / `requirements*.txt` — `pytest-bdd`, `behave`
+- `pom.xml` — `cucumber-jvm`, `cucumber-java`
+- `go.mod` — `godog`
+- `*.csproj` / `*.sln` — `Reqnroll`, `SpecFlow`
+- `Cargo.toml` — `cucumber`
 
-### 1. Check for Continuation
+If none is found, ask the user once which runner to use (or whether to install one), and persist the choice to `{config_source}` under a `bdd_runner` key. Reasonable suggestions: `playwright-bdd` for web/JS-TS projects, `pytest-bdd` for Python backends, `godog` for Go, `Reqnroll` for .NET.
 
-Check if this workflow has been run before with an in-progress story:
-- Look for story files with status "in-progress" in {implementation_artifacts}
-- If found: Load {continueFile} to resume
-- If not found: Continue to story discovery
+If the user has no preference and no scenarios can be executed, document the gap in Dev Notes and proceed in **dry-run mode** — scenarios will still be authored, but acceptance verification will rely on reasoning + unit tests until a runner is added.
 
-### 2. Find Next Ready Story
+### TDD skill load
 
-**If {story_file} is provided:**
-- Use the provided story path directly
-- Read COMPLETE story file
-- Extract story_key from filename or metadata
+Read the full content of `{tddSkill}` into context. The skill's RED-GREEN-REFACTOR cycle and Iron Law govern the inner loop in step-03. If context compacts, reload at the top of step-03.
 
-**If {story_file} is NOT provided and {sprint_status} exists:**
-- Load the FULL sprint-status.yaml file
-- Read ALL lines from beginning to end
-- Find the FIRST story where:
-  - Key matches pattern: number-number-name (e.g., "1-2-user-auth")
-  - NOT an epic key or retrospective
-  - Status equals "ready-for-dev"
+### Sprint status
 
-**If no sprint-status exists:**
-- Search {implementation_artifacts} for story files with "ready-for-dev" status
-- Look for files matching pattern: *-*-*.md
+If `{sprint_status}` exists and the selected story's status is `ready-for-dev`, update it to `in-progress`. Preserve all comments and structure when saving. If the story is already `in-progress` (resumed), no change needed.
 
-**If no ready story found:**
+## Communicate
 
-"No ready-for-dev stories found.
+Briefly tell the user, in `{communication_language}`: which story was loaded, total ACs, BDD runner detected (or chosen / dry-run), and that the TDD skill is loaded. One short paragraph.
 
-**Options:**
-1. Run `create-story` to create next story
-2. Specify a particular story file path
+## Next
 
-Which would you like to do?"
-
-HALT and wait for user response.
-
-### 3. Load Story and Project Context
-
-- Read COMPLETE story file
-- Parse sections: Story, Acceptance Criteria, Tasks/Subtasks, Dev Notes, Dev Agent Record, File List, Change Log, Status
-- Load {project_context} for coding standards and project patterns (if exists)
-- Extract developer guidance from Dev Notes: architecture requirements, previous learnings, technical specifications
-- Identify first incomplete task (unchecked [ ]) in Tasks/Subtasks
-
-**If no incomplete tasks:** Story is already complete — inform user and HALT.
-**If story file inaccessible:** HALT: "Cannot develop story without access to story file"
-
-### 3b. Query Prior Learnings (gstack/learn — OPTIONAL)
-
-**IF `{learn_skill}` exists (gstack installed):** Before writing any implementation code, check what the project has already learned about the area this story touches.
-
-Load the FULL `{learn_skill}` file via Read tool and invoke its search capability using keywords derived from:
-
-- Story title and key
-- Touchpoint files mentioned in Dev Notes
-- Domain area (auth, payment, API, UI, data, integration, etc.)
-
-Focus on entries of type `architecture`, `pattern`, and `pitfall` — these bind the implementation:
-
-- `architecture` — project-wide architectural rules to respect (don't violate)
-- `pattern` — reusable implementation patterns to follow (don't reinvent)
-- `pitfall` — known traps to avoid (don't repeat past mistakes)
-
-Capture as `prior_learnings` in context. These should influence implementation decisions throughout step-04 — **the TDD skill rules still govern HOW to implement (RED-GREEN-REFACTOR is non-negotiable), but prior_learnings inform WHAT patterns to apply and WHAT pitfalls to avoid within that TDD cycle.**
-
-"**Prior learnings loaded** ({n} relevant entries) — implementation will respect these."
-
-**IF `{learn_skill}` does NOT exist:** Silently skip. (Strongly recommend installing gstack for full project intelligence.)
-
-### 4. Load TDD Skill (CRITICAL)
-
-**This is non-negotiable. You MUST load the TDD skill before any implementation begins.**
-
-- Use Read tool to load the FULL content of {tddSkill}
-- Read the skill completely
-- Internalize the Iron Law: "NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST"
-- Internalize the Red-Green-Refactor cycle
-- Internalize the Verification Checklist
-
-"TDD Skill loaded. All implementation will follow strict RED-GREEN-REFACTOR discipline."
-
-### 5. Present Story Summary and Proceed
-
-"**Story loaded and ready for implementation**
-
-**Story:** {{story_key}}
-**Status:** {{current_status}}
-**Tasks remaining:** {{incomplete_task_count}}
-**First task:** {{first_task_description}}
-**TDD Skill:** Loaded
-
-**Proceeding to setup...**"
-
-### 6. Auto-Proceed
-
-Display: "**Proceeding to sprint status setup...**"
-
-#### Menu Handling Logic:
-
-- After story and TDD skill are loaded, immediately load, read entire file, then execute {nextStepFile}
-
-#### EXECUTION RULES:
-
-- This is an auto-proceed init step with no user choices
-- Proceed directly to next step after setup
-
-## CRITICAL STEP COMPLETION NOTE
-
-ONLY WHEN the story is found, context is loaded, and TDD skill is loaded will you proceed to step-02-setup.
-
----
-
-## SYSTEM SUCCESS/FAILURE METRICS
-
-### SUCCESS:
-
-- Story found and fully loaded
-- Project context loaded (if exists)
-- TDD skill loaded via Read tool
-- First incomplete task identified
-- Story summary communicated
-- Auto-proceeded to step-02
-
-### FAILURE:
-
-- Skipping TDD skill loading
-- Not reading complete story file
-- Proceeding without identifying incomplete tasks
-- Starting implementation in this step
-
-**Master Rule:** The TDD skill MUST be loaded. Skipping this is SYSTEM FAILURE.
+Load and follow `{nextStepFile}`.

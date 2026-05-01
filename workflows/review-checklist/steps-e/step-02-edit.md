@@ -1,95 +1,39 @@
 ---
-name: 'step-02-edit'
-description: 'Apply edits to checklist based on user requests'
-
+name: step-02-edit
+description: 'Apply user-requested edits to the checklist interactively; only what the user asks for; preserve code-review compatibility'
 nextStepFile: './step-03-complete.md'
 checklistFile: ''
 ---
 
-# Step 2: Edit — Apply Changes
+# Step 2 — Edit
 
-## STEP GOAL:
+## Outcome
 
-Apply the user's requested edits to the checklist through interactive conversation.
+Every edit the user requested is applied to the in-memory checklist; nothing the user didn't ask for is changed. Each edit is shown back to the user before continuing. After the user signals "done", the user explicitly chooses Save or Undo, and the action is taken.
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Approach
 
-### Universal Rules:
+### Edit session
 
-- CRITICAL: Read the complete step file before taking any action
-- YOU MUST ALWAYS SPEAK OUTPUT in {communication_language}
+Based on the intent captured in step-01:
 
-### Role Reinforcement:
+- **Add** — ask which category, what items.
+- **Remove** — present numbered items; ask which to remove.
+- **Modify** — present items; ask which to change and how.
+- **Categories** — add/rename/remove at the category level.
+- **Free** — accept any of the above intermixed.
 
-- You are a code review checklist expert helping refine items
-- Apply ONLY what user requests — no unsolicited changes
-- Ensure edited items remain specific and verifiable
+Apply each requested change immediately. Show the change back briefly. Ask: "Anything else? If done, say 'done'." Loop until the user signals done.
 
-### Step-Specific Rules:
+Do not invent improvements. Each edited item must remain specific and verifiable (`code-review` compatibility).
 
-- Focus ONLY on applying user-requested edits
-- FORBIDDEN to make changes user didn't request
-- FORBIDDEN to remove items without explicit confirmation
-- Each edit must maintain code-review compatibility
+### Summary and save/undo
 
-## MANDATORY SEQUENCE
+Show the totals: items added, removed, modified. Halt for input:
 
-### 1. Edit Session
+- `[S]` Save — write the edited checklist to its file.
+- `[U]` Undo — discard all changes; the file on disk stays as it was.
 
-Based on edit intent from step-01:
+## Next
 
-**IF Add:** "Which category should the new items be added to, and what are they?"
-**IF Remove:** Present numbered items, ask which to remove
-**IF Modify:** Present items, ask which to modify and how
-**IF Category:** Ask about category changes
-**IF Free:** "Describe the changes you'd like to make freely."
-
-Apply changes as user requests. After each change:
-- Show what changed
-- Ask if more changes needed
-
-### 2. Continue Until Done
-
-Loop until user says "done":
-- Present current state after each batch of changes
-- "Anything else to edit? If done, say 'done'."
-
-### 3. Show Summary
-
-"**Edit summary:**
-- Added: {added}
-- Removed: {removed}
-- Modified: {modified}
-
-Save the edits?
-**[S]** Save — Save changes
-**[U]** Undo — Discard all changes"
-
-#### Menu Handling Logic:
-
-- IF S: Save edited checklist to file, then load, read entire file, then execute {nextStepFile}
-- IF U: Discard all changes, restore original, then load, read entire file, then execute {nextStepFile}
-
-#### EXECUTION RULES:
-
-- ALWAYS halt and wait for user confirmation before saving
-
----
-
-## SYSTEM SUCCESS/FAILURE METRICS
-
-### SUCCESS:
-
-- Only user-requested changes applied
-- Each edit confirmed before applying
-- Summary of changes presented
-- User confirmed save or undo
-
-### FAILURE:
-
-- Making unrequested changes
-- Removing items without confirmation
-- Not showing change summary
-- Saving without user confirmation
-
-**Master Rule:** Edit ONLY what user requests. No more, no less.
+Load and follow `{nextStepFile}`.

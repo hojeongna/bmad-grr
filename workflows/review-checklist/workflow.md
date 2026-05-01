@@ -1,6 +1,6 @@
 ---
 name: review-checklist
-description: 'Code review checklist generator. Base modes: project analysis, PR mining, interactive, universal. Auto-added gstack modes when installed: security (cso), structural (review), learnings-based (learn), audit (a11y/perf/theming). Use when the user says "create review checklist" or "generate checklist for code review"'
+description: 'Generate a code review checklist for the code-review workflow. Modes (combinable): project analysis, PR review mining, interactive Q&A, universal best practices, security, structural, audit (when ui-ux-pro-max is installed). Use when the user says "create review checklist" or "generate checklist for code review"'
 web_bundle: true
 
 # Critical variables from config
@@ -13,95 +13,43 @@ date: system-generated
 # Workflow components
 installed_path: "~/.claude/workflows/review-checklist"
 project_context: "**/project-context.md"
+
+# Required external skill (superpowers — bundled with bmad-grr)
 parallelAgentsSkill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
 
-# gstack skill dependencies (OPTIONAL - each enables an additional checklist generation mode)
-csoSkill: '~/.claude/skills/gstack/cso/SKILL.md'            # → Agent S (Security category)
-reviewSkill: '~/.claude/skills/gstack/review/SKILL.md'      # → Agent R (Structural category)
-learnSkill: '~/.claude/skills/gstack/learn/SKILL.md'        # → Agent L (Project-specific rules from past learnings)
-auditSkill: '~/.claude/skills/audit/SKILL.md'               # → Agent Au (Accessibility / Performance / Theming) — ui-ux-pro-max plugin, at skill root
+# ui-ux-pro-max plugin skill — auto-enabled if installed (NOT gstack)
+auditSkill: '~/.claude/skills/audit/SKILL.md'
 ---
 
 # Review Checklist
 
-**Goal:** Generate a comprehensive code review checklist md file that can be directly used by the `code-review` workflow. Supports 4 generation modes (combinable): project analysis, GitHub PR review mining, interactive Q&A, and universal best practices.
+## Overview
 
-**Your Role:** You are a code review checklist expert collaborating with the user. You bring deep knowledge of coding conventions, best practices, and code quality patterns. The user brings their project context and team-specific requirements. Work together to produce a thorough, actionable checklist.
+Generate a comprehensive code-review checklist for use with the `code-review` workflow. Modes can be combined freely:
 
-**Key Principle:** The generated checklist must be directly usable by `code-review` — structured, specific, and verifiable. Every item must be concrete enough that a reviewer can objectively determine pass/fail.
+- **Project Analysis (A)** — analyze the actual codebase for patterns the project follows.
+- **PR Review Mining (P)** — synthesize human reviewer comments from past PRs into recurring themes.
+- **Interactive (I)** — build category-by-category through conversation.
+- **Universal (U)** — generic best practices for the declared tech stack.
+- **Security (S)** — OWASP/STRIDE-flavored security checklist (always available, generated inline from native knowledge).
+- **Structural (R)** — pre-landing structural review items (always available, generated inline).
+- **Audit (Au)** — accessibility, performance, theming, responsive (auto-enabled if ui-ux-pro-max `audit` skill is installed).
 
----
+## Your Role
 
-## WORKFLOW ARCHITECTURE
+A code-review checklist expert. Combine knowledge of conventions, common pitfalls, and quality patterns with the user's project-specific context. Produce a checklist where every item is concrete enough that a reviewer can objectively decide pass/fail.
 
-### Core Principles
+## Key Principle
 
-- **Micro-file Design**: Each step is a self-contained instruction file
-- **Just-In-Time Loading**: Only the current step file is in memory
-- **Sequential Enforcement**: Steps must be completed in order
-- **Parallel Execution**: Automatic modes (project analysis, PR mining, universal) run as parallel agents
-- **Structured Output**: Checklist follows category → item format for code-review compatibility
+The generated checklist must be directly usable by `code-review`. Every item must be objectively verifiable — no subjective opinions, no style preferences without measurable criteria.
 
-### Step Processing Rules
+## Activation
 
-1. **READ COMPLETELY**: Always read the entire step file before taking any action
-2. **FOLLOW SEQUENCE**: Execute all numbered sections in order, never deviate
-3. **WAIT FOR INPUT**: If a menu is presented, halt and wait for user selection
-4. **LOAD SKILLS**: When directed to load a skill, use Read tool to load the FULL skill file
-5. **LOAD NEXT**: When directed, load, read entire file, then execute the next step file
+Load configuration from `{config_source}`. If config is missing, fall back to sensible defaults.
 
-### Critical Rules (NO EXCEPTIONS)
+Mode dispatch:
 
-- 🛑 **NEVER** load multiple step files simultaneously
-- 📖 **ALWAYS** read entire step file before execution
-- 🚫 **NEVER** skip steps or optimize the sequence
-- 🔧 **ALWAYS** load parallel agents skill via Read before dispatching
-- 🔧 **ALWAYS** load selected gstack skills (cso/review/learn/audit) in FULL via Read when installed
-- ⚠️ **IF** a selected gstack skill is missing, warn clearly and continue — never fail, never silently skip
-- ⚙️ **TOOL/SUBPROCESS FALLBACK**: If any instruction references a subprocess, subagent, or tool you do not have access to, you MUST still achieve the outcome in your main context thread
-- ✅ **ALWAYS** communicate in {communication_language}
-
-### External Skill Loading Protocol
-
-When a step instructs you to load a skill (gstack, superpowers, or any other external skill):
-
-1. Use Read tool to load the FULL skill file from the specified path
-2. Read the skill completely before acting — internalize its directives, voice, and decision framework
-3. Follow the skill's directives EXACTLY as written
-4. Do NOT summarize, abbreviate, or skip any of the skill's rules
-5. The skill's rules override any conflicting inline instructions within the scope where it was loaded
-6. **IF the skill file does not exist (gstack/superpowers not installed):** Emit a clear warning ("⚠️ `{skill_name}` not installed — reduced quality for {purpose}. Install gstack to enable.") and continue the workflow gracefully. Never fail, never silently skip.
-
----
-
-## INITIALIZATION SEQUENCE
-
-### 1. Module Configuration Loading
-
-Load and read full config from {project-root}/_bmad/bmm/config.yaml and resolve:
-
-- `user_name`, `communication_language`, `document_output_language`, `output_folder`
-
-### 2. Mode Determination
-
-**Check invocation:**
-- "create" / -c → mode = create
-- "validate" / -v → mode = validate
-- "edit" / -e → mode = edit
-
-**If create mode:**
-Load, read the full file and then execute `./steps-c/step-01-init.md`
-
-**If validate mode:**
-Ask for checklist file path → load, read the full file and then execute `./steps-v/step-01-validate.md`
-
-**If edit mode:**
-Ask for checklist file path → load, read the full file and then execute `./steps-e/step-01-assess.md`
-
-**If unclear:** Ask user to select mode:
-
-"**Checklist for Code Review**
-
-**[C]** Create — Generate a new checklist
-**[V]** Validate — Validate an existing checklist
-**[E]** Edit — Edit an existing checklist"
+- "create" / `-c` → load `~/.claude/workflows/review-checklist/steps-c/step-01-init.md`
+- "validate" / `-v` → ask for the checklist file path, then load `~/.claude/workflows/review-checklist/steps-v/step-01-validate.md`
+- "edit" / `-e` → ask for the checklist file path, then load `~/.claude/workflows/review-checklist/steps-e/step-01-assess.md`
+- Unclear → ask the user to pick `[C]` create / `[V]` validate / `[E]` edit.

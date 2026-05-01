@@ -1,212 +1,59 @@
 ---
-name: 'step-05-fix'
-description: 'Fix checklist violations using parallel agents, no deferral allowed'
-
+name: step-05-fix
+description: 'Apply checklist-based fixes via parallel per-file agents, run available tests, auto-retry failures'
 nextStepFile: '~/.claude/workflows/code-review/steps-c/step-06-complete.md'
 parallelAgentsSkill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
 ---
 
-# Step 5: Fix — Resolve Checklist Violations (Parallel)
+# Step 5 — Fix
 
-## STEP GOAL:
+## Outcome
 
-Fix checklist violations identified in the report using parallel agents (one agent per file). Filter findings by the fixScope selected in step-04, then fix ALL items in that scope without exception.
+Every finding inside the selected `fixScope` is fixed by a dedicated per-file sub-agent. After fixes, available project tests run automatically; failures trigger up to three auto-retry rounds. Nothing outside the report's findings is modified — no "while we're here" cleanups.
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Approach
 
-### Universal Rules:
+### Filter findings by scope
 
-- CRITICAL: Read the complete step file before taking any action
-- CRITICAL: When loading next step, ensure entire file is read
-- YOU MUST ALWAYS SPEAK OUTPUT in {communication_language}
+Apply `fixScope` from step-04:
 
-### Role Reinforcement:
+- `ALL` — every finding
+- `SMALL` — only SMALL-scope findings
+- `HIGH` — only HIGH-priority findings
 
-- You are a code review agent performing checklist-based fixes
-- You fix ONLY what the checklist flagged — nothing more
-- Every fix MUST correspond to a specific finding from the report
+Group filtered findings by file. Briefly tell the user the fix plan (counts by priority and file count).
 
-### Step-Specific Rules:
+### Dispatch per-file fix agents
 
-- 🛑 **ONE FILE = ONE SUB-AGENT. This is ABSOLUTE and NON-NEGOTIABLE.** NEVER combine multiple files into a single agent. NEVER fix 2+ files in one agent call. Each file MUST get its own dedicated sub-agent. Violating this rule is SYSTEM FAILURE.
-- Fix ONLY what the checklist flagged — no extra "improvements"
-- FORBIDDEN to refactor or change code beyond the violation fix
-- FORBIDDEN to add features or make "improvements" not in findings
-- FORBIDDEN to re-organize code that was not flagged
-- 🛑 **NO DEFERRAL**: NEVER skip, defer, or reserve a fix for any reason
-- 🛑 **NO EXCUSES**: "scope is large", "refactoring target", "complex change" are NOT valid reasons to skip fixes
-- 🛑 ALL items within the selected fixScope MUST be fixed
+Read `{parallelAgentsSkill}` for the dispatch pattern. One agent per file — never batch.
 
-## EXECUTION PROTOCOLS:
+Each agent receives:
 
-- Filter findings by fixScope, then dispatch parallel fix agents
-- Collect and verify all agent results before proceeding
-- After fixes, auto-detect and run available tests (type check, build, test)
-- Auto-fix test failures up to 3 retries
-- FORBIDDEN to proceed without all agents completing
+1. **File path** to fix.
+2. **All filtered findings for that file** — checklist category, item, line number, description, and how-to-fix from the report.
+3. **Fix instruction**: read the file completely; for every finding, apply the minimum change that resolves it without breaking surrounding code; do not skip, defer, or "save for later" any finding inside the assigned scope.
+4. **Scope lock**: modify only the assigned file; no improvements beyond the listed findings; no refactors.
+5. **No-deferral rule**: "too complex" and "too large" are not valid reasons to skip a fix; if a fix truly cannot be applied, return a concrete technical reason (e.g., file deleted, syntax conflict).
+6. **Output**: list of fixes applied with checklist item, change description, and lines affected.
 
-## CONTEXT BOUNDARIES:
+### Verify completion
 
-- Available: Findings report from step-04, fixScope selection, parallel agents skill
-- Focus: Fix ONLY flagged violations, then verify with tests
-- Limits: One agent per file, no feature additions, no refactoring beyond findings
-- Dependencies: step-04 report (findings + priorities + scope)
+Aggregate results. Confirm every assigned finding was addressed. If any agent deferred without a concrete technical reason, surface that to the user — that's a real failure, not just a partial result.
 
-## MANDATORY SEQUENCE
+### Run available tests
 
-**CRITICAL:** Follow this sequence exactly. Do not skip, reorder, or improvise.
+Detect what the project actually exposes:
 
-### 1. Filter Findings by Scope
+- `tsc --noEmit` if `tsconfig.json` exists
+- `npm/pnpm/yarn run build` if `package.json` `scripts.build` exists (detect package manager from lockfile: `pnpm-lock.yaml` → pnpm, `yarn.lock` → yarn, otherwise npm)
+- `npm/pnpm/yarn test` if `scripts.test` exists; `pytest` if `pytest.ini` or `pyproject.toml` pytest config; `behave` if its config exists
 
-Apply the fixScope from step-04:
+Run only what's detected. If a test fails, analyze the failure, fix it, and re-run only the failed test. Up to three rounds. After three rounds, surface the failure honestly and continue — don't pretend it passed.
 
-- **fixScope='ALL'**: Include ALL findings (HIGH + MEDIUM + LOW, SMALL + LARGE)
-- **fixScope='SMALL'**: Include only SMALL scope findings (any priority)
-- **fixScope='HIGH'**: Include only HIGH priority findings (any scope)
+## Communicate
 
-**If `includeAuxiliary` is true (user selected +A in step-04):**
-- Add `review_auxiliary_findings` and `cso_auxiliary_findings` to the fix queue
-- Auxiliary findings are clearly tagged as `[AUX]` in agent prompts so agents know these are NOT checklist items
-- Apply the same fixScope filter to auxiliary findings (e.g., if fixScope='HIGH', only include HIGH-priority auxiliary findings)
+Brief summary: fixed count, any unfixed items with reasons, and test results.
 
-**If `includeAuxiliary` is false or not set:** Only primary checklist findings are included.
+## Next
 
-Group filtered findings by file.
-
-Present fix plan:
-
-"**Fix plan (scope: {{fixScope}}):**
-🔴 High: {{high_count}}
-🟡 Medium: {{med_count}}
-🟢 Low: {{low_count}}
-📁 Target files: {{file_count}}
-**Starting parallel fixes...**"
-
-### 2. Load Parallel Agents Skill
-
-- Use Read tool to load the FULL content of {parallelAgentsSkill}
-- Read the skill completely — do not skim or skip sections
-- Follow the skill's dispatch pattern for agent creation
-
-"**Parallel agents skill loaded. Preparing fix agents...**"
-
-### 3. Prepare Agent Prompts
-
-For each file with filtered findings, prepare an agent prompt containing:
-
-1. **File path:** The specific file this agent must fix
-2. **Findings list:** ALL filtered findings for this file — checklist category, item, line number, description, how to fix
-3. **Fix instruction:** "Read the file completely using the Read tool. Apply ALL fixes listed below. For each fix: (1) locate the violation, (2) apply the minimum change to resolve it, (3) verify the fix does not break surrounding code. Do NOT skip any fix. Do NOT defer any fix regardless of scope or complexity."
-4. **Scope constraint:** "Fix ONLY the assigned file. Do NOT modify other files. Do NOT add improvements beyond what is listed."
-5. **No-deferral rule:** "You MUST fix every item assigned to you. Reporting a fix as 'too complex' or 'requires refactoring' is FORBIDDEN. Apply the fix now."
-6. **Expected output format:** "Return a list of fixes applied: (1) checklist item reference, (2) what was changed, (3) line numbers affected. If a fix truly cannot be applied (e.g., file deleted, syntax conflict), report the specific technical reason — but 'too large' or 'too complex' is NOT a valid reason."
-
-### 4. Dispatch Agents
-
-- Dispatch one agent per file using the Agent tool
-- Each agent fixes its file independently and in isolation
-- Do NOT batch multiple files into a single agent
-
-"**{{agent_count}} fix agents dispatched. Parallel fixes in progress...**"
-
-### 5. Collect Results and Verify
-
-When all agents return:
-
-- Collect all fix results from every agent
-- Verify each finding was addressed
-- Flag any items reported as unfixed with their reason
-- If any agent deferred a fix without valid technical reason: report as SYSTEM FAILURE
-
-### 6. Report Fix Results
-
-"**Fixes complete**
-- Fixed: {{fixed_count}}
-- Unable to fix: {{unfixed_count}} (list with reasons if any)
-
-**Proceeding to completion step...**"
-
-### 7. Auto-Detect and Run Tests
-
-After fixes are applied, automatically detect and run available tests.
-
-**Detection sequence:**
-
-1. **Type check:** check if `tsconfig.json` exists → if present, run `tsc --noEmit`
-2. **Build test:** check `package.json` `scripts.build` → if present, run with appropriate package manager (npm/pnpm/yarn run build)
-3. **Test execution:** detect in the following order
-   - `package.json` `scripts.test` → npm/pnpm/yarn test
-   - `behave` config file exists → `behave`
-   - `pytest.ini` / `pyproject.toml` pytest config → `pytest`
-
-**Package manager detection:** `pnpm-lock.yaml` → pnpm, `yarn.lock` → yarn, otherwise → npm
-
-**Execution rules:**
-- Run only detected tests — skip if not detected
-- Mark each test result as "**✅ PASS**" or "**❌ FAIL**"
-
-**IF ANY TEST FAILS:**
-
-"**❌ Test failures detected:**
-{{failure_output}}
-
-**Auto-fixing and re-running...**"
-
-- Analyze failure cause and fix immediately
-- Re-run only failed tests after fix
-- Repeat until passing (max 3 retries)
-- After 3 failures: output "**⚠️ Auto-fix limit reached. Manual verification required.**" then proceed
-
-**IF ALL TESTS PASS:**
-
-"**✅ All tests passed!**
-{{list of tests run and their status}}"
-
-### 8. Auto-Proceed
-
-Immediately load, read entire file, then execute {nextStepFile}
-
-#### Menu Handling Logic:
-
-- After fixes reported, run auto-detected tests, auto-fix failures, then proceed to {nextStepFile} (step-06-complete)
-
-#### EXECUTION RULES:
-
-- This is an auto-proceed step — do not wait for user input
-- Wait for ALL agents to complete before proceeding
-- Do NOT proceed with partial results
-- Proceed to completion step after reporting results
-
-## SYSTEM SUCCESS/FAILURE METRICS
-
-### SUCCESS:
-
-- Findings correctly filtered by fixScope
-- Parallel agents skill loaded via Read tool
-- One fix agent dispatched per file
-- All agents completed their fixes
-- ALL items in selected scope were fixed — zero deferrals
-- Each fix corresponds to a specific checklist finding
-- Fix results reported clearly
-- Available tests auto-detected and executed
-- Failed tests triggered auto-fix and re-run
-- All tests passed before proceeding
-- Auto-proceeded to step-06-complete
-
-### FAILURE:
-
-- Fixing things not in the findings
-- Over-engineering fixes beyond what is needed
-- Adding features or refactoring during fixes
-- Skipping or deferring ANY fix in the selected scope
-- Reporting a fix as "too complex" or "too large" without a concrete technical blocker
-- Not loading parallel agents skill
-- Not dispatching agents in parallel
-- Proceeding before all agents complete
-- Not verifying fixes after applying
-
-- Skipping test execution when tests are detected
-- Not attempting auto-fix on test failure
-- Proceeding with failing tests without reporting
-
-**Master Rule:** Fix ONLY checklist violations. Fix ALL of them in the selected scope. No deferral. No excuses. Any skipped fix is SYSTEM FAILURE. After fixes, run all detected tests and auto-fix failures.
+Load and follow `{nextStepFile}`.

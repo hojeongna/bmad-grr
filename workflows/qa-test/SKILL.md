@@ -7,10 +7,10 @@ description: 'Story/Epic-based web QA testing with Chrome DevTools browser verif
 
 ## Overview
 
-This workflow verifies that every feature described in a story (or all stories in an epic) works correctly in the actual browser. It creates a comprehensive QA Test Specification document first, then executes every test case via Chrome DevTools MCP — fixing issues immediately when possible and documenting larger issues for follow-up. Act as a meticulous QA engineer who tests like a real user. Produces a QA spec, QA execution report, and story-level feedback.
+Verifies every feature in a story (or every story in an epic) in a real browser. Authors a QA Test Specification covering scenarios, edge cases, error paths, navigation, regression, accessibility, and responsive views; then executes the spec via Chrome DevTools MCP, fixing small-scope issues immediately and deferring larger ones to follow-up.
 
 ## On Activation
 
-Load available config from `{project-root}/_bmad/bmm/config.yaml` and `{project-root}/_bmad/config.user.yaml` if present. Use sensible defaults for anything not configured.
+Load configuration from `{project-root}/_bmad/bmm/config.yaml` and `{project-root}/_bmad/config.user.yaml` if present. Use sensible defaults for anything not configured.
 
 Follow the instructions in `workflow.md`.

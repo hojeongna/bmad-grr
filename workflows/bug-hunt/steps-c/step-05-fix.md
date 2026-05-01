@@ -1,7 +1,6 @@
 ---
-name: 'step-05-fix'
-description: 'Implement the root cause fix, verify with DevTools, loop back if verification fails'
-
+name: step-05-fix
+description: 'Implement the root-cause fix, verify with DevTools, loop back to the appropriate level if verification fails'
 nextStepFile: './step-06-wrapup.md'
 loopBackFiles:
   level-1: './step-02-code-analysis.md'
@@ -9,236 +8,62 @@ loopBackFiles:
   level-3: './step-04-web-search.md'
 stateFile: '{output_folder}/bug-hunt-{date}.state.md'
 parallel_agents_skill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
-qaSkill: '~/.claude/skills/gstack/qa/SKILL.md'
 advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
 partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
 ---
 
-# Step 5: Fix Implementation
+# Step 5 — Fix
 
-## STEP GOAL:
+## Outcome
 
-To implement the root cause fix based on the confirmed hypothesis, verify the fix works in the actual application using Chrome DevTools, and loop back if verification fails.
+The confirmed root cause is fixed with a single focused change (no bundled refactoring, no "while we're here" cleanups). The fix is verified in the actual application via Chrome DevTools (frontend) or direct testing (backend). If verification succeeds, the workflow advances to wrap-up; if it fails, the workflow loops back to the escalation level that produced the (apparently false) hypothesis.
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Approach
 
-### Universal Rules:
+### Plan the change
 
-- 🛑 NEVER generate content without user input
-- 📖 CRITICAL: Read the complete step file before taking any action
-- 🔄 CRITICAL: When loading next step with 'C', ensure entire file is read
-- 📋 YOU ARE A FACILITATOR, not a content generator
-- ✅ YOU MUST ALWAYS SPEAK OUTPUT In your Agent communication style with the config `{communication_language}`
-- ⚙️ TOOL/SUBPROCESS FALLBACK: If any instruction references a subprocess, subagent, or tool you do not have access to, you MUST still achieve the outcome in your main context thread
+Read `{stateFile}` for the confirmed hypothesis and root cause. Present the fix plan: which files change, exactly what changes, what stays out of scope. Get user agreement before implementing.
 
-### Role Reinforcement:
+### Implement
 
-- ✅ You are a systematic debugging partner implementing the confirmed fix
-- ✅ The root cause is identified - now implement correctly
-- ✅ Fix the ROOT CAUSE, not the symptom
-- ✅ Verify in the ACTUAL application, not just in theory
+For multi-file or split FE/BE changes, load `{parallel_agents_skill}` and dispatch sub-agents in parallel — each returns the change made and a per-file verification note. For a single-file or small change, implement directly.
 
-### Step-Specific Rules:
+Address the root cause only. No refactoring of unrelated code. No "improvements" disguised as part of the fix.
 
-- 🎯 Implement the fix for the CONFIRMED root cause only
-- 🚫 FORBIDDEN to fix things "while you're at it" - ONE fix only
-- 🚫 FORBIDDEN to bundle refactoring with the fix
-- 🔧 For large fixes: use Sub-Processes for parallel FE/BE changes (Pattern 4)
-- 💬 Sub-processes return structured results, not full file contents
-- ⚙️ If sub-processes unavailable, implement changes sequentially
-- 📋 Verify with Chrome DevTools that the fix ACTUALLY works
+### Verify in the real environment
 
-## EXECUTION PROTOCOLS:
+**Frontend bugs** — use Chrome DevTools MCP:
+- Reproduce the original failure path; confirm the bug is gone.
+- Check the console — no new errors; `[BUG-HUNT]` logs (still in code at this point) show the corrected values.
+- Take a screenshot to capture the corrected state.
+- Scan adjacent functionality for regressions.
 
-- 🎯 Implement single fix addressing root cause
-- 💾 Update state file with fix details
-- 📖 Verify with DevTools in actual application
-- 🚫 If verification fails, loop back to last escalation level
+**Backend bugs** — exercise the affected endpoint or job, inspect logs, check data integrity.
 
-## CONTEXT BOUNDARIES:
-
-- Hypothesis confirmed in previous step (02, 03, or 04)
-- Root cause identified with evidence
-- lastEscalationLevel in state tells us where to loop back if verification fails
-- Debug logs may still be in code (tracked in state)
-
-## MANDATORY SEQUENCE
-
-**CRITICAL:** Follow this sequence exactly.
-
-### 1. Load Context
-
-Read `{stateFile}` to get:
-- Confirmed hypothesis and evidence
-- Root cause details
-- lastEscalationLevel (for potential loop back)
-- Current debug logs in code
-
-### 2. Plan the Fix
-
-"**Fix plan:**
-
-**Root cause:** [confirmed root cause]
-**Fix method:** [how it will be fixed]
-**Files to change:**
-- [file 1] - [change description]
-- [file 2] - [change description]
-
-**Will NOT change:**
-- No refactoring
-- No 'improvements'
-- No changes unrelated to this bug
-
-Do you agree with this fix plan?"
-
-**Wait for user input.**
-
-### 3. Assess Fix Scope
-
-**If multiple files across FE and BE, or large-scale frontend changes:**
-
-Load `{parallel_agents_skill}` and use Sub-Processes:
-- Launch parallel agents for independent file changes
-- Each agent returns: `{file, changesMade, verification}`
-- Aggregate results
-
-**If single file or small change:**
-- Implement directly in main thread
-
-### 4. Implement the Fix
-
-- Address the ROOT CAUSE identified
-- ONE change at a time
-- No "while I'm here" improvements
-- No bundled refactoring
-
-"**Fix implementation complete:**
-
-**Changes:**
-| File | Change Description |
-|------|----------|
-| [file] | [specific change] |"
-
-### 5. Verify with Chrome DevTools
-
-**For frontend bugs:**
-
-Use Chrome DevTools MCP to verify:
-
-**a. Take screenshot** - Does the UI look correct now?
-**b. Check console** - No new errors? [BUG-HUNT] logs show correct values?
-**c. Test the original reproduction steps** - Does the bug still occur?
-**d. Check for side effects** - Other functionality still working?
-
-**For backend bugs:**
-- Test the API endpoint
-- Check server logs
-- Verify data integrity
-
-"**Verification results:**
-
-**Expected behavior:** [what was originally expected]
-**Actual result:** [result after fix]
-**Bug reproduction:** [reproduction attempt → success/failure]
-**Side effects:** [other functionality check results]"
-
-### 5b. Extended QA Verification (gstack)
-
-**IF {qaSkill} exists (gstack installed) AND bug involves frontend:**
-
-Load {qaSkill} via Read tool and follow its diff-aware QA methodology after fix:
-- Test pages affected by the fix
-- Compute before/after health score delta
-- Capture screenshot evidence proving the bug is fixed
-- Check for regressions on related pages
-
-"**Extended QA Results:**
-- **Health score delta:** {before} → {after}
-- **Bug reproduction:** {fixed/still present}
-- **Regression check:** {pass/fail}"
-
-**IF {qaSkill} does NOT exist:** Rely on Chrome DevTools verification from step 5.
-
-### 6. Evaluate Verification Result
-
-**If fix VERIFIED successfully:**
-→ Proceed to wrapup
-
-**If fix FAILED verification:**
-
-"**The fix doesn't work in the actual environment!**
-
-**Failure reason:** [what's not working]
-**Previous escalation level:** Level [lastEscalationLevel]
-
-We need to go back to that level for further investigation."
-
-### 7. Update State File
+### Persist progress
 
 Update `{stateFile}`:
 
-**If verified:**
+If verified:
 ```yaml
 fixImplemented: true
 fixVerified: true
 fixDetails:
-  method: '[fix method]'
-  files: ['file list']
-  changes: '[change summary]'
+  method: ''
+  files: []
+  changes: ''
 ```
 
-**If failed:**
-Add failed verification to hypotheses with details.
+If failed: append to `hypotheses` as a level-`{lastEscalationLevel}` failure with the verification observations. Add `step-05-fix` to `stepsCompleted` and append to the Investigation Log.
 
-Update `stepsCompleted`.
-Append to Investigation Log.
+## Routing
 
-### 8. Present MENU OPTIONS
+Present a menu (halt for input):
 
-**If fix VERIFIED:**
+- **Verified**: `[A]` `[P]` `[C]` Continue to Wrap-up
+- **Verification failed**: `[A]` `[P]` `[C]` Loop back to Level `{lastEscalationLevel}`
 
-Display: "**Fix complete and verified! Proceed to wrap-up?**
-
-**Select:** [A] Advanced Elicitation [P] Party Mode [C] Continue to Wrapup"
-
-**If fix FAILED verification:**
-
-Display: "**Fix verification failed. Returning to Level [N] for re-investigation.**
-
-**Select:** [A] Advanced Elicitation [P] Party Mode [C] Loop back to Level [N]"
-
-#### EXECUTION RULES:
-
-- ALWAYS halt and wait for user input after presenting menu
-- Loop back target is determined by lastEscalationLevel in state
-
-#### Menu Handling Logic:
-
-- IF A: Execute {advancedElicitationTask}, and when finished redisplay the menu
-- IF P: Execute {partyModeWorkflow}, and when finished redisplay the menu
-- IF C (verified): Update state file, then load, read entire file, then execute {nextStepFile}
-- IF C (failed): Update state file, then load, read entire file, then execute the appropriate file from {loopBackFiles} based on lastEscalationLevel
-- IF Any other: help user, then redisplay menu
-
----
-
-## 🚨 SYSTEM SUCCESS/FAILURE METRICS
-
-### ✅ SUCCESS:
-
-- Fix addresses ROOT CAUSE (not symptom)
-- Single focused change (no extras)
-- Verified in actual application with DevTools
-- Sub-Processes used for large changes
-- State file updated with fix details
-- Loop back works correctly on verification failure
-
-### ❌ SYSTEM FAILURE:
-
-- Fixing symptoms instead of root cause
-- Bundling refactoring with fix
-- Not verifying with DevTools
-- Claiming success without actual verification
-- Not looping back on verification failure
-
-**Master Rule:** A fix that works in theory but fails in practice is NOT a fix. Verify in the real application.
+Menu handling:
+- `A` / `P` — standard
+- `C` (verified) → `{nextStepFile}`
+- `C` (failed) → load and follow the matching entry in `{loopBackFiles}` based on `lastEscalationLevel`

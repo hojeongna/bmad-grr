@@ -96,12 +96,11 @@ The LLM selected the following skills based on the audit findings and user conce
 - **Audited URL:** `{{url}}`
 - **Screenshots folder:** `{{screenshot_folder}}`
 - **Related story** (if any): {{related_story_key}}
-- **Skills applied:** {{list of UX skills used (gstack + ui-ux-pro-max)}}
-- **Prior learnings (gstack/learn):** {{relevant_learnings}}
+- **Skills applied:** {{list of UX skills used (inline live-audit framework + ui-ux-pro-max)}}
 
 **Testing Standards:**
 - **Visual regression:** 스크린샷 diff 권장 (개선 전/후 비교)
-- **E2E:** gstack `/qa` 또는 `/browse`로 개선 흐름 검증
+- **E2E:** Chrome DevTools MCP 또는 프로젝트의 E2E 도구로 개선 흐름 검증
 - **a11y:** keyboard navigation + contrast check
 - **Performance:** Core Web Vitals 기준 (LCP, CLS, INP)
 - **TDD:** dev-story 실행 시 `test-driven-development` 스킬 자동 로드

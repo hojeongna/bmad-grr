@@ -1,17 +1,13 @@
 ---
-name: 'step-02a-plan-audit'
-description: 'Branch A: Load full story document, apply LLM judgment to identify UX risks from actual content (NOT keyword matching), auto-dispatch UX skills (gstack + ui-ux-pro-max) with specific reasoning, get user confirmation, apply selected skills'
-
+name: step-02a-plan-audit
+description: 'Branch A — read full story; apply inline plan-audit framework to identify UX risks; auto-dispatch ui-ux-pro-max skills with citations; user-confirmed selection; produce skill_findings'
 nextStepFile: './step-03a-enhance-doc.md'
 
-# gstack base skills — ALWAYS loaded in Branch A
-planDesignReviewSkill: '~/.claude/skills/gstack/plan-design-review/SKILL.md'
-
-# Reference files (hints, NOT rules)
+# Reference (hints, NOT rules)
 uxDispatchRules: '~/.claude/workflows/design-pass/data/ux-auto-dispatch-rules.md'
 uxChecklist: '~/.claude/workflows/design-pass/data/ux-checklist.md'
 
-# ui-ux-pro-max auto-dispatch candidate skills (loaded only if LLM judgment selects them)
+# ui-ux-pro-max auto-dispatch candidates (loaded only if LLM judgment selects them)
 critiqueSkill: '~/.claude/skills/critique/SKILL.md'
 polishSkill: '~/.claude/skills/polish/SKILL.md'
 normalizeSkill: '~/.claude/skills/normalize/SKILL.md'
@@ -26,251 +22,102 @@ animateSkill: '~/.claude/skills/animate/SKILL.md'
 overdriveSkill: '~/.claude/skills/overdrive/SKILL.md'
 adaptSkill: '~/.claude/skills/adapt/SKILL.md'
 hardenSkill: '~/.claude/skills/harden/SKILL.md'
-clarifySkill: '~/.claude/skills/clarify/SKILL.md'
+claritySkill: '~/.claude/skills/clarify/SKILL.md'
 onboardSkill: '~/.claude/skills/onboard/SKILL.md'
 ---
 
-# Step 2a: Pre-dev Plan Audit + Auto-Dispatch
+# Step 2a — Pre-dev Plan Audit + Auto-Dispatch
 
-## STEP GOAL:
+## Outcome
 
-Load the FULL story document, read it deeply, identify UX risks using LLM judgment (NOT keyword matching), select relevant UX skills (gstack + ui-ux-pro-max), present the selection with specific reasoning tied to the actual story content, get user confirmation, and apply the selected skills to produce findings for step-03a.
+The full story document is read, UX risks are identified from the actual content (citations to AC/Tasks/Dev Notes/Risks/concern), the relevant ui-ux-pro-max skills are selected with explicit reasoning per skill, the user has confirmed the selection, and the selected skills have been applied to produce `skill_findings` for step-03a.
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Approach
 
-### Universal Rules:
+### Load the full story
 
-- 📖 CRITICAL: Read the complete step file before taking any action
-- 🔄 CRITICAL: When loading next step, ensure entire file is read
-- ⚙️ TOOL/SUBPROCESS FALLBACK: If any instruction references a subprocess, subagent, or tool you do not have access to, you MUST still achieve the outcome in your main context thread
-- ✅ YOU MUST ALWAYS SPEAK OUTPUT in {communication_language}
+Read the file referenced by `story_ref` completely. If it's a story key (e.g., `q-1-profile-upload`), construct the path `{implementation_artifacts}/{story_ref}.md`. If the file doesn't exist, halt with a clear message asking the user to verify the path.
 
-### Role Reinforcement:
+Read every section: frontmatter, Mini PRD, Mini Architecture (Stack/Touchpoints/Patterns/Constraints/Risks), Architecture Impact (if present), Story (As a/I want/So that), Acceptance Criteria, Tasks/Subtasks, Dev Notes. No skimming.
 
-- ✅ You are a UX-minded design partner applying JUDGMENT, not matching keywords
-- ✅ The story document is the source of truth — read it in FULL before judging
-- ✅ Every skill selection must come with a SPECIFIC reference from the story (AC #N, Tasks, Dev Notes, Risks)
-- ✅ If uncertain, prefer reading more of the content over guessing
+### Load project context (if present)
 
-### Step-Specific Rules:
+Read `project-context.md` (per `{project_context}` glob) if it exists. Project-wide UX conventions and design-system notes inform judgment.
 
-- 🧠 **LLM JUDGMENT FIRST**: Read the full story. Identify UX risks from the actual content. Select skills that address those risks. NEVER mechanically match keywords.
-- 🔧 ALWAYS load base skills (`plan-design-review` + `critique`) in FULL before judging
-- 💬 ALWAYS explain each skill selection with a specific quote/reference from the story
-- 🚫 FORBIDDEN to add skills without specific reasoning tied to the story content
-- 🚫 FORBIDDEN to skip the user confirmation gate
-- 📖 ALWAYS read the story file in FULL — no skimming
+### Inline plan-audit framework
 
-## EXECUTION PROTOCOLS:
+Apply this framework directly to the story plan — no external skill load needed. Walk through these dimensions, citing the specific story location for every risk:
 
-- 🎯 Follow the MANDATORY SEQUENCE exactly
-- 💾 Track: `story_content`, `ux_risks`, `selected_skills`, `reasoning_per_skill`, `skill_findings`
-- 📖 Load story → load base skills → judge → select → present → confirm → apply
-- 🚫 FORBIDDEN to proceed past confirmation gate without explicit user Y
+- **Visual hierarchy** — does the plan describe how primary vs. secondary actions/info are weighted? Missing emphasis is a risk.
+- **States — empty / error / loading / success** — for every interaction the AC implies, does Dev Notes define the four states explicitly? Unspecified states almost always become AI-slop or jarring jumps in implementation.
+- **AI-slop risk** — does the plan default to generic patterns (purple gradient, rounded card, system font, generic spinner)? Watch for missing project-context anchoring.
+- **Accessibility** — keyboard reachability, focus management, ARIA roles for dynamic UI, color contrast, screen-reader labels, touch-target sizes. Missing AC/Dev Notes coverage of any of these is a risk.
+- **Edge cases** — long text, RTL, locale formatting, very large/small content, viewport extremes, slow networks, no-permission states.
+- **Motion / feedback** — does the plan call out micro-interactions where they matter (success moments, errors, transitions)? Or are they implicit (and thus unlikely)?
+- **Micro-copy quality** — error messages, empty-state guidance, button labels: are they specified? Generic strings ("뭔가 잘못됐어요") are AI-slop signals.
+- **Responsive breakpoints** — does the plan name the touch/mobile/tablet/desktop targets and how layout adapts?
 
-## CONTEXT BOUNDARIES:
+For each risk identified, capture: the risk (one sentence) and the specific story location (`AC #N` / `Tasks 1.2` / `Dev Notes` / `Risks` / `user_concern` quote).
 
-- Available: `story_ref` and `user_concern` from step-01, project-context.md, sprint-status.yaml, UX skills (gstack + ui-ux-pro-max), reference files
-- Focus: Deep reading + judgment + skill selection with reasoning + application
-- Limits: No document writing yet (that's step-03a)
-- Dependencies: `story_ref` from step-01
+### Reference dispatch hints
 
-## MANDATORY SEQUENCE
+Load `{uxDispatchRules}` as **reference hints** — read it then ignore patterns that don't fit. The file explicitly warns against keyword matching. Also load `{uxChecklist}` as a thinking prompt for UX dimensions, not as a fill-in form.
 
-**CRITICAL:** Follow this sequence exactly.
+### Select skills for the risks identified
 
-### 1. Load the Full Story Document
+For each risk, pick the ui-ux-pro-max skill(s) that address it. Patterns to keep in mind (these are starting hints — judgment overrides):
 
-Use Read tool to load the FULL story document referenced by `story_ref`:
+- States missing → `harden` (resilience) + `clarify` (message quality)
+- Visual hierarchy weak → `arrange` (rhythm/spacing) + `typeset` (type weight)
+- AI-slop risk → `colorize`, `typeset`, or `delight` depending on what's generic
+- "밋밋해" / lifeless concern → `bolder`, `delight`, `colorize`, or `animate`
+- "복잡해" / overwhelming concern → `distill`, `quieter`, `normalize`
+- First impression matters → `polish`, `delight`, `animate`
+- Onboarding / empty-state journey → `onboard`
+- Mobile / responsive concerns → `adapt`
+- Quantitative dimension scoring desired → `critique`
 
-- If `story_ref` is a file path → Read directly
-- If `story_ref` is a story key (e.g., `q-1-profile-upload`) → construct path `{implementation_artifacts}/{story_ref}.md` and Read
-- If the file doesn't exist → HALT with: "스토리 파일을 찾을 수 없어요: `{story_ref}`. 경로를 다시 확인해주세요."
+If a risk doesn't fit any pattern, pick the skill that best addresses it from your UX knowledge. Don't pad — judgment, not kitchen sink.
 
-Read EVERY section:
+**Forbidden anti-pattern**: "Story mentions 'upload' → load harden". Required pattern: "AC #3 specifies '5MB 초과 시 에러', Dev Notes doesn't define how the error reaches the user. Loading `harden` for resilience + `clarify` for message quality."
 
-- Frontmatter (story_key, status, type, complexity)
-- Mini PRD (문제, 대상, 성공 기준, 비범위)
-- Mini Architecture (Stack, Touchpoints, Patterns, Constraints, Risks)
-- Architecture Impact (if present)
-- Story (As a / I want / So that)
-- Acceptance Criteria
-- Tasks / Subtasks
-- Dev Notes
+### Present and confirm
 
-Do NOT skim. This is the source of truth for your judgment.
+Show a tight selection summary in `{communication_language}`:
 
-### 2. Load Project Context (if exists)
+```
+📋 {story_ref} 분석 결과
 
-Check for `project-context.md` (use `{project_context}` glob pattern). If found, Read it in full. This provides project-wide UX conventions and design system notes that should inform your judgment.
+🔍 UX 리스크
+- {risk_1} — ({source: AC #N / Tasks / Dev Notes / Risks / concern})
+- {risk_2} — ({source})
+- ...
 
-### 3. Load Base Skills (REQUIRED — always)
+🎨 적용할 스킬 ({n}개)
+- {skill_name} — {reasoning tied to a specific risk + source}
+- ...
 
-Load these in FULL via Read tool:
+고민 사항: {user_concern or "없음 — 문서 기반 자동 판단"}
 
-- **`{planDesignReviewSkill}`** — Interactive design plan review framework. Internalize its scoring dimensions and "what would make it a 10" logic.
-- **`{critiqueSkill}`** — Quantitative UX evaluation framework. Internalize its scoring dimensions (visual hierarchy, information architecture, cognitive load, emotional resonance).
+[Y] 진행   [M] 일부 조정   [+] 추가 스킬 있음   [N] 취소
+```
 
-These give you the baseline evaluation framework. Apply them to the story plan you just read.
+Halt for input. On `M` accept the user's adjustment ("harden은 빼고 delight 추가") and re-present. On `+` accept additions and re-present. On `N` end the workflow. On `Y` proceed.
 
-### 4. Load Dispatch Reference (as HINTS, not rules)
+### Load selected skills and apply
 
-Load `{uxDispatchRules}` in FULL via Read tool. Read it as REFERENCE HINTS, not rules. The file explicitly warns against keyword matching.
+For each confirmed skill not already loaded, read the full file via Read tool. If a selected skill file doesn't exist, warn briefly ("⚠️ {skill} 미설치 — 해당 risk 미커버") and continue with the rest.
 
-Also load `{uxChecklist}` in FULL — use it as a thinking prompt for UX dimensions.
+For each loaded skill, apply its framework to the story document and capture:
 
-### 5. Deep Reading & UX Risk Assessment (LLM JUDGMENT CORE)
+- What the skill's framework reveals (specific to this story)
+- What specific guidance it suggests (actionable recommendations)
+- Which AC/Tasks/Dev Notes/Risks sections to enhance
 
-**This is the heart of Branch A. Do this carefully.**
+Store as `skill_findings`: `{ skill_name: { observations, recommendations, target_sections } }`.
 
-Based on your reading of the story document, answer these questions from the ACTUAL content (not generic patterns):
+This is analysis only — writing to the story document happens in step-03a.
 
-1. **What is the user doing in this story?** (interaction type, emotional context — first use? recovery? celebration? routine task?)
-2. **What specific UX risks exist in this story?** Look at:
-   - Acceptance Criteria — what failure modes, edge cases, states are mentioned or implied?
-   - Risks section — what does the author already flag?
-   - Dev Notes — what's defined and, more importantly, what's missing?
-   - Touchpoints — what UI surfaces are affected?
-3. **What makes this moment matter to the user?** (first impression? recovery from error? celebration of success? efficiency in a routine?)
-4. **What sensory dimensions are involved?** (typography, color, motion, layout, hierarchy, spacing)
-5. **What platforms/contexts apply?** (mobile, desktop, offline, a11y, i18n, low bandwidth)
-6. **What's the emotional arc?** (calm, exciting, urgent, delightful?)
-7. **Is the user's concern (if provided) addressing something specific or a general vibe?** Interpret it in context.
+## Next
 
-For each identified UX risk, document:
-
-- **The risk** (one clear sentence)
-- **Where it comes from** (specific AC/Tasks/Dev Notes/Risks reference, or user concern quote)
-
-### 6. Select Skills Based on Risks (LLM JUDGMENT)
-
-For each UX risk you identified in section 5, select the UX skill(s) that best address it.
-
-**Rules of selection:**
-
-- Always include base skills: `plan-design-review` + `critique`
-- For each risk, add the skill(s) that best address it
-- Use `{uxDispatchRules}` patterns as a REFERENCE to recognize common situations, but your judgment from the actual story content OVERRIDES any pattern lookup
-- If a risk doesn't match any pattern, select the skill that best addresses it using your UX knowledge
-- Multiple risks may need the same skill — list the skill ONCE and cite multiple sources
-- **If user_concern was provided**, make sure at least one selected skill addresses it
-- Do NOT pad the selection with irrelevant skills — judgment, not kitchen sink
-
-**Critical: Ban the anti-pattern:**
-
-❌ "Story mentions 'upload' → load harden"
-✅ "AC #3 specifies '5MB 초과 시 에러', but Dev Notes doesn't define how the error is communicated to the user. Loading `harden` for resilience + `clarify` for message quality."
-
-### 7. Present Selection to User
-
-Use this EXACT format (filling in specific references):
-
-"**📋 `{story_ref}` 분석 결과**
-
-**발견된 UX 리스크:**
-
-- **{risk_1}** — *({specific reference: AC #N / Tasks / Dev Notes / Risks / user concern})*
-- **{risk_2}** — *({specific reference})*
-- **{risk_3}** — *({specific reference})*
-... (one bullet per risk)
-
-**적용할 스킬 ({n}개):**
-
-🎨 **plan-design-review** — base (항상 로드)
-📊 **critique** — base (항상 로드)
-{for each additional skill:}
-{emoji} **{skill_name}** — {specific reasoning tied to a risk and its source, e.g., '위 risk_1을 다룸 — AC #3의 에러 시나리오가 UX 미정의'}
-
-**고민 사항:** {user_concern if provided, else '없음 — 문서 기반 자동 판단'}
-
----
-
-**진행할까요?**
-
-- **[Y]** 네, 이 선택대로 실행
-- **[M]** 일부만 선택 / 조정하고 싶어요 (어떻게 조정할지 알려주세요)
-- **[+]** 추가할 스킬이 있어요
-- **[N]** 취소 (종료)"
-
-**HALT and wait for user response.**
-
-### 8. Handle User Response
-
-**IF Y:** Proceed to section 9.
-
-**IF M:** Accept the user's adjustment (e.g., "harden은 빼고 delight는 추가"), apply changes to `selected_skills` list, re-present (section 7), ask again.
-
-**IF +:** User wants to add a skill. Accept the addition, re-present, ask again.
-
-**IF N:** "Design Pass 취소합니다." END workflow.
-
-### 9. Load Selected Additional Skills in FULL
-
-For each skill in `selected_skills` that is NOT already loaded (base skills are already loaded from section 3):
-
-Use Read tool to load the FULL SKILL.md file. Read it completely and internalize its framework.
-
-**IF a selected skill file does NOT exist:** Emit warning:
-
-> ⚠️ `{skill_name}` not installed — this risk will not be addressed in the UX enhancement. Install the corresponding module (gstack or ui-ux-pro-max) to enable full coverage.
-
-Continue with the remaining skills — do not fail the workflow.
-
-### 10. Apply Each Skill to the Story Content
-
-**IMPORTANT:** When applying ui-ux-pro-max skills (polish, critique, animate, etc.), use the `design_context` and `frontend-design` aesthetic guidelines loaded during workflow initialization. These skills expect project design context (target audience, brand personality, design direction) — the init step already gathered this. Do NOT re-run the context gathering protocol inside each skill; it was done once at init.
-
-For each loaded skill (base + selected), apply its framework to the story document and capture:
-
-- **What did the skill's framework reveal?** (observations specific to this story)
-- **What specific guidance does it suggest for this story?** (actionable recommendations)
-- **Which AC/Tasks/Dev Notes/Risks sections should be enhanced?** (target locations)
-
-Store as `skill_findings` — a structured map of `skill_name` → `{observations, recommendations, target_sections}`.
-
-**Important:** The application here is ANALYSIS, not yet writing. Writing to the story document happens in step-03a.
-
-### 11. Auto-Proceed to Step-03a
-
-Display: "**분석 완료! 스토리 문서 강화 단계로 넘어갈게요...** ✨"
-
-#### Menu Handling Logic:
-
-- After user confirms selection AND all selected skills applied, immediately load, read entire file, then execute `{nextStepFile}`
-
-#### EXECUTION RULES:
-
-- Halt ONLY at section 7 (user confirmation gate) — all other sections auto-proceed
-- Do NOT proceed without explicit Y (or M-adjusted Y)
-- After confirmation, auto-proceed through sections 9-11 without additional halts
-
-## CRITICAL STEP COMPLETION NOTE
-
-ONLY WHEN user has confirmed skill selection AND all selected skills have been loaded and applied to produce `skill_findings` will you proceed to step-03a-enhance-doc.
-
----
-
-## SYSTEM SUCCESS/FAILURE METRICS
-
-### SUCCESS:
-
-- Full story document read completely (not skimmed)
-- Base skills (`plan-design-review` + `critique`) loaded in FULL
-- `ux-auto-dispatch-rules.md` loaded as reference
-- UX risks identified FROM the actual story content (with specific citations)
-- Skills selected by LLM judgment with specific reasoning per skill
-- User confirmed the selection (with or without adjustment)
-- All confirmed skills loaded in FULL and applied to produce structured findings
-- Auto-proceeded to step-03a
-
-### FAILURE:
-
-- Skimming the story instead of reading fully
-- Mechanical keyword matching to select skills
-- Selecting skills without specific reference to story content
-- Not loading base skills in FULL
-- Proceeding without user confirmation
-- Silently skipping missing skills (should warn with ⚠️)
-- Writing to the story document in this step (that's step-03a)
-
-**Master Rule:** LLM judgment from reading the actual story content, with specific citations, overrides any keyword or pattern lookup. Read deeply, judge honestly, cite specifically.
+Load and follow `{nextStepFile}`.

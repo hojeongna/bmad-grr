@@ -1,17 +1,12 @@
 ---
-name: 'step-02b-live-audit'
-description: 'Branch B: Verify server, audit live screen (design-review + critique + browse/Chrome DevTools), apply LLM judgment to identify UX issues from actual audit findings + user concern, auto-dispatch improvement skills with specific reasoning, get user confirmation, apply selected skills'
-
+name: step-02b-live-audit
+description: 'Branch B — verify server, audit live screen via Chrome DevTools MCP using inline live-audit framework, identify UX issues with evidence, auto-dispatch ui-ux-pro-max skills, user-confirmed, produce skill_recommendations'
 nextStepFile: './step-03b-document-fix.md'
 
-# gstack base skills — ALWAYS loaded in Branch B
-designReviewSkill: '~/.claude/skills/gstack/design-review/SKILL.md'
-browseSkill: '~/.claude/skills/gstack/browse/SKILL.md'
-
-# Reference
+# Reference (hints, NOT rules)
 uxDispatchRules: '~/.claude/workflows/design-pass/data/ux-auto-dispatch-rules.md'
 
-# ui-ux-pro-max auto-dispatch candidate skills (loaded only if LLM judgment selects them)
+# ui-ux-pro-max auto-dispatch candidates (loaded only if LLM judgment selects them)
 critiqueSkill: '~/.claude/skills/critique/SKILL.md'
 polishSkill: '~/.claude/skills/polish/SKILL.md'
 normalizeSkill: '~/.claude/skills/normalize/SKILL.md'
@@ -26,283 +21,143 @@ animateSkill: '~/.claude/skills/animate/SKILL.md'
 overdriveSkill: '~/.claude/skills/overdrive/SKILL.md'
 adaptSkill: '~/.claude/skills/adapt/SKILL.md'
 hardenSkill: '~/.claude/skills/harden/SKILL.md'
-clarifySkill: '~/.claude/skills/clarify/SKILL.md'
+claritySkill: '~/.claude/skills/clarify/SKILL.md'
 onboardSkill: '~/.claude/skills/onboard/SKILL.md'
 ---
 
-# Step 2b: Live Audit + Auto-Dispatch
+# Step 2b — Live Audit + Auto-Dispatch
 
-## STEP GOAL:
+## Outcome
 
-Verify the server is running, audit the live screen with base skills (`design-review` + `critique` + `browse`/Chrome DevTools), apply LLM judgment to identify UX issues from the actual audit findings + user concern, select relevant UX improvement skills (ui-ux-pro-max) with specific reasoning, get user confirmation, and apply the selected skills to produce recommendations for step-03b.
+The live screen at `url` has been audited end-to-end via Chrome DevTools MCP using the inline live-audit framework, screenshot evidence is captured, UX issues are identified with concrete evidence (screenshots, console errors, network problems, user concerns), the relevant ui-ux-pro-max improvement skills have been selected with explicit reasoning, the user has confirmed the selection, and the skills have been applied to produce `skill_recommendations` for step-03b.
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Approach
 
-### Universal Rules:
+### Verify the server
 
-- 📖 CRITICAL: Read the complete step file before taking any action
-- 🔄 CRITICAL: When loading next step, ensure entire file is read
-- ⚙️ TOOL/SUBPROCESS FALLBACK: If any instruction references a subprocess, subagent, or tool you do not have access to, you MUST still achieve the outcome in your main context thread
-- ✅ YOU MUST ALWAYS SPEAK OUTPUT in {communication_language}
+Ask once how the server is running:
 
-### Role Reinforcement:
+- `[R]` Already running.
+- `[S]` Start it for me — ask for the start command, run it, wait for ready.
+- `[U]` User will start it manually — wait for confirmation.
 
-- ✅ You are a UX-minded design partner applying JUDGMENT to real screens
-- ✅ The live screen is the source of truth — audit it thoroughly before judging
-- ✅ Every skill selection must come with a specific audit finding or user concern quote
-- ✅ Evidence before hypothesis — see it, cite it, then select
+Halt for input.
 
-### Step-Specific Rules:
+### Inline live-audit framework
 
-- 🧠 **LLM JUDGMENT FIRST**: Audit the live screen. Identify UX issues from what you actually see. Select skills that address those issues. NEVER mechanically match keywords.
-- 🔧 ALWAYS load base skills (`design-review` + `critique` + `browse`) in FULL before auditing
-- 📸 ALWAYS capture screenshots for evidence
-- 💬 ALWAYS explain each skill selection with a specific audit finding or user quote
-- 🚫 FORBIDDEN to select skills without specific audit evidence or user concern reference
-- 🚫 FORBIDDEN to skip the user confirmation gate
+The audit happens directly via Chrome DevTools MCP — no external base skill needed. Walk through these dimensions:
 
-## EXECUTION PROTOCOLS:
+**a. Capture (browse / Chrome DevTools MCP)**
+- Navigate to `{url}`.
+- Take a primary screenshot (store the path as `primary_screenshot`).
+- Read console messages — capture errors as `console_errors`.
+- List network requests — capture failed/slow requests as `network_issues`.
+- If responsive concerns apply, capture mobile (375px), tablet (768px), desktop (1440px) via `emulate`.
 
-- 🎯 Follow the MANDATORY SEQUENCE exactly
-- 💾 Track: `audit_findings`, `screenshots`, `ux_issues`, `selected_skills`, `reasoning_per_skill`, `skill_recommendations`
-- 📖 Server check → load base skills → audit → judge → select → present → confirm → apply
-- 🚫 FORBIDDEN to proceed past confirmation gate without explicit user Y
+**b. Visual / structural inspection**
+- **Token/consistency drift** — multiple button styles, inconsistent spacing, fonts mixing without intent.
+- **Spacing & rhythm** — gaps that feel arbitrary, sections crammed or floating.
+- **Visual hierarchy** — what does the eye land on first? Is it the right thing? Are primary CTAs visually weaker than secondary ones?
+- **AI-slop patterns** — generic gradients, system-font defaults, placeholder feel, decorative emojis where copy should carry the meaning.
+- **Interaction feedback** — hover, focus, active, click states for all interactive elements.
+- **Error and empty states** — what does the screen show when there's no data, when something fails, when something's loading?
+- **Accessibility quick check** — keyboard reachability of every interactive element; visible focus ring; aria attributes on dynamic UI; color contrast; touch-target sizes ≥ 44px on mobile.
+- **Console / network health** — any red entries? Failed assets? Misshapen API responses?
 
-## CONTEXT BOUNDARIES:
+**c. Quantitative dimension scoring (inline critique-style)**
+- Visual Hierarchy: `{score}/10` — brief note
+- Information Architecture: `{score}/10` — brief note
+- Cognitive Load: `{score}/10` — brief note
+- Emotional Resonance: `{score}/10` — brief note
+- **Overall**: `{score}/10`
 
-- Available: `url` and `user_concern` from step-01, UX skills (gstack + ui-ux-pro-max), Chrome DevTools MCP, reference files
-- Focus: Live audit + judgment + skill selection with reasoning + application
-- Limits: No document writing yet (that's step-03b)
-- Dependencies: `url` from step-01
+Store findings as `audit_findings` — `{ visual: [...], hierarchy_scores: {...}, capture: {primary_screenshot, console_errors, network_issues, viewports} }`.
 
-## MANDATORY SEQUENCE
+### Reference dispatch hints
 
-**CRITICAL:** Follow this sequence exactly.
+Load `{uxDispatchRules}` as **reference hints** only — read, then ignore anything that doesn't fit the actual evidence.
 
-### 1. Verify Server Status
+### Identify UX issues
 
-Ask the user about server status:
+Combine three inputs:
 
-"**서버 상태 확인 🔌**
+1. The audit findings (what visual + structural inspection actually surfaced).
+2. The user's concern (if any).
+3. Your UX judgment (reading between the lines, noticing what's implicit).
 
-`{url}` 을 확인하기 전에 서버 상태를 알려주세요:
+For each issue, capture:
 
-- **[R]** 이미 실행 중이에요
-- **[S]** 제가 직접 실행할게요 — 실행 명령어를 알려주세요
-- **[U]** 제가 실행할게요 — 잠깐만 기다려주세요"
+- The issue (one clear sentence)
+- Evidence — design-review-style finding / critique score / screenshot observation / user's exact words / console error
+- User impact — why it matters
 
-**HALT and wait for user response.**
+**Forbidden anti-pattern**: "critique mentioned 'hierarchy' → load arrange". Required pattern: "Visual Hierarchy 4/10 because the primary CTA shares size/weight with the secondary cancel button (visible in primary_screenshot at the form footer). Loading `arrange` for spatial restructuring + `typeset` for type-weight hierarchy."
 
-- **IF S:** Ask for the start command, execute it, wait for ready signal, then proceed.
-- **IF U:** Wait for user confirmation before proceeding.
-- **IF R:** Proceed immediately.
+### Select improvement skills
 
-### 2. Load Base Skills (REQUIRED — always)
+For each issue, pick the ui-ux-pro-max skill(s) that address it. Hints (judgment overrides):
 
-Load these in FULL via Read tool:
+- Token drift / inconsistency → `normalize`
+- Spacing/rhythm broken → `arrange`
+- Hierarchy weak → `arrange` + `typeset`
+- AI-slop generic → `colorize` / `typeset` / `delight`
+- "밋밋해" / lifeless → `bolder` + `delight` + `colorize` + `animate`
+- "복잡해" / overwhelming → `distill` + `quieter` + `normalize`
+- Errors/states broken → `harden` + `clarify`
+- First-time/empty experience → `onboard`
+- Mobile / responsive issues → `adapt`
+- "한 단계 더" / push limits → `overdrive`
+- Final polish before ship → `polish`
 
-- **`{designReviewSkill}`** — Live-site designer's eye QA framework (finds inconsistency, AI slop, spacing/hierarchy issues, iterative fix loop)
-- **`{critiqueSkill}`** — Quantitative UX evaluation framework (scores dimensions 0-10)
-- **`{browseSkill}`** — Headless browser / Chrome DevTools integration framework (screenshots, console, network capture)
+If the audit reveals issues the user didn't mention (a11y problems, console errors), include them — being a UX partner means catching what was missed. Don't pad with irrelevant skills.
 
-Internalize each skill's framework, voice, and decision patterns.
+### Present and confirm
 
-### 3. Load Dispatch Reference (as HINTS, not rules)
+Show in `{communication_language}`:
 
-Load `{uxDispatchRules}` in FULL via Read tool. Read as REFERENCE HINTS. Do NOT mechanically match keywords.
+```
+📋 {url} 라이브 감사 결과
 
-### 4. Execute Audit (design-review + critique + browse/Chrome DevTools)
+📸 Screenshot: {primary_screenshot_path}
 
-Apply the base skills to `{url}`:
+📊 Critique Scores
+- Visual Hierarchy: …/10
+- Information Architecture: …/10
+- Cognitive Load: …/10
+- Emotional Resonance: …/10
+- Overall: …/10
 
-**a. Initial capture (browse / Chrome DevTools MCP):**
+🔍 UX 이슈
+- {issue_1} — ({evidence})
+- {issue_2} — ({evidence})
+- ...
 
-- Navigate to `{url}`
-- Take a screenshot of the current state (store path as `primary_screenshot`)
-- Check browser console for errors (store as `console_errors`)
-- Check network tab for failed/slow requests (store as `network_issues`)
-- Capture key viewports if responsive concerns apply:
-  - Mobile (375px)
-  - Tablet (768px)
-  - Desktop (1440px)
-- Store all screenshot paths for the final document
+⚠️ Console/Network: {errors or "clean"}
 
-**b. Apply `design-review` framework:**
+🎨 적용할 개선 스킬 ({n}개)
+- {skill} — {reasoning tied to issue + evidence}
+- ...
 
-Follow the skill's directives to inspect the live screen. Identify issues in:
+고민 사항: {user_concern or "없음 — 화면 기반 자동 판단"}
 
-- Visual consistency (multiple button styles, spacing inconsistencies, token drift)
-- Spacing and rhythm
-- Visual hierarchy
-- AI slop patterns (generic aesthetic, placeholder feel)
-- Interaction feedback (hover, focus, click states)
-- Error and empty states
+[Y] 진행   [M] 일부 조정   [+] 추가   [N] 취소
+```
 
-Capture annotated findings — each finding with: location (element/area), issue description, severity (high/medium/low).
+Halt for input. `M` / `+` adjust then re-present. `N` ends the workflow. `Y` advances.
 
-**c. Apply `critique` framework:**
+### Load skills and apply
 
-Follow the skill's directives to quantitatively evaluate:
+For each confirmed skill, read the full file via Read tool. Warn briefly on any missing skill and continue.
 
-- **Visual Hierarchy:** {score}/10 — brief note
-- **Information Architecture:** {score}/10 — brief note
-- **Cognitive Load:** {score}/10 — brief note
-- **Emotional Resonance:** {score}/10 — brief note
-- **Overall:** {score}/10
+Apply each skill's framework to the audit context. For each, capture:
 
-Store all findings as `audit_findings` — a structured object with keys: `design_review_findings`, `critique_scores`, `browse_capture`.
+- Finding — what the skill reveals about the audited screen.
+- Recommendation — specific changes (file paths, DOM elements, CSS properties, copy, interaction patterns).
+- Target files — which source files need editing.
+- Priority — `P0` UX blocker / `P1` quality gate / `P2` nice-to-have.
 
-### 5. Deep Analysis & UX Issue Identification (LLM JUDGMENT CORE)
+Store as `skill_recommendations`: `{ skill_name: { finding, recommendation, target_files, priority } }`. This is analysis only — writing the improvement document happens in step-03b.
 
-**This is the heart of Branch B. Combine three inputs:**
+## Next
 
-1. **Audit findings** (from section 4) — what design-review + critique + browse actually found
-2. **User concern** (from step-01, if provided) — what the user is worried about
-3. **Your UX judgment** — reading between the lines, noticing what's implicit
-
-For each identified UX issue, document:
-
-- **The issue** (one clear sentence)
-- **Evidence** — where does this come from? (design-review finding / critique score / screenshot observation / user's exact words / console error)
-- **Why it matters** — user impact
-
-**Critical: Ban the anti-pattern:**
-
-❌ "critique mentioned 'hierarchy' → load arrange"
-✅ "critique gave Visual Hierarchy 4/10 because the primary CTA is visually weaker than secondary actions (observed in screenshot at `{path}` — primary uses the same size/weight as cancel button). Loading `arrange` to restructure spacing/rhythm + `typeset` for type weight hierarchy."
-
-### 6. Select Skills Based on Issues (LLM JUDGMENT)
-
-For each UX issue identified, select the UX skill(s) that best address it.
-
-**Rules of selection:**
-
-- Base skills (`design-review` + `critique` + `browse`) are already loaded — do NOT re-include
-- For each issue, add the improvement skill(s) that best address it
-- Use `{uxDispatchRules}` patterns as REFERENCE
-- Multiple issues may need the same skill — list once, cite multiple sources
-- **If the user's concern addresses a specific emotional quality** (e.g., "밋밋해" → lifeless), include skills matching that quality (e.g., `delight`, `bolder`, `colorize`, `animate`)
-- **If the audit revealed issues the user DIDN'T mention** (e.g., a11y problem, console errors), INCLUDE them — part of being a UX partner is catching what the user missed
-- Do NOT pad with irrelevant skills
-
-### 7. Present Selection to User
-
-Use this EXACT format:
-
-"**📋 `{url}` 라이브 감사 결과**
-
-**📸 Screenshot:** `{primary_screenshot_path}`
-
-**📊 Critique Scores:**
-- Visual Hierarchy: {score}/10 — {brief note}
-- Information Architecture: {score}/10 — {brief note}
-- Cognitive Load: {score}/10 — {brief note}
-- Emotional Resonance: {score}/10 — {brief note}
-- **Overall:** {score}/10
-
-**🔍 발견된 UX 이슈:**
-
-- **{issue_1}** — *({specific evidence: design-review finding / critique score / screenshot / user concern / console error})*
-- **{issue_2}** — *({specific evidence})*
-- **{issue_3}** — *({specific evidence})*
-... (one bullet per issue)
-
-**⚠️ Console/Network:** {errors or 'clean'}
-
-**적용할 개선 스킬 ({n}개):**
-
-{for each improvement skill (excluding base):}
-{emoji} **{skill_name}** — {specific reasoning tied to an issue and its evidence}
-
-**고민 사항:** {user_concern if provided, else '없음 — 화면 기반 자동 판단'}
-
----
-
-**진행할까요?**
-
-- **[Y]** 네, 이 선택대로 실행
-- **[M]** 일부만 선택 / 조정하고 싶어요
-- **[+]** 추가할 스킬이 있어요
-- **[N]** 취소 (종료)"
-
-**HALT and wait for user response.**
-
-### 8. Handle User Response
-
-**IF Y:** Proceed to section 9.
-**IF M:** Apply adjustment, re-present (section 7), ask again.
-**IF +:** Accept additions, re-present, ask again.
-**IF N:** "Design Pass 취소합니다." END workflow.
-
-### 9. Load Selected Improvement Skills in FULL
-
-For each improvement skill in `selected_skills`:
-
-Use Read tool to load the FULL SKILL.md file. Read completely, internalize framework.
-
-**IF a selected skill file does NOT exist:** Emit warning:
-
-> ⚠️ `{skill_name}` not installed — the related issue will not be fully addressed in the improvement document. Install the corresponding module (gstack or ui-ux-pro-max) to enable.
-
-Continue with the remaining skills.
-
-### 10. Apply Each Skill to the Live Audit Context
-
-**IMPORTANT:** When applying ui-ux-pro-max skills (polish, critique, animate, etc.), use the `design_context` and `frontend-design` aesthetic guidelines loaded during workflow initialization. These skills expect project design context (target audience, brand personality, design direction) — the init step already gathered this. Do NOT re-run the context gathering protocol inside each skill; it was done once at init.
-
-For each loaded improvement skill, apply its framework to the audit findings and capture:
-
-- **Finding**: what does the skill's framework reveal about the audited screen?
-- **Recommendation**: what specific changes should be made? (file paths, DOM elements, CSS properties, copy changes, interaction patterns)
-- **Target files**: which source files need editing?
-- **Priority**: P0 (UX blocker) / P1 (quality gate) / P2 (nice-to-have)
-
-Store as `skill_recommendations` — a structured map of `skill_name` → `{finding, recommendation, target_files, priority}`.
-
-**Important:** This is ANALYSIS and RECOMMENDATION, not yet writing to disk. Writing the improvement document happens in step-03b.
-
-### 11. Auto-Proceed to Step-03b
-
-Display: "**분석 완료! 개선안 문서 작성 단계로 넘어갈게요...** ✨"
-
-#### Menu Handling Logic:
-
-- After user confirms selection AND all selected skills applied, immediately load, read entire file, then execute `{nextStepFile}`
-
-#### EXECUTION RULES:
-
-- Halt at section 1 (server status) and section 7 (user confirmation gate)
-- Do NOT proceed without explicit Y (or M-adjusted Y)
-- After confirmation, auto-proceed through sections 9-11
-
-## CRITICAL STEP COMPLETION NOTE
-
-ONLY WHEN server is ready AND audit is complete AND user confirms selection AND all selected skills are loaded and applied will you proceed to step-03b-document-fix.
-
----
-
-## SYSTEM SUCCESS/FAILURE METRICS
-
-### SUCCESS:
-
-- Server status verified before audit
-- Base skills (`design-review` + `critique` + `browse`) loaded in FULL
-- Live screen audited with screenshots + console + network captured
-- Critique scores computed for all dimensions
-- UX issues identified FROM actual audit findings (with specific evidence)
-- Skills selected by LLM judgment with reasoning per skill
-- User confirmed the selection
-- All confirmed skills loaded in FULL and applied to produce structured recommendations
-- Auto-proceeded to step-03b
-
-### FAILURE:
-
-- Auditing without screenshots (no evidence)
-- Mechanical keyword matching to select skills
-- Selecting skills without specific audit evidence
-- Not loading base skills in FULL
-- Proceeding without user confirmation
-- Silently skipping missing skills
-- Writing to improvement doc in this step (that's step-03b)
-
-**Master Rule:** Evidence before hypothesis. Audit the actual screen, cite findings specifically, judge honestly. Every skill selection tied to an actual observation or user quote.
+Load and follow `{nextStepFile}`.

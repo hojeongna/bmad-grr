@@ -1,6 +1,6 @@
 ---
 name: bug-hunt
-description: 'Systematic debugging workflow with escalation levels, Chrome DevTools MCP evidence collection, and story/bug-report documentation. Use when the user says "bug hunt" or "debug this" or "find the bug"'
+description: 'Systematic debugging with escalation levels, Chrome DevTools MCP evidence collection, and story/bug-report documentation. Use when the user says "bug hunt" or "debug this" or "find the bug"'
 web_bundle: true
 
 # Critical variables from config
@@ -18,78 +18,37 @@ implementation_artifacts: "{config_source}:implementation_artifacts"
 sprint_status: "{implementation_artifacts}/sprint-status.yaml"
 project_context: "**/project-context.md"
 
-# External skill dependencies
+# Required external skills (superpowers — bundled with bmad-grr)
 systematic_debugging_skill: "~/.claude/skills/systematic-debugging/SKILL.md"
 parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
 
-# gstack skill dependencies (OPTIONAL - loaded when conditions met)
-investigate_skill: "~/.claude/skills/gstack/investigate/SKILL.md"
-qa_skill: "~/.claude/skills/gstack/qa/SKILL.md"
-learn_skill: "~/.claude/skills/gstack/learn/SKILL.md"
-health_skill: "~/.claude/skills/gstack/health/SKILL.md"
-checkpoint_skill: "~/.claude/skills/gstack/checkpoint/SKILL.md"
-
-# External tool dependencies
-# Chrome DevTools MCP: must be available in environment
+# External tool dependencies — Chrome DevTools MCP must be available in the environment
 ---
 
 # Bug Hunt
 
-**Goal:** Execute systematic debugging through escalating investigation levels, enforcing root cause analysis before any fix attempts, and documenting all findings in the relevant story file or a standalone bug report.
+## Overview
 
-**Your Role:** You are a systematic debugging partner and the enforcer of the Iron Law: NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST. You bring structured debugging methodology, evidence-based analysis, and Chrome DevTools expertise. The user brings their domain knowledge and bug context. Work together as equals.
+Drive systematic debugging through escalating investigation levels, enforce root cause analysis before any fix attempt, and document findings in the relevant story file or a standalone bug report. Evidence precedes hypothesis; root cause precedes fix.
 
-**Key Principle:** The Iron Law is absolute. Evidence before hypothesis. Root cause before fix. Documentation before closure.
+## Your Role
 
----
+Systematic debugging partner. Bring structured methodology, evidence-based analysis, and Chrome DevTools expertise; the user brings domain knowledge and bug context. Work as equals.
 
-## WORKFLOW ARCHITECTURE
+## Iron Law
 
-### Core Principles
+No fix attempts without root cause investigation. Hypotheses must be grounded in gathered evidence. Findings are documented before closure. Debug logs are tracked and forcibly cleaned up regardless of outcome.
 
-- **Iron Law Enforcement**: No fix attempts without completing root cause investigation
-- **Escalation Levels**: Level 1 (code analysis) → Level 2 (debug logs + DevTools) → Level 3 (web search)
-- **Evidence-Based**: Every hypothesis must be grounded in gathered evidence
-- **Debug Log Lifecycle**: Track all inserted debug logs, forcibly remove on completion
-- **Micro-file Design**: Each step is a self-contained instruction file
-- **Just-In-Time Loading**: Only the current step file is in memory
+## Escalation Levels
 
-### Step Processing Rules
+- **Level 1** — Code analysis: read sources, trace flow.
+- **Level 2** — Debug logs + Chrome DevTools MCP: runtime evidence in the actual environment.
+- **Level 3** — Web search: when domain knowledge gaps surface.
 
-1. **READ COMPLETELY**: Always read the entire step file before taking any action
-2. **FOLLOW SEQUENCE**: Execute all numbered sections in order, never deviate
-3. **LOAD SKILLS**: When directed to load a skill, use Read tool to load the FULL skill file
-4. **WAIT FOR INPUT**: If a menu is presented, halt and wait for user selection
-5. **CHECK CONTINUATION**: If the step has a menu with Continue as an option, only proceed to next step when user selects 'C' (Continue)
-6. **LOAD NEXT**: When directed, load, read entire file, then execute the next step file
+Escalate only after the previous level produces inconclusive evidence.
 
-### Critical Rules (NO EXCEPTIONS)
+## Activation
 
-- 🛑 **NEVER** attempt fixes without root cause investigation
-- 🚫 **NEVER** skip escalation levels
-- 📖 **ALWAYS** read entire step file before execution
-- 🔧 **ALWAYS** load skills via Read before using them
-- 🧹 **ALWAYS** clean up debug logs before closing, regardless of outcome
-- 📝 **ALWAYS** document findings in story file or bug report
-- ✅ **ALWAYS** communicate in {communication_language}
+Load config from `{config_source}`. If missing, fall back to sensible defaults.
 
-### External Skill Loading Protocol
-
-When a step instructs you to load a skill:
-1. Use Read tool to load the FULL skill file from the specified path
-2. Read the skill completely before acting
-3. Follow the skill's directives EXACTLY as written
-
----
-
-## INITIALIZATION SEQUENCE
-
-### 1. Module Configuration Loading
-
-Load and read full config from {project-root}/_bmad/bmm/config.yaml and resolve:
-
-- `user_name`, `communication_language`, `document_output_language`, `implementation_artifacts`, `output_folder`
-
-### 2. First Step Execution
-
-Load, read the full file and then execute `~/.claude/workflows/bug-hunt/steps-c/step-01-init.md` to begin the workflow.
+Then load and follow `~/.claude/workflows/bug-hunt/steps-c/step-01-init.md`.
