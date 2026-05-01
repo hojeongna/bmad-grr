@@ -1,195 +1,68 @@
 ---
-name: 'step-04-test-create'
-description: 'Run local tests, handle failures, and create or display PR commands'
-
+name: step-04-test-create
+description: 'Run local tests; on failure, recover via amend or new commit; create the PR auto (gh) or manual; optionally request post-PR code review'
 nextStepFile: './step-05-merge-loop.md'
+verificationBeforeCompletion: '~/.claude/skills/verification-before-completion/SKILL.md'
+requestingCodeReview: '~/.claude/skills/requesting-code-review/SKILL.md'
 ---
 
-# Step 4: Test & Create PR
+# Step 4 — Test & Create PR
 
-## STEP GOAL:
+## Outcome
 
-To run local tests for the current PR, handle test failures with amend/new-commit options, and create the PR automatically or provide the manual command.
+The current PR's local tests pass (after any number of amend/new-commit recovery rounds), and the PR exists on GitHub — either created automatically via `gh pr create` or via a copy-paste command the user runs themselves. The state file moves the matching PR to status `OPEN` and records the PR URL when known.
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Approach
 
-### Universal Rules:
+### Detect the test command
 
-- 🛑 NEVER generate content without user input
-- 📖 CRITICAL: Read the complete step file before taking any action
-- 🔄 CRITICAL: When loading next step with 'C', ensure entire file is read
-- 📋 YOU ARE A FACILITATOR, not a content generator
-- ✅ YOU MUST ALWAYS SPEAK OUTPUT in {communication_language}
-- ⚙️ TOOL/SUBPROCESS FALLBACK: If any instruction references a subprocess, subagent, or tool you do not have access to, you MUST still achieve the outcome in your main context thread
+Inside the repo folder, look for the project's actual test entry point — in this order:
 
-### Role Reinforcement:
+- `package.json` `scripts.test` → `npm/pnpm/yarn test` (detect manager from lockfile)
+- `Makefile` with a `test` target → `make test`
+- `pytest.ini` / `pyproject.toml` pytest config → `pytest`
+- `.github/workflows/*.yml` → if a clear test command lives in CI, surface it as a candidate
 
-- ✅ You are a PR management partner ensuring quality before submission
-- ✅ Tests must pass before PR creation
-- ✅ User chooses auto or manual PR creation
+Tell the user briefly which command will run.
 
-### Step-Specific Rules:
+### Run tests
 
-- 🎯 Test first, create PR second
-- 🚫 FORBIDDEN to create PR if tests haven't passed
-- 💬 On test failure: help fix, then ask amend or new commit
-- 📋 Respect user's auto/manual preference
+Execute the detected command. If multiple are detected and reasonable, run them in sequence (typecheck → unit → integration) — but only what the project actually exposes; don't fabricate.
 
-## EXECUTION PROTOCOLS:
+Before claiming "tests pass" anywhere downstream (commit message, PR body, status update), follow `{verificationBeforeCompletion}` — read the actual exit code and pass/fail counts from this turn's output and cite the evidence. Don't echo "should pass" forward.
 
-- 🎯 Follow MANDATORY SEQUENCE exactly
-- 💾 Update state file after PR creation
-- 📖 Test results determine next action
-- 🚫 No PR without passing tests
+### On failure — amend or new commit
 
-## CONTEXT BOUNDARIES:
+If tests fail, show a tight failure summary and ask:
 
-- Step-03 committed and pushed changes
-- State file has current PR details
-- Need to run repo's test suite
-- User chooses how to create PR
+- `[A]` Amend the previous commit (`git commit --amend --no-edit` then `git push --force-with-lease`)
+- `[N]` New commit (`git commit -m "fix: …"` then `git push`)
 
-## MANDATORY SEQUENCE
+After the user fixes the issue, re-run tests. Repeat until they pass.
 
-**CRITICAL:** Follow this sequence exactly. Do not skip, reorder, or improvise unless user explicitly requests a change.
+### Create the PR
 
-### 1. Identify Test Commands
+Once tests pass, ask:
 
-For the current PR's repo:
+- `[A]` Auto — run `gh pr create --title "{title}" --body "{body}" --base {base}` and capture the PR URL.
+- `[M]` Manual — show the exact command and wait for the user to confirm the PR was created.
 
-```bash
-cd {folder}
-```
+PR title and body are generated from the branch name and the PR's role/responsibility from step-02. Make the body concise and specific — what changed, why, and how to test.
 
-Look for test configuration:
-- `package.json` → `npm test` or `npm run test`
-- `Makefile` → `make test`
-- `pytest.ini` / `setup.cfg` → `pytest`
-- `.github/workflows/` → extract test commands from CI config
+### Optional — request post-create code review
 
-"**Running tests for {repo-name}...**
+After the PR exists, optionally follow `{requestingCodeReview}` to dispatch a fresh code-reviewer sub-agent against the PR diff. Useful when: the PR is non-trivial, when the user wants a "second pair of eyes" pass before merge, or when the PR is the first in a chain (catching issues early prevents cascade through subsequent rebased PRs). The skill provides exact dispatch templates with `BASE_SHA` / `HEAD_SHA` / requirements context — use them.
 
-Detected test command: `{test_command}`"
+Skip the request if the PR is small, mechanical, or already covered by the project's CI review automation.
 
-### 2. Run Tests
+### Persist
 
-```bash
-{test_command}
-```
+Update the matching PR's status to `OPEN` in the state file and record `prUrl` if known. Add `step-04-test-create` to `stepsCompleted`.
 
-### 3. Handle Test Results
+### Menu
 
-**If tests PASS:**
+Offer `[C]` Continue. On `C`, advance.
 
-"**Tests passed!** ✅
+## Next
 
-Ready to create PR."
-
-→ Skip to step 5.
-
-**If tests FAIL:**
-
-"**Tests failed.** ❌
-
-```
-{test_output_summary}
-```
-
-Let's fix this. After fixing:
-
-- **[A]** Amend the previous commit (`git commit --amend`)
-- **[N]** Create a new commit
-
-Which do you prefer?"
-
-**Wait for user selection.**
-
-### 4. Fix and Re-test Loop
-
-After user fixes the issue:
-
-**If Amend:**
-```bash
-git add -A
-git commit --amend --no-edit
-git push --force-with-lease
-```
-
-**If New commit:**
-```bash
-git add -A
-git commit -m "fix: {description of fix}"
-git push
-```
-
-Re-run tests. Repeat until tests pass.
-
-### 5. Create PR
-
-"**How would you like to create the PR?**
-
-- **[A]** Auto - I'll create it with `gh pr create`
-- **[M]** Manual - I'll show you the command
-
-PR details:
-- **Title:** {generated from branch/role}
-- **Base:** {branch_base}
-- **Head:** {branch_name}
-- **Body:** {generated description based on PR role}"
-
-**Wait for user selection.**
-
-**If Auto:**
-```bash
-gh pr create --title "{title}" --body "{body}" --base {base}
-```
-
-Report PR URL:
-"**PR created!** {pr_url} ✅"
-
-**If Manual:**
-"**Run this command when ready:**
-```bash
-gh pr create --title \"{title}\" --body \"{body}\" --base {base}
-```
-
-Let me know when you've created it."
-
-### 6. Update State File
-
-Update current PR status to OPEN. Record PR URL if available.
-
-### 7. Present MENU OPTIONS
-
-Display: **[C] Continue to Merge Tracking**
-
-#### Menu Handling Logic:
-
-- IF C: Update state file stepsCompleted, then load, read entire file, then execute {nextStepFile}
-- IF Any other: help user, then [Redisplay Menu Options](#7-present-menu-options)
-
-#### EXECUTION RULES:
-
-- ALWAYS halt and wait for user input after presenting menu
-- ONLY proceed to next step when user selects 'C'
-
----
-
-## 🚨 SYSTEM SUCCESS/FAILURE METRICS
-
-### ✅ SUCCESS:
-
-- Tests run before PR creation
-- Test failures handled with amend/new-commit choice
-- User chose auto/manual PR creation
-- PR created or command provided
-- State file updated (OPEN)
-
-### ❌ SYSTEM FAILURE:
-
-- Creating PR without running tests
-- Not offering amend/new-commit choice on failure
-- Force-creating without user consent
-- Not updating state file
-
-**Master Rule:** Tests must pass before PR. User controls how to fix failures and how to create the PR.
+Load and follow `{nextStepFile}`.

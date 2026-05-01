@@ -1,45 +1,40 @@
 ---
-title: 'Dev Story - Definition of Done Checklist'
-validation-target: 'Story markdown ({{story_path}})'
-validation-criticality: 'HIGHEST'
+title: 'Dev Story — Definition of Done'
 ---
 
-# Definition of Done Checklist
+# Definition of Done
 
-## Implementation Completion
+## Acceptance
 
-- [ ] **All Tasks Complete:** Every task and subtask marked [x]
-- [ ] **Acceptance Criteria:** Implementation satisfies EVERY AC in the story
-- [ ] **No Scope Creep:** Only implements what's in Tasks/Subtasks, nothing extra
-- [ ] **Edge Cases:** Error conditions and edge cases handled
+- [ ] Every AC has a Gherkin scenario (or is explicitly marked non-executable with a verification note)
+- [ ] All scenarios green under the project's BDD runner
+- [ ] Non-executable ACs verified by inspection, with note in Dev Agent Record
 
-## TDD Compliance (from loaded skill)
+## TDD discipline (from loaded skill)
 
-- [ ] **Every function has a test:** All new functions/methods have corresponding tests
-- [ ] **RED verified:** Each test was watched failing before implementation
-- [ ] **Correct failure:** Each test failed for expected reason (feature missing, not typo)
-- [ ] **GREEN minimal:** Wrote minimal code to pass each test
-- [ ] **All tests pass:** Full test suite green
-- [ ] **Output pristine:** No errors, warnings in test output
-- [ ] **Real code tested:** Mocks only used when unavoidable
-- [ ] **Anti-patterns avoided:** No mock behavior testing, no test-only production methods
+- [ ] Every new function/method has a unit test
+- [ ] Each unit test was watched failing before implementation
+- [ ] Each test failed for the expected reason (missing behavior, not typo)
+- [ ] Implementation is minimal — no unrequested features
+- [ ] Real code tested; mocks limited to genuine boundaries
 
-## Test Coverage
+## Test integrity
 
-- [ ] **Unit Tests:** Added/updated for core functionality
-- [ ] **Integration Tests:** Added for component interactions (when required)
-- [ ] **E2E Tests:** Created for critical flows (when required)
-- [ ] **Regression Prevention:** ALL existing tests still pass
+- [ ] Unit tests added/updated where applicable
+- [ ] Integration / scenario tests added where applicable
+- [ ] Full suite green — no regressions
+- [ ] Test output is clean (no errors, no warnings)
 
-## Documentation & Tracking
+## Story hygiene
 
-- [ ] **File List:** Includes EVERY new/modified/deleted file
-- [ ] **Dev Agent Record:** Contains implementation notes
-- [ ] **Change Log:** Includes summary of changes
-- [ ] **Story Sections Only:** Only permitted sections modified
+- [ ] File List reflects every file touched
+- [ ] Tasks/Subtasks accurate (no stale [x], no orphan [ ])
+- [ ] Dev Agent Record has technical decisions and notes
+- [ ] Change Log entry added
+- [ ] Only permitted story sections were modified
 
-## Final Status
+## Final
 
-- [ ] **Story Status:** Set to "review"
-- [ ] **Sprint Status:** Updated to "review" (when tracking enabled)
-- [ ] **No HALT Conditions:** No blocking issues remaining
+- [ ] Story Status set to `review`
+- [ ] Sprint status updated to `review` (if tracking enabled)
+- [ ] Summary delivered to user

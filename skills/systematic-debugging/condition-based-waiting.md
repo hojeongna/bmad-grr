@@ -4,7 +4,7 @@
 
 Flaky tests often guess at timing with arbitrary delays. This creates race conditions where tests pass on fast machines but fail under load or in CI.
 
-**Core principle:** "Wait for the actual condition you care about, not a guess about how long it takes."
+**Core principle:** Wait for the actual condition you care about, not a guess about how long it takes.
 
 ## When to Use
 

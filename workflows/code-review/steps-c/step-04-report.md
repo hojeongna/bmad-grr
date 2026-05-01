@@ -1,130 +1,66 @@
 ---
-name: 'step-04-report'
-description: 'Aggregate review results, assign priorities, and present code review report'
-
+name: step-04-report
+description: 'Aggregate findings, assign priority and scope, present the report, route to fix or completion'
 fixStepFile: '~/.claude/workflows/code-review/steps-c/step-05-fix.md'
 completeStepFile: '~/.claude/workflows/code-review/steps-c/step-06-complete.md'
+receivingCodeReviewSkill: '~/.claude/skills/receiving-code-review/SKILL.md'
 ---
 
-# Step 4: Report — Aggregate Results and Present Findings
+# Step 4 — Report
 
-## STEP GOAL:
+## Outcome
 
-Aggregate all review results from parallel agents, assign priorities to each finding, present a clear report, and ask the user whether to fix violations or skip.
+The user sees a clear, file-grouped report with priority and scope assigned to every finding, then chooses the fix scope (or skips fixes). Findings always cite a specific checklist item — no subjective entries.
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Approach
 
-### Universal Rules:
+### Assign priority
 
-- CRITICAL: Read the complete step file before taking any action
-- CRITICAL: When loading next step, ensure entire file is read
-- YOU MUST ALWAYS SPEAK OUTPUT in {communication_language}
+For every finding:
 
-### Role Reinforcement:
+- **HIGH** — likely incorrect behavior, broken patterns, bug-causing violations.
+- **MEDIUM** — naming/structure issues, wrong file location, organizational drift.
+- **LOW** — style and minor naming inconsistencies.
 
-- You are a code review agent performing checklist-based reviews
-- You follow the checklist EXACTLY — no subjective opinions allowed
-- Every finding MUST reference a specific checklist item
+### Assign scope
 
-### Step-Specific Rules:
+For every finding:
 
-- Focus ONLY on aggregation, prioritization, and report presentation
-- FORBIDDEN to add findings not backed by a checklist item
-- FORBIDDEN to include subjective opinions or stylistic preferences
-- FORBIDDEN to fix any code in this step — report only
+- **SMALL** — single-line changes, rename, import addition, type annotation.
+- **LARGE** — multi-file or logic-altering changes, refactors, structural moves.
 
-## MANDATORY SEQUENCE
+### Present the report
 
-**CRITICAL:** Follow this sequence exactly. Do not skip, reorder, or improvise.
+Short, file-grouped, with totals at the top:
 
-### 1. Aggregate Results
+```
+Code Review Report
+Total files: {n}
+Violations: {N} (🔴 High {h}, 🟡 Medium {m}, 🟢 Low {l})
+Scope: 🔧 Small {s}, 🏗️ Large {l}
 
-- Collect all findings from parallel review agents
-- Group findings by file
-- Remove duplicate findings (same checklist item, same location)
-- Retain the checklist category and item reference for each finding
+📄 path/to/file.ts — FAIL
+  🔴 [Category] Item: description (line {line}) [SMALL/LARGE]
+  ...
 
-### 2. Assign Priority
+📄 path/to/other.ts — PASS
+```
 
-For each finding, assign one priority level:
+### Handle the no-violations case
 
-- **HIGH**: Incorrect behavior, wrong patterns, violations that could cause bugs (e.g., wrong data flow, cache reference violations)
-- **MEDIUM**: Naming violations, structural issues, wrong file organization (e.g., type in wrong location, constants inside component)
-- **LOW**: Style issues, minor naming inconsistencies
+If zero violations were found, congratulate briefly and route directly to `{completeStepFile}` (no fix step needed).
 
-### 2b. Assign Scope
+### Ask about fixes
 
-For each finding, assign scope:
+When violations exist, halt and present:
 
-- **SMALL**: Simple fixes — variable rename, import addition, single-line change, type annotation, etc.
-- **LARGE**: Broad changes — file structure change, logic refactoring, multi-file impact, architectural change
+- `[F]` Full — fix every finding regardless of priority/scope
+- `[S]` Small — fix only SMALL-scope items (any priority)
+- `[H]` High — fix only HIGH-priority items (any scope)
+- `[X]` Skip — proceed without fixing
 
-### 3. Present Report
+Set `fixScope` accordingly and route: `F`/`S`/`H` → `{fixStepFile}`, `X` → `{completeStepFile}`.
 
-"**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
-**Code Review Report**
+### Discipline for handling pushback during fix selection
 
-**Total files:** {{file_count}}
-**Violations found:** {{violation_count}} (🔴 High: {{high}}, 🟡 Medium: {{med}}, 🟢 Low: {{low}})
-
----
-
-**Results by file:**
-
-For each file:
-**📄 {{file_path}}** — {{status: PASS or FAIL}}
-- 🔴/🟡/🟢 [Checklist category] Item: Description (line {{line}}) [SMALL/LARGE]
-
-**Scope summary:** 🔧 Small: {{small_count}}, 🏗️ Large: {{large_count}}
-
-**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**"
-
-### 4. Handle No Violations
-
-If zero violations found:
-
-"**All Clear! All files passed the checklist.**"
-
-Auto-proceed: immediately load, read entire file, then execute {completeStepFile}
-
-### 5. Ask About Fixes (only if violations exist)
-
-"**Would you like to fix the violations?**
-**[F]** Full — Fix all findings unconditionally
-**[S]** Small — Apply only small-scope fixes
-**[H]** High — Fix HIGH priority items only
-**[X]** Skip — Complete without fixes"
-
-#### Menu Handling Logic:
-
-- **IF F:** Set fixScope='ALL', load, read entire file, then execute {fixStepFile}
-- **IF S:** Set fixScope='SMALL', load, read entire file, then execute {fixStepFile}
-- **IF H:** Set fixScope='HIGH', load, read entire file, then execute {fixStepFile}
-- **IF X:** Load, read entire file, then execute {completeStepFile}
-
-#### EXECUTION RULES:
-
-- ALWAYS halt and wait for user input after presenting menu
-- Only proceed based on user selection
-- Do NOT default to any option
-
-## SYSTEM SUCCESS/FAILURE METRICS
-
-### SUCCESS:
-
-- All findings collected from parallel agents
-- Findings grouped by file with duplicates removed
-- Priority (HIGH/MEDIUM/LOW) assigned to every finding
-- Scope (SMALL/LARGE) assigned to every finding
-- Clear report presented with checklist item references
-- User prompted for fix scope selection (or auto-proceeded if no violations)
-
-### FAILURE:
-
-- Missing files in report
-- No priorities assigned to findings
-- Subjective findings included without checklist backing
-- Proceeding without user input when violations exist
-- Findings without checklist item references
-
-**Master Rule:** Every finding in the report MUST reference a specific checklist item. No exceptions.
+If the user pushes back on findings (says "this is wrong", "the reviewer doesn't understand X", "we don't actually need this"), follow `{receivingCodeReviewSkill}`: verify the codebase reality before agreeing to drop a finding (it might be wrong, but the burden of proof is technical evidence, not "the user said so"). Push back politely with the checklist citation if the user's reasoning doesn't hold up. If the user has clarifying context the checklist couldn't have, accept it and adjust — but never silently drop a finding without recording the reason.

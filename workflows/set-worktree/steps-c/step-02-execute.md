@@ -1,162 +1,62 @@
 ---
-name: 'step-02-execute'
-description: 'Clone repos and create branches in parallel using sub-agents'
-
+name: step-02-execute
+description: 'Clone repos and create branches in parallel; never git init the workspace root'
 nextStepFile: './step-03-document-complete.md'
 parallel_agents_skill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
 ---
 
-# Step 2: Parallel Clone & Branch Creation
+# Step 2 — Parallel Clone & Branch Creation
 
-## STEP GOAL:
+## Outcome
 
-To execute all git operations in parallel: clone each repository, set up worktrees, and create feature branches based on the configuration gathered in step-01.
+Every repo from the confirmed plan is cloned into its own independent subfolder under the workspace root, the configured base branch is checked out, and the new feature branch is created and switched to. Each subfolder ends up with its own `.git` directory; the workspace root remains non-git. Successes and failures are reported clearly with a path for retry/skip/abort.
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Approach
 
-### Universal Rules:
+### Inline safety checks (run before any git operation)
 
-- 🛑 NEVER generate content without user input
-- 📖 CRITICAL: Read the complete step file before taking any action
-- 🔄 CRITICAL: When loading next step with 'C', ensure entire file is read
-- 📋 YOU ARE A FACILITATOR, not a content generator
-- ✅ YOU MUST ALWAYS SPEAK OUTPUT in {communication_language}
-- ⚙️ TOOL/SUBPROCESS FALLBACK: If sub-agents are unavailable, execute git operations sequentially in main thread
+Before issuing any `git` command, verify all of:
 
-### Role Reinforcement:
+1. **Workspace root is not a git repo.** If `.git` exists at the workspace root path, halt and surface the constraint from workflow.md — this workflow does not run inside an existing git repo without explicit user override (and even then, the cloning happens into independent subfolders, never as part of the root tree).
+2. **Target subfolders are clean.** For each planned subfolder, check it doesn't already exist with content. If it exists and is non-empty, ask the user: skip this repo, choose a different subfolder name, or remove the existing folder.
+3. **Branch names don't collide.** For each repo, the new branch must not already exist locally or remotely on the target. If it does, ask the user: choose a different name or check out the existing branch.
+4. **No `git init` on the root.** Never. This is a structural rule; do not add any command that would create a `.git` at the workspace root.
 
-- ✅ You are a workspace setup partner executing the plan
-- ✅ Efficiency matters - use parallel execution where possible
-- ✅ Report progress clearly and handle errors gracefully
+### Load the parallel agents skill
 
-### Step-Specific Rules:
+Read `{parallel_agents_skill}` for the dispatch pattern. One sub-agent per repo.
 
-- 🎯 Execute git operations ONLY - no gathering, no document generation
-- 🚫 FORBIDDEN to ask the user for more information - all info was gathered in step-01
-- 🚫 FORBIDDEN to modify the plan from step-01
-- 💬 Report progress and results clearly
-- ⚙️ Use sub-agents for parallel repo setup (Pattern 4: Parallel Execution)
+### Per-repo clone + branch (parallel)
 
-## EXECUTION PROTOCOLS:
-
-- 🎯 Follow MANDATORY SEQUENCE exactly
-- 💾 Track success/failure for each repo
-- 📖 Load parallel agents skill before execution
-- 🚫 Do not generate mapping document - that's step-03
-
-## CONTEXT BOUNDARIES:
-
-- Step-01 gathered: project root, repo links, branch bases, branch names, folder names
-- All info is in memory from step-01
-- This step ONLY executes git operations
-- Document generation happens in step-03
-
-## MANDATORY SEQUENCE
-
-**CRITICAL:** Follow this sequence exactly. Do not skip, reorder, or improvise unless user explicitly requests a change.
-
-### 1. Load Parallel Agents Skill
-
-Load and read `{parallel_agents_skill}` completely. This skill governs how to dispatch sub-agents for parallel work.
-
-### 2. Execute Parallel Clone & Branch Setup
-
-**For EACH repo from step-01's confirmed plan, launch a sub-agent that performs:**
+Each sub-agent runs, scoped to its assigned repo and subfolder:
 
 ```bash
-# 1. Clone the repo into the designated folder
-git clone {repo_url} {folder_name}
-
-# 2. Enter the folder
-cd {folder_name}
-
-# 3. Checkout the branch base (if not default)
-git checkout {branch_base}
-
-# 4. Create and switch to the new branch
+git clone {repo_url} {subfolder_name}
+cd {subfolder_name}
+git checkout {branch_base}     # only if not the default
 git checkout -b {branch_name}
 ```
 
-**Sub-agent return:** Each sub-agent must return a structured result:
-```
-repo: {repo_name}
-status: SUCCESS | FAILURE
-folder: {folder_path}
-branch: {branch_name}
-base: {branch_base}
-error: {error_message if failed, empty if success}
-```
+Never `cd ..` and run `git init`. Never `git submodule add` from the workspace root unless the user explicitly requested submodule mode in step-01 (they didn't, by default).
 
-**If sub-agents are unavailable:** Execute the same git commands sequentially for each repo in the main thread. Report progress after each repo completes.
+Each sub-agent returns a structured result: repo, status (`SUCCESS`/`FAILURE`), folder, branch, base, and an error string when failed.
 
-### 3. Aggregate Results
+If sub-agents are unavailable, run the same commands sequentially in the main thread and report progress per repo.
 
-Collect all sub-agent results and build a results table:
+### Aggregate results
 
-"**Execution Results:**
+Build a results table and report `{success_count}/{total}` to the user.
 
-| # | Repo | Status | Folder | Branch |
-|---|------|--------|--------|--------|
-| 1 | {repo-1} | {SUCCESS/FAILURE} | {folder-1} | {branch-1} |
-| 2 | {repo-2} | {SUCCESS/FAILURE} | {folder-2} | {branch-2} |
-| ... | ... | ... | ... | ... |
+### Handle failures
 
-**{success_count}/{total_count} repos set up successfully.**"
+If any repo failed, present:
 
-### 4. Handle Failures (If Any)
+- `[R]` Retry — re-run the failed repos only
+- `[S]` Skip — continue with the successful ones; failed repos are dropped from downstream documentation
+- `[A]` Abort — remove all subfolders created during this run and exit cleanly (without touching the workspace root)
 
-**If all succeeded:** Skip to step 5.
+Halt for input. On `A`, perform the cleanup carefully — only remove subfolders this workflow created in this run; do not touch unrelated content.
 
-**If any failed:**
+## Next
 
-"**Some repos failed to set up:**
-
-| Repo | Error |
-|------|-------|
-| {failed-repo} | {error-message} |
-
-**Options:**
-- **[R]** Retry failed repos
-- **[S]** Skip failed repos and continue with successful ones
-- **[A]** Abort - clean up and exit"
-
-- **If R:** Re-run git commands for failed repos only
-- **If S:** Continue with successful repos only
-- **If A:** Remove all created folders and end workflow
-
-### 5. Auto-Proceed to Documentation
-
-Display: "**All worktrees ready! Generating mapping document...**"
-
-#### Menu Handling Logic:
-
-- After results are aggregated and any failures are handled, immediately load, read entire file, then execute {nextStepFile} to generate mapping documentation.
-
-#### EXECUTION RULES:
-
-- This is an auto-proceed execution step
-- Proceed directly to next step after execution is complete and user is informed of results
-- Always halt if there are failures and user needs to make a decision
-
----
-
-## 🚨 SYSTEM SUCCESS/FAILURE METRICS
-
-### ✅ SUCCESS:
-
-- Parallel agents skill loaded
-- All repos cloned in parallel (or sequentially as fallback)
-- All branches created on correct base
-- Results clearly reported to user
-- Failures handled with user input
-- Ready for documentation step
-
-### ❌ SYSTEM FAILURE:
-
-- Asking user for additional information
-- Running git operations sequentially when sub-agents are available
-- Not reporting individual repo results
-- Skipping failure handling
-- Generating mapping document in this step
-
-**Master Rule:** This step ONLY executes git operations and reports results. Documentation happens in step-03.
+Once results are aggregated and any failures are handled, load and follow `{nextStepFile}`.

@@ -1,99 +1,52 @@
 ---
-name: 'step-06-complete'
-description: 'Verify all PRs merged and complete the workflow'
+name: step-06-complete
+description: 'Final verification, finalize state file, branch hygiene cleanup, present clean summary with PR links'
+finishingBranchSkill: '~/.claude/skills/finishing-a-development-branch/SKILL.md'
+verificationBeforeCompletion: '~/.claude/skills/verification-before-completion/SKILL.md'
 ---
 
-# Step 6: Completion
+# Step 6 — Complete
 
-## STEP GOAL:
+## Outcome
 
-To verify all PRs are merged, finalize the state file, and present a completion summary.
+Every planned PR is verified as merged via `gh pr view`, the state file is finalized as `COMPLETE` with timestamps, and the user sees a clear summary table with PR URLs and the path to the state file.
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Approach
 
-### Universal Rules:
+### Final verification
 
-- 🛑 NEVER generate content without user input
-- 📖 CRITICAL: Read the complete step file before taking any action
-- 📋 YOU ARE A FACILITATOR, not a content generator
-- ✅ YOU MUST ALWAYS SPEAK OUTPUT in {communication_language}
+Before claiming "all merged", follow `{verificationBeforeCompletion}` — actually run `gh pr view` per PR in this turn and read the `state` field. "Probably merged" / "should be done" don't pass here.
 
-### Step-Specific Rules:
+For each planned PR, run `gh pr view {prNumber} --json state,mergedAt`. Build the final table:
 
-- 🎯 Focus ONLY on verification and summary
-- 🚫 FORBIDDEN to create new PRs or modify code
-- 💬 Present clear completion summary
-
-## MANDATORY SEQUENCE
-
-### 1. Verify All PRs Merged
-
-Double-check each PR via gh CLI:
-
-```bash
-gh pr view {pr_number} --json state,mergedAt
+```
+# | Repo | PR | Role | Status | Merged At
 ```
 
-"**Final Verification:**
+If any PR isn't actually merged, halt with a clear message — completion can't proceed while open work remains. Route the user back to step-05 for the remaining PRs.
 
-| # | Repo | PR | Role | Status | Merged At |
-|---|------|----|------|--------|-----------|
-| 1 | {repo-1} | #{num} | {role} | ✅ MERGED | {date} |
-| ... | ... | ... | ... | ... | ... |
+### Finalize state
 
-**{total}/{total} PRs merged!**"
-
-### 2. Update State File
-
-Update state file:
+When everything checks out, update the state file:
 
 ```yaml
 status: COMPLETE
 completedDate: '{date}'
 ```
 
-Mark all PRs as MERGED with timestamps.
+Mark every PR `MERGED` with its timestamp.
 
-### 3. Present Completion Summary
+### Branch hygiene
 
-"**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
+For each repo whose feature branch is now merged, follow `{finishingBranchSkill}` to wrap the branch up: confirm tests still pass against the merged base, prune the local feature branch (after confirming the remote was deleted by GitHub or doing it manually if needed), and surface any leftover artifacts (stash entries, local-only files, untracked debug helpers) so the user decides what to keep. Present the standard options and execute the chosen path per repo.
 
-# PR Create Complete!
+### Summary
 
-**Total PRs:** {count}
-**All Merged:** ✅
+Present in `{communication_language}`:
 
-| Repo | PRs | Status |
-|------|-----|--------|
-| {repo-1} | {count} | ✅ All merged |
-| ... | ... | ... |
+- Total PRs and confirmation that all are merged
+- Per-repo breakdown (counts, status)
+- All PR URLs, grouped by repo
+- Path to the state file for the record
 
-**PR Links:**
-- {repo-1}: {pr_url_1}, {pr_url_2}
-- ...
-
-**State file:** `{state_file_path}`
-
-**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**"
-
-### 4. Workflow Complete
-
-This is the final step. No next step to load.
-
----
-
-## 🚨 SYSTEM SUCCESS/FAILURE METRICS
-
-### ✅ SUCCESS:
-
-- All PRs verified as merged
-- State file finalized with COMPLETE status
-- Clear summary with PR links presented
-
-### ❌ SYSTEM FAILURE:
-
-- Not verifying merge status
-- Marking complete when PRs are still open
-- Not presenting summary
-
-**Master Rule:** Verify everything is merged, present a clean summary, done.
+End the workflow.

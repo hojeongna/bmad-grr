@@ -1,7 +1,6 @@
 ---
-name: 'step-01-init'
-description: 'Select generation modes and collect required inputs for checklist generation'
-
+name: step-01-init
+description: 'Select generation modes; collect mode-specific inputs; create the output file from template'
 nextStepFile: './step-02-execute.md'
 skipToInteractive: './step-03-interactive.md'
 outputFile: '{output_folder}/checklist-{project_name}.md'
@@ -9,138 +8,58 @@ templateFile: '../data/checklist-template.md'
 analysisCategories: '../data/analysis-categories.md'
 ---
 
-# Step 1: Initialize — Mode Selection and Input Collection
+# Step 1 — Init
 
-## STEP GOAL:
+## Outcome
 
-Select one or more checklist generation modes and collect required inputs for each selected mode.
+The user has selected one or more generation modes, all required inputs for those modes are collected, the output file exists with frontmatter populated, and the workflow is routed to the right next step (parallel execute → step-02 if any automatic mode was selected; interactive-only → step-03).
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Approach
 
-### Universal Rules:
+### Mode selection
 
-- CRITICAL: Read the complete step file before taking any action
-- CRITICAL: When loading next step, ensure entire file is read
-- YOU MUST ALWAYS SPEAK OUTPUT in {communication_language}
-- TOOL/SUBPROCESS FALLBACK: If any instruction references a subprocess, subagent, or tool you do not have access to, you MUST still achieve the outcome in your main context thread
+Present the mode catalog. Modes can be combined (comma-separated):
 
-### Role Reinforcement:
+- `[A]` Project Analysis — analyze the actual codebase
+- `[P]` PR Review Mining — synthesize human reviewer comments from GitHub PRs
+- `[I]` Interactive — build category-by-category through conversation
+- `[U]` Universal — best practices for the declared tech stack
+- `[S]` Security — OWASP/STRIDE-flavored items generated inline
+- `[R]` Structural — pre-landing structural items generated inline
+- `[Au]` Audit (a11y / performance / theming / responsive) — auto-included when ui-ux-pro-max `audit` skill is installed
 
-- You are a code review checklist expert
-- You help users select the right generation modes for their needs
-- You collect all necessary inputs efficiently without unnecessary questions
+Halt for input. Examples: `A,U,S` or `A,P,I,U,S,R`. Halt with no proceed if zero modes are selected.
 
-### Step-Specific Rules:
+### Mode-specific inputs
 
-- Focus ONLY on mode selection and input collection
-- FORBIDDEN to start generating checklist items in this step
-- FORBIDDEN to proceed without at least 1 mode selected
-- Ask about convention documents for all modes that analyze code
+For each selected mode, collect what it needs:
 
-## MANDATORY SEQUENCE
+- **A** — project root path (default: current directory).
+- **P** — GitHub repo (`owner/repo`); PR range (e.g., "last 20", "last 3 months").
+- **U** — tech stack (e.g., "React, TypeScript, Next.js, Tailwind").
+- **I** — no input here (handled in step-03).
+- **S, R** — no extra input beyond the tech stack already provided for `U` (or asked separately if `U` wasn't selected).
+- **Au** — auto-detected from `auditSkill` presence; no extra input required.
 
-**CRITICAL:** Follow this sequence exactly. Do not skip, reorder, or improvise.
+### Convention document discovery (if A or U is selected)
 
-### 1. Welcome and Mode Selection
+Ask whether the project has a conventions document:
 
-"**Checklist for Code Review**
+- `[D]` Direct path — user provides it; load via Read.
+- `[S]` Auto-scan — search common locations (`CONVENTIONS.md`, `CONTRIBUTING.md`, `.eslintrc*`, `.prettierrc*`, `tsconfig.json`, `STYLEGUIDE.md`, `CODING_STANDARDS.md`); present found files for the user to confirm which to use.
+- `[N]` None — proceed without a conventions document.
 
-Generate a checklist for use with the code-review workflow.
+If a conventions document is found, ask how to use it:
 
-**Select generation modes (multiple selections allowed):**
+- `[C]` Convention-based — generate from rules in the document.
+- `[R]` Code-based — generate from patterns in the actual code.
+- `[B]` Both — reflect the document plus actual code patterns.
 
-**[A]** Project Analysis — Generate checklist by analyzing the actual codebase
-**[P]** PR Review Mining — Collect and synthesize human review comments from GitHub PRs
-**[I]** Interactive — Build step-by-step through category-by-category conversation
-**[U]** Universal — Generate universal checklist based on tech stack using AI knowledge + web search
+### Create the output file
 
-e.g.: `A,U` (Project Analysis + Universal) or `A,P,I,U` (all)"
+Copy `{templateFile}` to `{outputFile}`. Fill frontmatter: project name, tech stack, date, selected modes.
 
-Wait for user input. Store selected modes.
+### Route
 
-### 2. Collect Mode-Specific Inputs
-
-**IF mode A (Project Analysis) selected:**
-- Ask for project root path (default: current directory)
-- "Please provide the project root path. (Default: current directory)"
-
-**IF mode P (PR Review Mining) selected:**
-- Ask for GitHub repo info: "Please provide the GitHub repo info (e.g.: owner/repo)"
-- Ask for PR range: "How far back should we look at PRs? (e.g.: last 20, last 3 months)"
-
-**IF mode U (Universal) selected:**
-- Ask for tech stack: "Please provide the tech stack (e.g.: React, TypeScript, Next.js, Tailwind)"
-
-**IF mode I (Interactive) selected:**
-- No input needed here — will be handled in step-03
-
-### 3. Convention Document Discovery
-
-**IF mode A or U selected:**
-
-"**Do you have a conventions document?**
-
-**[D]** Direct input — Provide the path
-**[S]** Auto-scan — Automatically search the project
-**[N]** None — Proceed without conventions document"
-
-**IF D:** Ask for path, use Read tool to load the document
-**IF S:** Search for common convention files:
-- `CONVENTIONS.md`, `CONTRIBUTING.md`, `.eslintrc*`, `.prettierrc*`, `tsconfig.json`, `STYLEGUIDE.md`, `CODING_STANDARDS.md`
-- Present found files: "Found these files: [list]. Which ones should we use?"
-**IF N:** Skip convention loading
-
-**IF convention document found, ask:**
-
-"**Should the checklist be based on the conventions document, or actual code analysis?**
-
-**[C]** Based on conventions document — Generate checklist from rules defined in the document
-**[R]** Based on actual code — Generate from patterns actually used in the code
-**[B]** Both — Reflect conventions document + actual code patterns"
-
-### 4. Create Output File
-
-- Copy {templateFile} to {outputFile}
-- Fill in frontmatter: project name, tech stack, date, selected modes
-
-### 5. Summarize and Auto-Proceed
-
-"**Setup complete:**
-- Selected modes: [selected modes]
-- [mode-specific inputs summary]
-- Conventions document: [status]
-
-**Starting checklist generation...**"
-
-#### Menu Handling Logic:
-
-- IF any automatic mode (A/P/U) selected: load, read entire file, then execute {nextStepFile} (step-02-execute)
-- IF only interactive mode (I) selected: skip step-02, load, read entire file, then execute {skipToInteractive} (step-03-interactive)
-
-#### EXECUTION RULES:
-
-- This is an auto-proceed step after all inputs are collected
-- Route based on selected modes: automatic modes → step-02, interactive-only → step-03
-- HALT only if user cannot provide required inputs for selected modes
-- HALT if no modes are selected
-
----
-
-## SYSTEM SUCCESS/FAILURE METRICS
-
-### SUCCESS:
-
-- At least 1 mode selected
-- All required inputs for selected modes collected
-- Convention document handled (found/skipped/loaded)
-- Output file created from template
-- Auto-proceeded to step-02
-
-### FAILURE:
-
-- Proceeding without any mode selected
-- Starting checklist generation in this step
-- Not asking about convention documents
-- Missing required inputs for selected modes
-
-**Master Rule:** All inputs must be collected before proceeding. No mode selected = HALT.
+- If any of `A` / `P` / `U` / `S` / `R` / `Au` was selected (i.e. any automatic mode), load and follow `{nextStepFile}` to dispatch parallel agents.
+- If only `I` was selected, load and follow `{skipToInteractive}` to start the conversation.

@@ -1,147 +1,46 @@
 ---
-name: 'step-03-interactive'
-description: 'Collaboratively build checklist items through category-by-category conversation with user'
-
+name: step-03-interactive
+description: 'Build checklist items category-by-category through conversation; if other modes also ran, refine their results with the user'
 nextStepFile: './step-04-integrate.md'
 outputFile: '{output_folder}/checklist-{project_name}.md'
 analysisCategories: '../data/analysis-categories.md'
 ---
 
-# Step 3: Interactive Mode — Collaborative Checklist Building
+# Step 3 — Interactive
 
-## STEP GOAL:
+## Outcome
 
-Build checklist items through category-by-category conversation with the user, collecting their team-specific rules, preferences, and standards.
+The user has walked through categories at their own pace, adding team-specific rules, modifying or skipping items as they choose. If other modes also ran, their results are used as starting points and refined here. Any extra rules outside the standard categories are also captured. Results are stored for the integration step.
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Approach
 
-### Universal Rules:
+### Set context
 
-- CRITICAL: Read the complete step file before taking any action
-- CRITICAL: When loading next step with 'C', ensure entire file is read
-- YOU MUST ALWAYS SPEAK OUTPUT in {communication_language}
+Load `{analysisCategories}` for the category list.
 
-### Role Reinforcement:
+If automatic modes (A/P/U/S/R/Au) also ran, frame the conversation as refinement: "We'll go through each category — for each, I'll show what the auto-generated agents produced; you confirm, modify, or add."
 
-- You are a code review checklist expert having a collaborative conversation
-- You guide the user through categories but let THEM define the rules
-- You suggest items based on expertise, user confirms or modifies
-- This is a partnership — you facilitate, they decide
+If interactive-only, frame it as discovery: "Tell me the rules your team cares about; I can suggest common items if you're unsure; you can skip any category."
 
-### Step-Specific Rules:
+### Walk through categories
 
-- Focus ONLY on collecting checklist items through conversation
-- FORBIDDEN to auto-generate items without user input — ASK first, then suggest
-- Ask 1-2 categories at a time, don't overwhelm
-- If other modes already produced results, use them as starting points for discussion
-- User can skip categories they don't care about
+Present 2–3 categories at a time, not all at once. For each:
 
-## MANDATORY SEQUENCE
+- If auto results exist for this category, show them concisely.
+- Ask whether there are team-specific rules they want to capture.
+- Suggest 1–2 common items if the user seems unsure — don't pre-fill, ask.
+- The user may add, modify, or skip.
 
-**CRITICAL:** Follow this sequence exactly. Do not skip, reorder, or improvise.
+Respect early exit: if the user says "done" or "enough", stop the walkthrough.
 
-### 1. Load Categories and Set Context
+### Capture extras
 
-Load {analysisCategories} to understand the full list of categories.
+After the categories, ask once: "Any additional rules not covered above? Team conventions, frequently flagged items, easy-to-miss things?". Record what they share.
 
-**IF other modes (A/P/U) also ran:**
+### Summarize
 
-"**Based on the automatic analysis results, let's refine and adjust through conversation.**
+Brief summary in `{communication_language}`: items added, items modified, categories skipped.
 
-We'll go through each category, and for each one:
-- If there are auto-generated items, I'll show them to you
-- You can confirm, modify, or add items
-- You can skip categories you don't need"
+## Next
 
-**IF interactive mode only (no other modes):**
-
-"**Let's build the checklist through category-by-category conversation.**
-
-For each category:
-- Tell me the rules your team considers important
-- I can suggest common items as well
-- You can skip categories you don't need
-
-Shall we begin?"
-
-### 2. Category-by-Category Conversation
-
-For each category from {analysisCategories}, engage the user:
-
-**Pattern per category:**
-
-"**[Category Name]**
-
-[IF auto results exist for this category: The automatic analysis produced these items:
-- item 1
-- item 2]
-
-Are there any rules your team particularly cares about in this category?
-[Suggest 1-2 common items if user seems unsure]"
-
-**User responses:**
-- User adds items → record them
-- User modifies auto-generated items → update them
-- User says "skip" or "pass" → move to next category
-- User says "done" or "enough" → end interactive session early
-
-**Rules:**
-- Present 2-3 categories at a time, then pause for input
-- Don't rapid-fire all 14 categories at once
-- Think about their responses before moving to next category
-- If they give short answers, probe: "For example, what kind of pattern?"
-
-### 3. Capture Additional Items
-
-After going through categories:
-
-"**Are there any additional rules not covered in other categories?**
-Please share any team-specific rules, frequently flagged code review items, or easily overlooked items."
-
-Record any additional items.
-
-### 4. Summarize Interactive Results
-
-"**Interactive mode results:**
-- Items added: {added_count}
-- Items modified: {modified_count}
-- Categories skipped: {skipped_count}
-
-**Proceeding to result integration...**"
-
-### 5. Auto-Proceed
-
-Load, read entire file, then execute {nextStepFile}
-
-#### Menu Handling Logic:
-
-- After interactive session complete, immediately load, read entire file, then execute {nextStepFile}
-
-#### EXECUTION RULES:
-
-- This step is collaborative — ALWAYS wait for user input during conversation
-- Auto-proceed ONLY after user confirms they're done with all categories
-- If user says "done" early, respect that and proceed
-
----
-
-## SYSTEM SUCCESS/FAILURE METRICS
-
-### SUCCESS:
-
-- Categories presented 2-3 at a time, not all at once
-- User input collected for each category they engaged with
-- Auto-generated items reviewed and refined (if other modes ran)
-- Additional items captured beyond standard categories
-- User confirmed completion before proceeding
-- Results stored for integration step
-
-### FAILURE:
-
-- Dumping all 14 categories at once
-- Auto-generating items without asking user
-- Not pausing for user input between categories
-- Ignoring user's desire to skip categories
-- Not capturing additional items beyond categories
-
-**Master Rule:** This is a CONVERSATION, not a form. Engage naturally, respect user's pace, and let them drive the content.
+Load and follow `{nextStepFile}`.

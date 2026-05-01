@@ -1,54 +1,18 @@
 ---
-name: 'step-03-complete'
-description: 'Confirm edits saved and offer validation'
-
+name: step-03-complete
+description: 'Confirm edits and offer validation; end the workflow'
 validateStep: '../steps-v/step-01-validate.md'
 ---
 
-# Step 3: Complete — Edit Confirmation
+# Step 3 — Complete
 
-## STEP GOAL:
+## Outcome
 
-Confirm edits are saved and offer to run validation on the edited checklist.
+The user has confirmation that the edits are saved (or were discarded), sees a clean summary (file path, item count, category count), and chooses whether to run validation immediately on the updated checklist or end the workflow.
 
-## MANDATORY EXECUTION RULES (READ FIRST):
+## Approach
 
-### Universal Rules:
+Brief summary in `{communication_language}` — file path, total items, category count — then halt for input:
 
-- YOU MUST ALWAYS SPEAK OUTPUT in {communication_language}
-
-## MANDATORY SEQUENCE
-
-### 1. Completion Summary
-
-"**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**
-**Checklist Edit Complete!**
-
-**File:** {file_path}
-**Total items:** {item_count}
-**Categories:** {category_count}
-**━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━**"
-
-### 2. Suggest Validation
-
-"**Would you like to validate the edited checklist?**
-**[V]** Validate — Run quality validation
-**[D]** Done — Complete"
-
-#### Menu Handling Logic:
-
-- IF V: Load, read entire file, then execute {validateStep}
-- IF D: Workflow complete.
-
----
-
-## SYSTEM SUCCESS/FAILURE METRICS
-
-### SUCCESS:
-
-- Clear completion summary
-- Validation offered
-
-### FAILURE:
-
-- Not offering validation after edit
+- `[V]` Validate — load and follow `{validateStep}` to run quality validation on the edited checklist.
+- `[D]` Done — end the workflow.
