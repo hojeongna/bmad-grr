@@ -9,6 +9,7 @@ Workflow collection for BMAD — adds BDD-based ATDD for story implementation, c
 - **dev-story is BDD-based ATDD** — Gherkin scenarios drive a TDD inner loop
 - **set-worktree enforces monorepo style** — workspace root never becomes a git repo
 - **pr-create has a re-push branch** — post-edit CI test → fix → push to existing PR
+- **Ouroboros gate for upstream BMAD create-\* workflows** — optional per-project customizations gate `/bmad-create-prd`, `/bmad-create-architecture`, `/bmad-create-epics-and-stories`, and `/bmad-create-story` with ambiguity scoring (≤ 0.2), AC compliance evaluation, and convergence loops via [Ouroboros](https://github.com/Q00/ouroboros). Apply with `/bmad-grr-customize`.
 
 For PRD / Architecture / Epics / Story creation, use **upstream BMAD** workflows directly (`/bmad-create-prd`, `/bmad-create-architecture`, `/bmad-create-epics-and-stories`, `/bmad-create-story`).
 
@@ -167,7 +168,9 @@ This will:
 - Clean up any deprecated grr-fork workflows from prior versions (`create-prd`, `create-architecture`, `create-epics-and-stories`, `create-story` and their commands).
 - Install the 9 superpowers skills to `~/.claude/skills/`.
 - Install the 10 workflows to `~/.claude/workflows/`.
-- Install the 10 commands to `~/.claude/commands/`.
+- Install the 11 commands to `~/.claude/commands/` (10 grr workflows + `/bmad-grr-customize`).
+
+The four `customizations/*.toml` files for the Ouroboros gate are NOT copied during this step — they are per-project and applied separately via `/bmad-grr-customize` (see the [Ouroboros Gate section](#ouroboros-gate-optional)).
 
 ### Update
 
@@ -185,11 +188,68 @@ bash uninstall.sh
 
 Removes everything, including any deprecated leftovers.
 
+## Ouroboros Gate (Optional)
+
+grr ships customizations that gate the four upstream BMAD `create-*` workflows with [Ouroboros](https://github.com/Q00/ouroboros) — a specification-first agent OS that produces ambiguity scores, three-stage evaluation, and convergent evolution loops.
+
+**What gets gated:**
+
+| Workflow | Pre-flight | Mid-workflow guidance | Post-flight |
+| --- | --- | --- | --- |
+| `/bmad-create-prd` | `ouroboros:pm` → `seed` (ambiguity ≤ 0.2) | `ouroboros:interview` triggers on vague answers / non-measurable ACs | `ouroboros:evaluate` (Stage 2 ≥ 0.7, AC == YES) |
+| `/bmad-create-architecture` | `ouroboros:brownfield` → `interview` → `seed` | trigger on non-obvious trade-offs / quality attrs without numbers | `ouroboros:evaluate` (Goal Alignment ≥ 0.8) |
+| `/bmad-create-epics-and-stories` | install check | trigger on overlapping scope / vague ACs | batch `ouroboros:evaluate` per story (AC strict) |
+| `/bmad-create-story` | `ouroboros:interview` mini | trigger on bundled ACs / missing edge cases | `ouroboros:evaluate` (AC == YES, edge cases covered) |
+
+These are **per-project** because BMAD's `resolve_customization.py` only merges from `<project-root>/_bmad/custom/`.
+
+### Setup
+
+1. **Install Ouroboros plugin** (one-time, global):
+
+   ```bash
+   claude plugin marketplace add Q00/ouroboros
+   claude plugin install ouroboros@ouroboros
+   ```
+
+   Requires Python ≥ 3.12 and `uvx` (https://docs.astral.sh/uv/). The Ouroboros MCP server is bootstrapped via `uvx --from ouroboros-ai[mcp,claude]` on first use.
+
+2. **Apply customizations to your BMAD project** — from inside Claude Code, with the project as cwd:
+
+   ```
+   /bmad-grr-customize
+   ```
+
+   The command verifies the Ouroboros plugin, copies the four `customizations/*.toml` files into `<project>/_bmad/custom/`, and reports next steps. It is idempotent — existing files are preserved. To target a different project, pass the path: `/bmad-grr-customize /path/to/other-project`.
+
+   Alternative for CI/scripted use: `bash install-customizations.sh /path/to/your/bmad-project`.
+
+3. **Restart your Claude Code session** so the plugin's MCP server registers.
+
+After setup, running `/bmad-create-prd` (or any of the other three) inside the project automatically activates the ouroboros gate. The upstream BMAD workflows are not modified.
+
+### Disabling per workflow
+
+```bash
+rm <project>/_bmad/custom/<workflow>.toml
+# Restores unmodified upstream behavior for that workflow.
+```
+
+### Strength of each hook
+
+| Hook | Strength | Notes |
+| --- | --- | --- |
+| `activation_steps_prepend` / `activation_steps_append` | **strong** | Deterministic — the workflow runs the step explicitly. |
+| `on_complete` | **strong** | Deterministic — runs at the terminal stage. |
+| `persistent_facts` | **best-effort** | LLM autonomous decision based on workflow-specific trigger rules; more reliable than generic rules but not guaranteed. |
+
+See [`customizations/README.md`](customizations/README.md) for the full hook map and override layering rules.
+
 ## Installed File Structure
 
 ```
 ~/.claude/
-├── commands/                              # 10 grr commands
+├── commands/                              # 11 grr commands
 │   ├── bmad-grr-dev-story.md
 │   ├── bmad-grr-code-review.md
 │   ├── bmad-grr-review-checklist.md
@@ -199,7 +259,8 @@ Removes everything, including any deprecated leftovers.
 │   ├── bmad-grr-refine-story.md
 │   ├── bmad-grr-quick-story.md
 │   ├── bmad-grr-design-pass.md
-│   └── bmad-grr-qa-test.md
+│   ├── bmad-grr-qa-test.md
+│   └── bmad-grr-customize.md              # applies ouroboros gate to a BMAD project
 ├── workflows/                             # 10 workflows
 │   ├── dev-story/        (5 step files + checklist)
 │   ├── code-review/      (6 step files)
@@ -257,6 +318,9 @@ In any project with BMAD installed:
 
 # PR lifecycle (with re-push for post-edit updates)
 /bmad-grr-pr-create
+
+# Apply ouroboros gate to upstream BMAD create-* workflows in this project (one-time)
+/bmad-grr-customize
 ```
 
 For PRD / Architecture / Epics / Story creation use upstream BMAD:
