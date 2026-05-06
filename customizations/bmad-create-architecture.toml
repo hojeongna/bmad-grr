@@ -1,0 +1,73 @@
+# grr customization for bmad-create-architecture
+# Effect: Brownfield context injection + ambiguity gate on architectural decisions
+#         + evaluate gate on the produced architecture document.
+#
+# Requires: Ouroboros plugin (see bmad-create-prd.toml for install).
+
+[workflow]
+
+activation_steps_prepend = [
+  """
+  ### Pre-flight: Verify Ouroboros installation
+
+  Use ToolSearch with query "+ouroboros" max_results 10.
+
+  Required MCP tools (any of):
+    - mcp__plugin_ouroboros_*__ouroboros_brownfield
+    - mcp__plugin_ouroboros_*__ouroboros_interview
+    - mcp__plugin_ouroboros_*__ouroboros_seed
+    - mcp__plugin_ouroboros_*__ouroboros_evaluate
+
+  If NONE returned, HALT and instruct the user to:
+      claude plugin marketplace add Q00/ouroboros
+      claude plugin install ouroboros@ouroboros
+  Restart session after install, then re-run /bmad-create-architecture.
+  """,
+]
+
+activation_steps_append = [
+  """
+  ### Pre-flight: Inject codebase context
+
+  Invoke the Skill tool with skill='ouroboros:brownfield' to scan the existing
+  repos and produce mechanical.toml describing the actual code structure
+  (frameworks, languages, deployment topology, build tools).
+
+  Carry the brownfield findings forward as foundational context for every
+  architectural decision in this workflow. Architecture proposals that
+  contradict the discovered facts (e.g. proposing a stack the codebase
+  doesn't use without justification) must trigger skill='ouroboros:interview'
+  before being recorded.
+  """,
+  """
+  ### Pre-flight: Crystallize architectural ambiguity
+
+  Invoke skill='ouroboros:interview' with the user's architecture topic as args
+  and the brownfield findings as additional context.
+
+  Block until ambiguity <= 0.2 across all dimensions. Then invoke skill='ouroboros:seed'
+  to lock the architectural intent. Use this seed as the primary input for
+  all subsequent stages.
+  """,
+]
+
+persistent_facts = [
+  "Every architectural decision (data store choice, communication pattern, deployment topology, language/framework selection, security boundary) is a high-impact commitment. When the trade-offs are non-obvious or the user's reasoning is implicit, invoke the Skill tool with skill='ouroboros:interview' to surface hidden assumptions BEFORE recording the decision.",
+  "When a proposed component conflicts with the brownfield findings (different language, different stack, different infra), STOP and invoke skill='ouroboros:interview' to resolve the conflict explicitly — either justify the divergence or align with the existing system.",
+  "Architectural quality attributes (latency, throughput, availability, consistency) MUST be expressed as numbers with units. If you draft 'low latency' or 'highly available', invoke skill='ouroboros:interview' before recording.",
+  "Cross-cutting concerns (auth, observability, error handling) must be addressed explicitly, not deferred to 'standard practice'. If a stage produces an architecture without addressing these, surface the gap and invoke skill='ouroboros:interview' to fill it.",
+  "file:{project-root}/**/project-context.md",
+]
+
+on_complete = """
+Invoke skill='ouroboros:evaluate' on the produced architecture document with
+artifact_type='docs'. Required gates: Goal Alignment >= 0.8, drift <= 0.1,
+all named quality attributes present and measurable.
+
+If gates fail, list the failing attributes and offer:
+  1. skill='ouroboros:evolve' for iterative refinement
+  2. Manual revision of flagged sections
+  3. Override with audit log entry
+
+Do not declare complete until the user picks an option.
+"""

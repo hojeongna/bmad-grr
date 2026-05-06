@@ -1,0 +1,47 @@
+# grr customization for bmad-create-epics-and-stories
+# Effect: AC-compliance enforcement during decomposition + batch evaluate at end.
+#
+# Requires: Ouroboros plugin (see bmad-create-prd.toml for install).
+
+[workflow]
+
+activation_steps_prepend = [
+  """
+  ### Pre-flight: Verify Ouroboros installation
+
+  Use ToolSearch with query "+ouroboros" max_results 10.
+
+  Required MCP tools (any of):
+    - mcp__plugin_ouroboros_*__ouroboros_interview
+    - mcp__plugin_ouroboros_*__ouroboros_evaluate
+    - mcp__plugin_ouroboros_*__ouroboros_evolve
+
+  If NONE returned, HALT and instruct the user to install Ouroboros
+  (see bmad-create-prd customization for command). Do NOT proceed.
+  """,
+]
+
+persistent_facts = [
+  "Every story produced by this workflow MUST have testable acceptance criteria. Testable means: (a) Given-When-Then form, OR (b) explicit Pass/Fail conditions with measurable thresholds. If a story is drafted with ACs like 'works correctly' or 'as expected', STOP and invoke the Skill tool with skill='ouroboros:interview' passing the story title and the offending ACs to crystallize them.",
+  "Epic decomposition MUST produce stories with non-overlapping scope. When two stories' descriptions could plausibly cover the same code path, invoke skill='ouroboros:interview' to crystallize the scope boundary before continuing.",
+  "Stories MUST be sized for a single deliverable. If a draft story contains multiple unrelated changes (UI + backend + migration in one story), break it apart — and invoke skill='ouroboros:interview' if the boundaries aren't obvious.",
+  "Dependencies between stories must be explicit (Story B requires Story A's output). When sequencing is ambiguous, invoke skill='ouroboros:interview'.",
+  "file:{project-root}/**/project-context.md",
+]
+
+on_complete = """
+Run a batch validation on every produced story:
+
+For each story file, invoke the Skill tool with skill='ouroboros:evaluate'
+passing the story content with artifact_type='docs' and ac_gate_mode='all'.
+
+Collect all failures. If any story fails:
+  1. Show a table: story-id | failure-reason | suggested-fix
+  2. Offer the user:
+     a. skill='ouroboros:evolve' on the failing stories (recommended)
+     b. Manual revision
+     c. Skip and accept (audit log entry)
+
+Do not declare complete until every story either passes evaluate OR is explicitly
+accepted by the user with a logged justification.
+"""

@@ -1,0 +1,62 @@
+# grr customization for bmad-create-story
+# Effect: Mini-interview before story drafting + AC compliance evaluate at end.
+#
+# Requires: Ouroboros plugin (see bmad-create-prd.toml for install).
+
+[workflow]
+
+activation_steps_prepend = [
+  """
+  ### Pre-flight: Verify Ouroboros installation
+
+  Use ToolSearch with query "+ouroboros" max_results 10.
+
+  Required MCP tools (any of):
+    - mcp__plugin_ouroboros_*__ouroboros_interview
+    - mcp__plugin_ouroboros_*__ouroboros_evaluate
+
+  If NONE returned, HALT and instruct the user to install Ouroboros
+  (see bmad-create-prd customization for command). Do NOT proceed.
+  """,
+]
+
+activation_steps_append = [
+  """
+  ### Pre-flight: Crystallize the story before drafting
+
+  Invoke the Skill tool with skill='ouroboros:interview' passing:
+    - The story's title (or topic if untitled)
+    - The parent epic's context (if available)
+    - Any user-provided initial scope
+
+  Block until ambiguity <= 0.2 with all floors satisfied
+  (goal >= 0.75, constraint >= 0.65, success-criteria >= 0.70).
+
+  Use the crystallized output as the primary input for AC drafting in Stage 1+.
+  The workflow's discovery questions should be confirmatory at most, not
+  re-exploratory — the interview already covered them.
+  """,
+]
+
+persistent_facts = [
+  "ACs MUST be in Given-When-Then form OR have measurable Pass/Fail conditions. If you find yourself drafting 'should work correctly', 'as expected', 'reasonable performance', or any equivalent, STOP and invoke the Skill tool with skill='ouroboros:interview' passing that AC before continuing.",
+  "Every AC must be independently testable — a failing AC must point to ONE thing to fix, not a vague cluster. If a draft AC bundles multiple conditions ('handles errors and logs them and notifies user'), split it; if the split isn't obvious, invoke skill='ouroboros:interview'.",
+  "The story MUST have a clear Definition of Done that includes test coverage expectations. If the user hasn't specified, invoke skill='ouroboros:interview' to elicit it rather than assuming.",
+  "Edge cases (empty input, max input, concurrent access, network failure, auth failure) must be explicitly addressed in ACs, not implicit. If the draft ACs don't cover the relevant edge cases for this story's domain, invoke skill='ouroboros:interview' to surface them.",
+  "file:{project-root}/**/project-context.md",
+]
+
+on_complete = """
+Invoke the Skill tool with skill='ouroboros:evaluate' on the produced story
+with artifact_type='docs' and ac_gate_mode='all'.
+
+Required: AC compliance == YES, all ACs testable, drift <= 0.1, edge cases
+explicitly addressed.
+
+If gates fail, surface the specific failures and offer:
+  1. skill='ouroboros:evolve' for iterative refinement
+  2. Manual revision of the flagged ACs
+  3. Override with audit log entry
+
+Do not declare complete until the user explicitly chooses.
+"""

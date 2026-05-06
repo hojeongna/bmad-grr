@@ -1,0 +1,84 @@
+# grr customization for bmad-create-prd
+# Source: bmad-grr (https://github.com/...)
+# Effect: Ouroboros-gated PRD creation — ambiguity gate at entry,
+#         Skill-driven crystallization during stages, evaluate gate at exit.
+#
+# Requires:
+#   - Ouroboros plugin installed: claude plugin install ouroboros@ouroboros
+#   - Python >= 3.12 with uvx available
+#
+# Override layers (per BMad convention):
+#   - This file: team/repo override (committed)
+#   - {project-root}/_bmad/custom/bmad-create-prd.user.toml: personal (gitignored)
+
+[workflow]
+
+activation_steps_prepend = [
+  """
+  ### Pre-flight: Verify Ouroboros installation
+
+  Use the ToolSearch tool with query "+ouroboros" and max_results 10.
+
+  Required MCP tools (look for any of these in results):
+    - mcp__plugin_ouroboros_*__ouroboros_pm  (or pm_interview)
+    - mcp__plugin_ouroboros_*__ouroboros_interview
+    - mcp__plugin_ouroboros_*__ouroboros_seed
+    - mcp__plugin_ouroboros_*__ouroboros_evaluate
+
+  If NONE of those tools are returned, HALT this workflow and tell the user:
+
+    Ouroboros is required by this workflow's customization (grr) but is not
+    installed. Install it with:
+
+        claude plugin marketplace add Q00/ouroboros
+        claude plugin install ouroboros@ouroboros
+
+    Requires Python >= 3.12 and uvx (https://docs.astral.sh/uv/).
+    Restart your Claude Code session after install, then re-run /bmad-create-prd.
+
+  Do NOT proceed to greet or Stage 1 until a fresh ToolSearch returns the tools.
+  If the user wants to opt out of the gate for this run, instruct them to remove
+  or rename {project-root}/_bmad/custom/bmad-create-prd.toml.
+  """,
+]
+
+activation_steps_append = [
+  """
+  ### Pre-flight: Crystallize ambiguity before drafting
+
+  Invoke the Skill tool with skill="ouroboros:pm" (preferred for PRD context),
+  passing the user's initial PRD topic as args.
+
+  If ouroboros:pm is not registered as a skill, fall back to skill="ouroboros:interview"
+  with the same args.
+
+  Block until the interview reaches the seed-ready threshold (overall ambiguity
+  score <= 0.2 AND every dimension above its floor: goal >= 0.75, constraint >= 0.65,
+  success-criteria >= 0.70).
+
+  Then invoke skill="ouroboros:seed" to crystallize the answers into an immutable
+  spec yaml. Carry this seed forward as the primary input for all PRD stages —
+  the workflow's own discovery questions should be confirmatory at most, not
+  re-exploratory.
+  """,
+]
+
+persistent_facts = [
+  "Throughout this workflow, EVERY acceptance criterion drafted must be measurable: contain numbers, time bounds, or explicit Pass/Fail conditions. Before recording any non-measurable AC, invoke the Skill tool with skill='ouroboros:interview' passing that AC and use the crystallized output instead.",
+  "When the user's answer to ANY stage question contains vague qualifiers ('fast', 'better', 'soon', 'easy', 'good', 'maybe', 'should', 'roughly', 'around'), STOP recording and invoke skill='ouroboros:interview' with that answer. Replace the vague answer with the interview's output before proceeding.",
+  "Goals, scope, and NFR sections must individually pass the ambiguity gate (each section's content >= 0.75 clarity). If any drafted goal/scope/NFR statement fails this implicit check on review, invoke skill='ouroboros:interview' on just that statement before finalizing.",
+  "The seed yaml produced in pre-flight is the ground truth for this PRD. If a stage decision contradicts the seed, halt and ask the user to either override the seed (re-run interview) or revise the contradicting decision.",
+  "file:{project-root}/**/project-context.md",
+]
+
+on_complete = """
+Invoke the Skill tool with skill='ouroboros:evaluate' on the produced PRD.
+Required gates: Stage 2 score >= 0.7, AC compliance == YES, drift <= 0.1.
+
+If gates fail, surface the specific failure reasons and offer the user three options:
+  1. Invoke skill='ouroboros:evolve' for iterative refinement (recommended)
+  2. Manually fix the flagged sections
+  3. Override and accept (record the rejection in the PRD's audit log)
+
+Do NOT declare the workflow complete until the user explicitly chooses an option.
+"""
