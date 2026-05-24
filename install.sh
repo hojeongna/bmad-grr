@@ -13,7 +13,7 @@ echo ""
 # These were forks of upstream bmad workflows that are no longer maintained as forks.
 # Use the upstream bmad workflows directly: bmad-create-prd, bmad-create-architecture,
 # bmad-create-epics-and-stories, bmad-create-story.
-echo "[0/3] Cleaning up deprecated grr-fork workflows (if present)..."
+echo "[0/4] Cleaning up deprecated grr-fork workflows (if present)..."
 rm -rf "$CLAUDE_DIR/workflows/create-prd"
 rm -rf "$CLAUDE_DIR/workflows/create-architecture"
 rm -rf "$CLAUDE_DIR/workflows/create-epics-and-stories"
@@ -26,7 +26,7 @@ echo "  - Removed deprecated forks: create-prd, create-architecture, create-epic
 echo "  - For these workflows, use upstream BMAD: /bmad-create-prd, /bmad-create-architecture, /bmad-create-epics-and-stories, /bmad-create-story"
 
 # 1. Install skills (11 superpowers from obra/superpowers + 1 grr-original skill)
-echo "[1/3] Installing global skills..."
+echo "[1/4] Installing global skills..."
 
 # Superpowers — synced from obra/superpowers v5.1.0
 mkdir -p "$CLAUDE_DIR/skills/test-driven-development"
@@ -70,7 +70,7 @@ echo "  - executing-plans (SKILL.md)"
 echo "  - grr-spec-validate (SKILL.md + 4 rubric files + invocation-template) [grr-original]"
 
 # 2. Install workflows
-echo "[2/3] Installing workflows..."
+echo "[2/4] Installing workflows..."
 
 # dev-story (BDD-based ATDD outer loop + superpowers TDD inner loop)
 mkdir -p "$CLAUDE_DIR/workflows/dev-story/steps-c"
@@ -153,7 +153,7 @@ cp "$SCRIPT_DIR/workflows/review-checklist/data/"* "$CLAUDE_DIR/workflows/review
 echo "  - review-checklist (workflow.md + 10 step files + 2 data files)"
 
 # 3. Install commands
-echo "[3/3] Installing global commands..."
+echo "[3/4] Installing global commands..."
 mkdir -p "$CLAUDE_DIR/commands"
 cp "$SCRIPT_DIR/commands/bmad-grr-dev-story.md" "$CLAUDE_DIR/commands/"
 cp "$SCRIPT_DIR/commands/bmad-grr-code-review.md" "$CLAUDE_DIR/commands/"
@@ -177,6 +177,17 @@ echo "  - /bmad-grr-quick-story command"
 echo "  - /bmad-grr-design-pass command"
 echo "  - /bmad-grr-qa-test command"
 echo "  - /bmad-grr-customize command"
+
+# 4. Install hooks (opt-in — files installed, settings.json NOT auto-modified)
+echo "[4/4] Installing hooks..."
+mkdir -p "$CLAUDE_DIR/hooks/grr"
+cp "$SCRIPT_DIR/hooks/"*.py "$CLAUDE_DIR/hooks/grr/"
+cp "$SCRIPT_DIR/hooks/README.md" "$CLAUDE_DIR/hooks/grr/" 2>/dev/null || true
+echo "  - pretool-file-size.py        (block edits to files ≥ 500 lines)"
+echo "  - pretool-bash-safety.py      (block rm -rf / sudo / chmod 777 / etc.)"
+echo "  - posttool-format.py          (run prettier + eslint after Edit/Write)"
+echo "  - stop-test-gate.py           (block Stop while .grr/tests-failing marker exists)"
+echo "  - README.md                   (per-hook docs + env var overrides)"
 
 echo ""
 echo "=== Installation Complete! ==="
@@ -210,3 +221,28 @@ echo "No external plugin required."
 echo ""
 echo "To enable in a BMAD project, run /bmad-grr-customize from inside that project,"
 echo "or: bash install-customizations.sh /path/to/your/bmad-project"
+echo ""
+echo "=== Optional: grr hooks (~/.claude/hooks/grr/) ==="
+echo ""
+echo "Hook scripts are installed but settings.json is NOT auto-modified — paste the"
+echo "snippet below into ~/.claude/settings.json to activate. See ~/.claude/hooks/grr/README.md"
+echo "for per-hook details and env-var overrides."
+echo ""
+cat <<'HOOKSNIPPET'
+{
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "Edit|Write", "hooks": [{ "type": "command", "command": "python3 ~/.claude/hooks/grr/pretool-file-size.py" }] },
+      { "matcher": "Bash",       "hooks": [{ "type": "command", "command": "python3 ~/.claude/hooks/grr/pretool-bash-safety.py" }] }
+    ],
+    "PostToolUse": [
+      { "matcher": "Edit|Write", "hooks": [{ "type": "command", "command": "python3 ~/.claude/hooks/grr/posttool-format.py" }] }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "python3 ~/.claude/hooks/grr/stop-test-gate.py" }] }
+    ]
+  }
+}
+HOOKSNIPPET
+echo ""
+echo "Windows: use 'python' instead of 'python3' if python3 is not on PATH."

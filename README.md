@@ -10,6 +10,7 @@ Workflow collection for BMAD — adds BDD-based ATDD for story implementation, c
 - **set-worktree enforces monorepo style** — workspace root never becomes a git repo
 - **pr-create has a re-push branch** — post-edit CI test → fix → push to existing PR
 - **grr-spec-validate gate for upstream BMAD `create-*`** — optional per-project customizations gate `/bmad-create-prd`, `/bmad-create-architecture`, `/bmad-create-epics-and-stories`, and `/bmad-create-story` via `grr-spec-validate` (sub-agent-dispatched, four-rubric validator). No external plugin required. Apply with `/bmad-grr-customize`.
+- **4 optional hooks bundled** — deterministic guardrails for Claude Code: refuse Edit/Write on files ≥ 500 lines, refuse dangerous Bash (`rm -rf`, `sudo`, `chmod 777`, force-push, `curl | sh`), auto-format on Edit/Write (prettier + eslint), refuse Stop while a `.grr/tests-failing` marker exists. Installed but opt-in via paste snippet.
 
 For PRD / Architecture / Epics / Story creation, use **upstream BMAD** workflows directly (`/bmad-create-prd`, `/bmad-create-architecture`, `/bmad-create-epics-and-stories`, `/bmad-create-story`).
 
@@ -177,6 +178,7 @@ This will:
 - Install the 12 skills to `~/.claude/skills/` (11 superpowers + `grr-spec-validate`).
 - Install the 10 workflows to `~/.claude/workflows/`.
 - Install the 11 commands to `~/.claude/commands/` (10 grr workflows + `/bmad-grr-customize`).
+- Install 4 hook scripts to `~/.claude/hooks/grr/` (opt-in — `~/.claude/settings.json` is NOT auto-modified; install.sh prints a snippet to paste).
 
 The four `customizations/*.toml` files for the spec-validate gate are NOT copied during this step — they are per-project and applied separately via `/bmad-grr-customize` (see the [grr-spec-validate Gate section](#grr-spec-validate-gate-optional)).
 
@@ -242,6 +244,19 @@ rm <project>/_bmad/custom/<workflow>.toml
 
 See [`customizations/README.md`](customizations/README.md) for the full hook map, override layering rules, and per-workflow specifics.
 
+## Hooks (Optional)
+
+grr bundles 4 Claude Code hooks as small Python scripts. `install.sh` copies them to `~/.claude/hooks/grr/` but does **not** auto-modify `~/.claude/settings.json` — install printed the integration snippet at the end. Paste it (and merge with any existing `hooks` block) to activate. Each hook also has a per-session env-var override.
+
+| Hook | Event | Behavior |
+| --- | --- | --- |
+| `pretool-file-size.py` | `PreToolUse(Edit\|Write)` | Refuse edits to files ≥ 500 lines (`GRR_HOOK_MAX_LINES`) |
+| `pretool-bash-safety.py` | `PreToolUse(Bash)` | Refuse `rm -rf` / `sudo` / `chmod 777` / `git push --force` / `curl \| sh` / `dd` / fork bomb (`GRR_HOOK_BASH_SAFETY`) |
+| `posttool-format.py` | `PostToolUse(Edit\|Write)` | Run `npx prettier --write` + `eslint --fix` if config exists; silent otherwise (`GRR_HOOK_AUTOFORMAT`) |
+| `stop-test-gate.py` | `Stop` | Refuse Stop while `.grr/tests-failing` marker exists anywhere from cwd upward (`GRR_HOOK_STOP_GATE`) |
+
+See [`hooks/README.md`](hooks/README.md) for the full snippet, env-var values, and authoring guidance for adding more hooks.
+
 ## Installed File Structure
 
 ```
@@ -282,6 +297,12 @@ See [`customizations/README.md`](customizations/README.md) for the full hook map
     ├── writing-plans/
     ├── executing-plans/
     └── grr-spec-validate/                  # grr-original, sub-agent-dispatched
+
+~/.claude/hooks/grr/                        # 4 hook scripts (opt-in — see hooks/README.md)
+├── pretool-file-size.py
+├── pretool-bash-safety.py
+├── posttool-format.py
+└── stop-test-gate.py
 ```
 
 ## Usage
