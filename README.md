@@ -170,25 +170,31 @@ Spec-first QA testing in a real browser.
 ```bash
 git clone https://github.com/hojeongna/bmad-grr.git
 cd bmad-grr
-bash install.sh
+bash install.sh                       # global install only
+# OR:
+bash install.sh /path/to/your/bmad-project   # global + apply customizations to that project
+bash install.sh .                            # ... or current dir if it's a BMAD project
+bash install.sh --force /path/to/project     # also overwrite existing project customizations
 ```
 
-This will:
-- Clean up any deprecated grr-fork workflows from prior versions (`create-prd`, `create-architecture`, `create-epics-and-stories`, `create-story` and their commands).
-- Install the 12 skills to `~/.claude/skills/` (11 superpowers + `grr-spec-validate`).
-- Install the 10 workflows to `~/.claude/workflows/`.
-- Install the 11 commands to `~/.claude/commands/` (10 grr workflows + `/bmad-grr-customize`).
-- Install 4 hook scripts to `~/.claude/hooks/grr/` (opt-in — `~/.claude/settings.json` is NOT auto-modified; install.sh prints a snippet to paste).
+`bash install.sh` is **clean reinstall** by design — each grr-managed folder under `~/.claude/` is wiped and re-created from this repo on every run. User's other skills / workflows / commands / hooks are NOT touched.
 
-The four `customizations/*.toml` files for the spec-validate gate are NOT copied during this step — they are per-project and applied separately via `/bmad-grr-customize` (see the [grr-spec-validate Gate section](#grr-spec-validate-gate-optional)).
+The script will:
+- Clean up any deprecated grr-fork workflows from prior versions.
+- Install the 12 skills to `~/.claude/skills/` (11 superpowers + `grr-spec-validate`) — each skill folder wiped first.
+- Install the 10 workflows to `~/.claude/workflows/` — each workflow folder wiped first.
+- Install the 11 commands to `~/.claude/commands/` (10 grr workflows + `/bmad-grr-customize`).
+- Install 4 hook scripts to `~/.claude/hooks/grr/` (opt-in — `~/.claude/settings.json` is NOT auto-modified; install.sh prints a JSON snippet to paste).
+- (If a project path was given) Apply the four `customizations/*.toml` files to that project's `_bmad/custom/` — existing files preserved unless `--force`.
 
 ### Update
 
 ```bash
-bash install.sh
+bash install.sh                       # global only
+bash install.sh /path/to/project      # global + re-apply customizations to that project
 ```
 
-The cleanup step is idempotent — re-running install is safe.
+Re-running is safe — clean reinstall guarantees the result matches the repo state exactly.
 
 ### Uninstall
 
@@ -215,15 +221,30 @@ These are **per-project** because BMAD's `resolve_customization.py` only merges 
 
 ### Setup
 
-Just apply customizations to your BMAD project — from inside Claude Code, with the project as cwd:
+Three equivalent ways to apply the gate to a BMAD project:
+
+**1. During global install** (one-shot)
+
+```bash
+bash install.sh /path/to/your/bmad-project
+# adds --force to overwrite existing tomls
+```
+
+**2. After install, from inside Claude Code with the project as cwd**
 
 ```
 /bmad-grr-customize
 ```
 
-The command copies the four `customizations/*.toml` files into `<project>/_bmad/custom/` and reports next steps. It is idempotent — existing files are preserved (use `/bmad-grr-customize --force` to overwrite). To target a different project, pass the path: `/bmad-grr-customize /path/to/other-project`.
+To target a different project, pass the path: `/bmad-grr-customize /path/to/other-project`. Add `--force` to overwrite.
 
-Alternative for CI / scripted use: `bash install-customizations.sh /path/to/your/bmad-project`.
+**3. CI / scripted bulk apply across projects**
+
+```bash
+bash install-customizations.sh /path/to/your/bmad-project
+```
+
+All three preserve existing `<project>/_bmad/custom/*.toml` files unless `--force` is set. The four toml files install to `<project>/_bmad/custom/` and BMAD's `resolve_customization.py` picks them up automatically on the next workflow run.
 
 After setup, running `/bmad-create-prd` (or any of the other three) inside the project automatically activates the gate. The upstream BMAD workflows are not modified.
 

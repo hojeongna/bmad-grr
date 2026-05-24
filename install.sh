@@ -1,19 +1,104 @@
 #!/bin/bash
-# install.sh - Install GRR workflows, skills, and commands globally for Claude Code
+# install.sh — Install bmad-grr globally for Claude Code.
+#
+# Usage:
+#   bash install.sh                       # global install only
+#   bash install.sh <project-path>        # global + apply customizations to that BMAD project
+#   bash install.sh .                     # global + apply customizations to current dir
+#   bash install.sh [--force] <project>   # also overwrite existing project customizations
+#
+# Global install is CLEAN — grr-managed folders under ~/.claude/ are wiped and
+# re-created from this repo on every run. User's other skills / workflows /
+# commands are NOT touched.
+#
+# Project customizations preserve existing _bmad/custom/*.toml files unless
+# --force is passed.
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CLAUDE_DIR="$HOME/.claude"
 
+# --- Arg parsing -------------------------------------------------------------
+
+FORCE=0
+PROJECT=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --force) FORCE=1; shift ;;
+    -h|--help)
+      sed -n '2,12p' "$0"  # print the usage block
+      exit 0
+      ;;
+    *)
+      if [ -n "$PROJECT" ]; then
+        echo "Error: unexpected extra argument: $1" >&2
+        exit 1
+      fi
+      PROJECT="$1"
+      shift
+      ;;
+  esac
+done
+
+if [ -n "$PROJECT" ]; then
+  PROJECT="$(cd "$PROJECT" && pwd)"  # absolutize
+fi
+
 echo "=== GRR (Guardrails for Reliable Releases) Installer ==="
 echo ""
+echo "Global target:  $CLAUDE_DIR"
+[ -n "$PROJECT" ] && echo "Project target: $PROJECT (customizations)"
+[ "$FORCE" = "1" ] && echo "Mode:           --force (overwrite existing project customizations)"
+echo ""
 
-# 0. Cleanup deprecated grr-fork workflows from prior versions
-# These were forks of upstream bmad workflows that are no longer maintained as forks.
-# Use the upstream bmad workflows directly: bmad-create-prd, bmad-create-architecture,
-# bmad-create-epics-and-stories, bmad-create-story.
-echo "[0/4] Cleaning up deprecated grr-fork workflows (if present)..."
+# --- Lists of grr-managed assets --------------------------------------------
+
+SKILLS=(
+  test-driven-development
+  systematic-debugging
+  dispatching-parallel-agents
+  verification-before-completion
+  subagent-driven-development
+  finishing-a-development-branch
+  using-git-worktrees
+  requesting-code-review
+  receiving-code-review
+  writing-plans
+  executing-plans
+  grr-spec-validate
+)
+
+WORKFLOWS=(
+  dev-story
+  code-review
+  bug-hunt
+  set-worktree
+  pr-create
+  refine-story
+  quick-story
+  design-pass
+  qa-test
+  review-checklist
+)
+
+COMMANDS=(
+  bmad-grr-dev-story
+  bmad-grr-code-review
+  bmad-grr-review-checklist
+  bmad-grr-bug-hunt
+  bmad-grr-set-worktree
+  bmad-grr-pr-create
+  bmad-grr-refine-story
+  bmad-grr-quick-story
+  bmad-grr-design-pass
+  bmad-grr-qa-test
+  bmad-grr-customize
+)
+
+# --- [0/5] Cleanup deprecated forks ------------------------------------------
+
+echo "[0/5] Cleaning up deprecated grr-fork workflows (if present)..."
 rm -rf "$CLAUDE_DIR/workflows/create-prd"
 rm -rf "$CLAUDE_DIR/workflows/create-architecture"
 rm -rf "$CLAUDE_DIR/workflows/create-epics-and-stories"
@@ -22,164 +107,41 @@ rm -f "$CLAUDE_DIR/commands/bmad-grr-create-prd.md"
 rm -f "$CLAUDE_DIR/commands/bmad-grr-create-architecture.md"
 rm -f "$CLAUDE_DIR/commands/bmad-grr-create-epics-and-stories.md"
 rm -f "$CLAUDE_DIR/commands/bmad-grr-create-story.md"
-echo "  - Removed deprecated forks: create-prd, create-architecture, create-epics-and-stories, create-story"
-echo "  - For these workflows, use upstream BMAD: /bmad-create-prd, /bmad-create-architecture, /bmad-create-epics-and-stories, /bmad-create-story"
+echo "  - removed deprecated forks (if any). Use upstream BMAD /bmad-create-* for those flows."
 
-# 1. Install skills (11 superpowers from obra/superpowers + 1 grr-original skill)
-echo "[1/4] Installing global skills..."
+# --- [1/5] Skills (clean reinstall) -----------------------------------------
 
-# Superpowers — synced from obra/superpowers v5.1.0
-mkdir -p "$CLAUDE_DIR/skills/test-driven-development"
-mkdir -p "$CLAUDE_DIR/skills/systematic-debugging"
-mkdir -p "$CLAUDE_DIR/skills/dispatching-parallel-agents"
-mkdir -p "$CLAUDE_DIR/skills/verification-before-completion"
-mkdir -p "$CLAUDE_DIR/skills/subagent-driven-development"
-mkdir -p "$CLAUDE_DIR/skills/finishing-a-development-branch"
-mkdir -p "$CLAUDE_DIR/skills/using-git-worktrees"
-mkdir -p "$CLAUDE_DIR/skills/requesting-code-review"
-mkdir -p "$CLAUDE_DIR/skills/receiving-code-review"
-mkdir -p "$CLAUDE_DIR/skills/writing-plans"
-mkdir -p "$CLAUDE_DIR/skills/executing-plans"
+echo "[1/5] Installing global skills (clean reinstall — wipes each grr skill folder first)..."
+for s in "${SKILLS[@]}"; do
+  rm -rf "$CLAUDE_DIR/skills/$s"
+  mkdir -p "$CLAUDE_DIR/skills/$s"
+  cp -r "$SCRIPT_DIR/skills/$s/"* "$CLAUDE_DIR/skills/$s/" 2>/dev/null || true
+  echo "  - $s"
+done
 
-# grr-original skill
-mkdir -p "$CLAUDE_DIR/skills/grr-spec-validate"
+# --- [2/5] Workflows (clean reinstall) --------------------------------------
 
-cp "$SCRIPT_DIR/skills/test-driven-development/"* "$CLAUDE_DIR/skills/test-driven-development/"
-cp "$SCRIPT_DIR/skills/systematic-debugging/"* "$CLAUDE_DIR/skills/systematic-debugging/"
-cp "$SCRIPT_DIR/skills/dispatching-parallel-agents/"* "$CLAUDE_DIR/skills/dispatching-parallel-agents/"
-cp "$SCRIPT_DIR/skills/verification-before-completion/"* "$CLAUDE_DIR/skills/verification-before-completion/"
-cp "$SCRIPT_DIR/skills/subagent-driven-development/"* "$CLAUDE_DIR/skills/subagent-driven-development/"
-cp "$SCRIPT_DIR/skills/finishing-a-development-branch/"* "$CLAUDE_DIR/skills/finishing-a-development-branch/"
-cp "$SCRIPT_DIR/skills/using-git-worktrees/"* "$CLAUDE_DIR/skills/using-git-worktrees/"
-cp "$SCRIPT_DIR/skills/requesting-code-review/"* "$CLAUDE_DIR/skills/requesting-code-review/"
-cp "$SCRIPT_DIR/skills/receiving-code-review/"* "$CLAUDE_DIR/skills/receiving-code-review/"
-cp "$SCRIPT_DIR/skills/writing-plans/"* "$CLAUDE_DIR/skills/writing-plans/"
-cp "$SCRIPT_DIR/skills/executing-plans/"* "$CLAUDE_DIR/skills/executing-plans/"
-cp "$SCRIPT_DIR/skills/grr-spec-validate/"* "$CLAUDE_DIR/skills/grr-spec-validate/"
-echo "  - test-driven-development (SKILL.md + testing-anti-patterns.md)"
-echo "  - systematic-debugging (SKILL.md + 3 reference files)"
-echo "  - dispatching-parallel-agents (SKILL.md)"
-echo "  - verification-before-completion (SKILL.md)"
-echo "  - subagent-driven-development (SKILL.md + 3 prompt templates)"
-echo "  - finishing-a-development-branch (SKILL.md)"
-echo "  - using-git-worktrees (SKILL.md)"
-echo "  - requesting-code-review (SKILL.md + code-reviewer template)"
-echo "  - receiving-code-review (SKILL.md)"
-echo "  - writing-plans (SKILL.md + plan-document-reviewer-prompt.md)"
-echo "  - executing-plans (SKILL.md)"
-echo "  - grr-spec-validate (SKILL.md + 4 rubric files + invocation-template) [grr-original]"
+echo "[2/5] Installing workflows (clean reinstall — wipes each grr workflow folder first)..."
+for w in "${WORKFLOWS[@]}"; do
+  rm -rf "$CLAUDE_DIR/workflows/$w"
+  mkdir -p "$CLAUDE_DIR/workflows/$w"
+  cp -r "$SCRIPT_DIR/workflows/$w/"* "$CLAUDE_DIR/workflows/$w/" 2>/dev/null || true
+  echo "  - $w"
+done
 
-# 2. Install workflows
-echo "[2/4] Installing workflows..."
+# --- [3/5] Commands (clean reinstall of each grr command file) --------------
 
-# dev-story (BDD-based ATDD outer loop + superpowers TDD inner loop)
-mkdir -p "$CLAUDE_DIR/workflows/dev-story/steps-c"
-mkdir -p "$CLAUDE_DIR/workflows/dev-story/data"
-cp "$SCRIPT_DIR/workflows/dev-story/workflow.md" "$CLAUDE_DIR/workflows/dev-story/"
-cp "$SCRIPT_DIR/workflows/dev-story/steps-c/"* "$CLAUDE_DIR/workflows/dev-story/steps-c/"
-cp "$SCRIPT_DIR/workflows/dev-story/data/"* "$CLAUDE_DIR/workflows/dev-story/data/"
-echo "  - dev-story (workflow.md + 5 step files + checklist)"
+echo "[3/5] Installing global commands..."
+for c in "${COMMANDS[@]}"; do
+  rm -f "$CLAUDE_DIR/commands/$c.md"
+  cp "$SCRIPT_DIR/commands/$c.md" "$CLAUDE_DIR/commands/"
+  echo "  - /$c"
+done
 
-# code-review
-mkdir -p "$CLAUDE_DIR/workflows/code-review/steps-c"
-cp "$SCRIPT_DIR/workflows/code-review/workflow.md" "$CLAUDE_DIR/workflows/code-review/"
-cp "$SCRIPT_DIR/workflows/code-review/steps-c/"* "$CLAUDE_DIR/workflows/code-review/steps-c/"
-echo "  - code-review (workflow.md + 6 step files)"
+# --- [4/5] Hooks (clean reinstall) ------------------------------------------
 
-# bug-hunt
-mkdir -p "$CLAUDE_DIR/workflows/bug-hunt/steps-c"
-mkdir -p "$CLAUDE_DIR/workflows/bug-hunt/data"
-cp "$SCRIPT_DIR/workflows/bug-hunt/workflow.md" "$CLAUDE_DIR/workflows/bug-hunt/"
-cp "$SCRIPT_DIR/workflows/bug-hunt/steps-c/"* "$CLAUDE_DIR/workflows/bug-hunt/steps-c/"
-cp "$SCRIPT_DIR/workflows/bug-hunt/data/"* "$CLAUDE_DIR/workflows/bug-hunt/data/"
-echo "  - bug-hunt (workflow.md + 7 step files + bug-report template)"
-
-# set-worktree (monorepo-style; never makes the workspace root a git repo)
-mkdir -p "$CLAUDE_DIR/workflows/set-worktree/steps-c"
-cp "$SCRIPT_DIR/workflows/set-worktree/workflow.md" "$CLAUDE_DIR/workflows/set-worktree/"
-cp "$SCRIPT_DIR/workflows/set-worktree/steps-c/"* "$CLAUDE_DIR/workflows/set-worktree/steps-c/"
-echo "  - set-worktree (workflow.md + 3 step files)"
-
-# pr-create (with step-04b-update-pr re-push branch for post-edit updates)
-mkdir -p "$CLAUDE_DIR/workflows/pr-create/steps-c"
-cp "$SCRIPT_DIR/workflows/pr-create/workflow.md" "$CLAUDE_DIR/workflows/pr-create/"
-cp "$SCRIPT_DIR/workflows/pr-create/steps-c/"* "$CLAUDE_DIR/workflows/pr-create/steps-c/"
-echo "  - pr-create (workflow.md + 7 step files including step-04b-update-pr)"
-
-# refine-story
-mkdir -p "$CLAUDE_DIR/workflows/refine-story/steps-c"
-cp "$SCRIPT_DIR/workflows/refine-story/workflow.md" "$CLAUDE_DIR/workflows/refine-story/"
-cp "$SCRIPT_DIR/workflows/refine-story/steps-c/"* "$CLAUDE_DIR/workflows/refine-story/steps-c/"
-echo "  - refine-story (workflow.md + 5 step files)"
-
-# quick-story
-mkdir -p "$CLAUDE_DIR/workflows/quick-story/steps-c"
-mkdir -p "$CLAUDE_DIR/workflows/quick-story/data"
-cp "$SCRIPT_DIR/workflows/quick-story/workflow.md" "$CLAUDE_DIR/workflows/quick-story/"
-cp "$SCRIPT_DIR/workflows/quick-story/steps-c/"* "$CLAUDE_DIR/workflows/quick-story/steps-c/"
-cp "$SCRIPT_DIR/workflows/quick-story/data/"* "$CLAUDE_DIR/workflows/quick-story/data/"
-echo "  - quick-story (workflow.md + 5 step files + story template)"
-
-# design-pass
-mkdir -p "$CLAUDE_DIR/workflows/design-pass/steps-c"
-mkdir -p "$CLAUDE_DIR/workflows/design-pass/data"
-cp "$SCRIPT_DIR/workflows/design-pass/workflow.md" "$CLAUDE_DIR/workflows/design-pass/"
-cp "$SCRIPT_DIR/workflows/design-pass/steps-c/"* "$CLAUDE_DIR/workflows/design-pass/steps-c/"
-cp "$SCRIPT_DIR/workflows/design-pass/data/"* "$CLAUDE_DIR/workflows/design-pass/data/"
-echo "  - design-pass (workflow.md + 6 step files + 3 data files)"
-
-# qa-test
-mkdir -p "$CLAUDE_DIR/workflows/qa-test/steps-c"
-mkdir -p "$CLAUDE_DIR/workflows/qa-test/data"
-mkdir -p "$CLAUDE_DIR/workflows/qa-test/scripts/tests"
-cp "$SCRIPT_DIR/workflows/qa-test/workflow.md" "$CLAUDE_DIR/workflows/qa-test/"
-cp "$SCRIPT_DIR/workflows/qa-test/SKILL.md" "$CLAUDE_DIR/workflows/qa-test/" 2>/dev/null || true
-cp "$SCRIPT_DIR/workflows/qa-test/steps-c/"* "$CLAUDE_DIR/workflows/qa-test/steps-c/"
-cp "$SCRIPT_DIR/workflows/qa-test/data/"* "$CLAUDE_DIR/workflows/qa-test/data/"
-cp "$SCRIPT_DIR/workflows/qa-test/scripts/"*.py "$CLAUDE_DIR/workflows/qa-test/scripts/"
-cp "$SCRIPT_DIR/workflows/qa-test/scripts/tests/"*.py "$CLAUDE_DIR/workflows/qa-test/scripts/tests/"
-echo "  - qa-test (workflow.md + SKILL.md + 5 step files + 2 data templates + 2 scripts + tests)"
-
-# review-checklist
-mkdir -p "$CLAUDE_DIR/workflows/review-checklist/steps-c"
-mkdir -p "$CLAUDE_DIR/workflows/review-checklist/steps-e"
-mkdir -p "$CLAUDE_DIR/workflows/review-checklist/steps-v"
-mkdir -p "$CLAUDE_DIR/workflows/review-checklist/data"
-cp "$SCRIPT_DIR/workflows/review-checklist/workflow.md" "$CLAUDE_DIR/workflows/review-checklist/"
-cp "$SCRIPT_DIR/workflows/review-checklist/steps-c/"* "$CLAUDE_DIR/workflows/review-checklist/steps-c/"
-cp "$SCRIPT_DIR/workflows/review-checklist/steps-e/"* "$CLAUDE_DIR/workflows/review-checklist/steps-e/"
-cp "$SCRIPT_DIR/workflows/review-checklist/steps-v/"* "$CLAUDE_DIR/workflows/review-checklist/steps-v/"
-cp "$SCRIPT_DIR/workflows/review-checklist/data/"* "$CLAUDE_DIR/workflows/review-checklist/data/"
-echo "  - review-checklist (workflow.md + 10 step files + 2 data files)"
-
-# 3. Install commands
-echo "[3/4] Installing global commands..."
-mkdir -p "$CLAUDE_DIR/commands"
-cp "$SCRIPT_DIR/commands/bmad-grr-dev-story.md" "$CLAUDE_DIR/commands/"
-cp "$SCRIPT_DIR/commands/bmad-grr-code-review.md" "$CLAUDE_DIR/commands/"
-cp "$SCRIPT_DIR/commands/bmad-grr-review-checklist.md" "$CLAUDE_DIR/commands/"
-cp "$SCRIPT_DIR/commands/bmad-grr-bug-hunt.md" "$CLAUDE_DIR/commands/"
-cp "$SCRIPT_DIR/commands/bmad-grr-set-worktree.md" "$CLAUDE_DIR/commands/"
-cp "$SCRIPT_DIR/commands/bmad-grr-pr-create.md" "$CLAUDE_DIR/commands/"
-cp "$SCRIPT_DIR/commands/bmad-grr-refine-story.md" "$CLAUDE_DIR/commands/"
-cp "$SCRIPT_DIR/commands/bmad-grr-quick-story.md" "$CLAUDE_DIR/commands/"
-cp "$SCRIPT_DIR/commands/bmad-grr-design-pass.md" "$CLAUDE_DIR/commands/"
-cp "$SCRIPT_DIR/commands/bmad-grr-qa-test.md" "$CLAUDE_DIR/commands/"
-cp "$SCRIPT_DIR/commands/bmad-grr-customize.md" "$CLAUDE_DIR/commands/"
-echo "  - /bmad-grr-dev-story command"
-echo "  - /bmad-grr-code-review command"
-echo "  - /bmad-grr-review-checklist command"
-echo "  - /bmad-grr-bug-hunt command"
-echo "  - /bmad-grr-set-worktree command"
-echo "  - /bmad-grr-pr-create command"
-echo "  - /bmad-grr-refine-story command"
-echo "  - /bmad-grr-quick-story command"
-echo "  - /bmad-grr-design-pass command"
-echo "  - /bmad-grr-qa-test command"
-echo "  - /bmad-grr-customize command"
-
-# 4. Install hooks (opt-in — files installed, settings.json NOT auto-modified)
-echo "[4/4] Installing hooks..."
+echo "[4/5] Installing hooks (clean reinstall of ~/.claude/hooks/grr/)..."
+rm -rf "$CLAUDE_DIR/hooks/grr"
 mkdir -p "$CLAUDE_DIR/hooks/grr"
 cp "$SCRIPT_DIR/hooks/"*.py "$CLAUDE_DIR/hooks/grr/"
 cp "$SCRIPT_DIR/hooks/README.md" "$CLAUDE_DIR/hooks/grr/" 2>/dev/null || true
@@ -187,7 +149,24 @@ echo "  - pretool-file-size.py        (block edits to files ≥ 500 lines)"
 echo "  - pretool-bash-safety.py      (block rm -rf / sudo / chmod 777 / etc.)"
 echo "  - posttool-format.py          (run prettier + eslint after Edit/Write)"
 echo "  - stop-test-gate.py           (block Stop while .grr/tests-failing marker exists)"
-echo "  - README.md                   (per-hook docs + env var overrides)"
+echo "  - README.md                   (per-hook docs + env-var overrides)"
+
+# --- [5/5] Project customizations (optional) --------------------------------
+
+if [ -n "$PROJECT" ]; then
+  echo "[5/5] Applying customizations to project: $PROJECT"
+  if [ "$FORCE" = "1" ]; then
+    bash "$SCRIPT_DIR/install-customizations.sh" --force "$PROJECT"
+  else
+    bash "$SCRIPT_DIR/install-customizations.sh" "$PROJECT"
+  fi
+else
+  echo "[5/5] Skipping project customizations (no project path passed)."
+  echo "      To apply the grr-spec-validate gate to a BMAD project later, run:"
+  echo "        bash $SCRIPT_DIR/install.sh /path/to/your/bmad-project"
+  echo "      or, from inside Claude Code in that project:"
+  echo "        /bmad-grr-customize"
+fi
 
 echo ""
 echo "=== Installation Complete! ==="
@@ -213,18 +192,9 @@ echo "  /bmad-create-story"
 echo ""
 echo "Requirement: Project must have BMAD Method installed (config.yaml required)."
 echo ""
-echo "=== Optional: grr-spec-validate gate for upstream BMAD create-* workflows ==="
-echo ""
-echo "grr ships customizations that gate the four upstream BMAD create-* workflows"
-echo "with grr-spec-validate — sub-agent-dispatched, four-rubric spec validator."
-echo "No external plugin required."
-echo ""
-echo "To enable in a BMAD project, run /bmad-grr-customize from inside that project,"
-echo "or: bash install-customizations.sh /path/to/your/bmad-project"
-echo ""
 echo "=== Optional: grr hooks (~/.claude/hooks/grr/) ==="
 echo ""
-echo "Hook scripts are installed but settings.json is NOT auto-modified — paste the"
+echo "Hook scripts are installed but ~/.claude/settings.json is NOT auto-modified — paste the"
 echo "snippet below into ~/.claude/settings.json to activate. See ~/.claude/hooks/grr/README.md"
 echo "for per-hook details and env-var overrides."
 echo ""
