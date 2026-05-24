@@ -9,6 +9,7 @@ Workflow collection for BMAD — adds BDD-based ATDD for story implementation, c
 - **dev-story is BDD-based ATDD** — Gherkin scenarios drive a TDD inner loop
 - **set-worktree enforces monorepo style** — workspace root never becomes a git repo
 - **pr-create has a re-push branch** — post-edit CI test → fix → push to existing PR
+- **grr-spec-validate gate for upstream BMAD `create-*`** — optional per-project customizations gate `/bmad-create-prd`, `/bmad-create-architecture`, `/bmad-create-epics-and-stories`, and `/bmad-create-story` via `grr-spec-validate` (sub-agent-dispatched, four-rubric validator). No external plugin required. Apply with `/bmad-grr-customize`.
 
 For PRD / Architecture / Epics / Story creation, use **upstream BMAD** workflows directly (`/bmad-create-prd`, `/bmad-create-architecture`, `/bmad-create-epics-and-stories`, `/bmad-create-story`).
 
@@ -175,7 +176,9 @@ This will:
 - Clean up any deprecated grr-fork workflows from prior versions (`create-prd`, `create-architecture`, `create-epics-and-stories`, `create-story` and their commands).
 - Install the 12 skills to `~/.claude/skills/` (11 superpowers + `grr-spec-validate`).
 - Install the 10 workflows to `~/.claude/workflows/`.
-- Install the 10 commands to `~/.claude/commands/`.
+- Install the 11 commands to `~/.claude/commands/` (10 grr workflows + `/bmad-grr-customize`).
+
+The four `customizations/*.toml` files for the spec-validate gate are NOT copied during this step — they are per-project and applied separately via `/bmad-grr-customize` (see the [grr-spec-validate Gate section](#grr-spec-validate-gate-optional)).
 
 ### Update
 
@@ -193,11 +196,57 @@ bash uninstall.sh
 
 Removes everything, including any deprecated leftovers.
 
+## grr-spec-validate Gate (Optional)
+
+grr ships customizations that gate the four upstream BMAD `create-*` workflows with `grr-spec-validate` — a sub-agent-dispatched, four-rubric spec validator. No external plugin or MCP server is required; the validator is dispatched via Claude Code's Task / Agent mechanism against the locally-installed skill.
+
+**What gets gated:**
+
+| Workflow | Pre-flight | Mid-workflow guidance | Post-flight (on_complete) |
+| --- | --- | --- | --- |
+| `/bmad-create-prd` | skill check + ask for checklist path | block vague answers / non-measurable ACs | dispatch validator (4 rubrics) |
+| `/bmad-create-architecture` | skill check | block soft NFRs, require trade-off rationale | dispatch validator (3 rubrics; AC skipped) |
+| `/bmad-create-epics-and-stories` | skill check | per-story anti-vagueness + scope-overlap check | parallel dispatch — one sub-agent per story |
+| `/bmad-create-story` | skill check + checklist | per-AC measurability + task atomicity + edge cases | dispatch validator (4 rubrics) |
+
+These are **per-project** because BMAD's `resolve_customization.py` only merges from `<project-root>/_bmad/custom/`.
+
+### Setup
+
+Just apply customizations to your BMAD project — from inside Claude Code, with the project as cwd:
+
+```
+/bmad-grr-customize
+```
+
+The command copies the four `customizations/*.toml` files into `<project>/_bmad/custom/` and reports next steps. It is idempotent — existing files are preserved (use `/bmad-grr-customize --force` to overwrite). To target a different project, pass the path: `/bmad-grr-customize /path/to/other-project`.
+
+Alternative for CI / scripted use: `bash install-customizations.sh /path/to/your/bmad-project`.
+
+After setup, running `/bmad-create-prd` (or any of the other three) inside the project automatically activates the gate. The upstream BMAD workflows are not modified.
+
+### Disabling per workflow
+
+```bash
+rm <project>/_bmad/custom/<workflow>.toml
+# Restores unmodified upstream behavior for that workflow.
+```
+
+### Strength of each hook
+
+| Hook | Strength | Notes |
+| --- | --- | --- |
+| `activation_steps_prepend` / `activation_steps_append` | **strong** | Deterministic — the workflow runs the step explicitly. |
+| `on_complete` | **strong** | Deterministic — runs at the terminal stage. The validator dispatch lives here. |
+| `persistent_facts` | **best-effort** | LLM autonomous decision based on workflow-specific trigger rules; more reliable than generic rules but not guaranteed. |
+
+See [`customizations/README.md`](customizations/README.md) for the full hook map, override layering rules, and per-workflow specifics.
+
 ## Installed File Structure
 
 ```
 ~/.claude/
-├── commands/                              # 10 grr commands
+├── commands/                              # 11 grr commands
 │   ├── bmad-grr-dev-story.md
 │   ├── bmad-grr-code-review.md
 │   ├── bmad-grr-review-checklist.md
@@ -207,7 +256,8 @@ Removes everything, including any deprecated leftovers.
 │   ├── bmad-grr-refine-story.md
 │   ├── bmad-grr-quick-story.md
 │   ├── bmad-grr-design-pass.md
-│   └── bmad-grr-qa-test.md
+│   ├── bmad-grr-qa-test.md
+│   └── bmad-grr-customize.md              # applies grr-spec-validate gate to a BMAD project
 ├── workflows/                             # 10 workflows
 │   ├── dev-story/        (5 step files + checklist)
 │   ├── code-review/      (6 step files)
@@ -268,6 +318,9 @@ In any project with BMAD installed:
 
 # PR lifecycle (with re-push for post-edit updates)
 /bmad-grr-pr-create
+
+# Apply grr-spec-validate gate to upstream BMAD create-* workflows (per-project, one-time)
+/bmad-grr-customize
 ```
 
 For PRD / Architecture / Epics / Story creation use upstream BMAD:

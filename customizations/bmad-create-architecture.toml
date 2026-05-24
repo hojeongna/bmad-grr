@@ -1,0 +1,74 @@
+# grr customization for bmad-create-architecture
+# Source: bmad-grr (https://github.com/hojeongna/bmad-grr)
+# Effect: grr-spec-validate gate on Architecture doc completion. Emphasizes
+#         concept↔solution alignment and detail-stage numeric thresholds.
+#
+# Requires:
+#   - bmad-grr installed (provides ~/.claude/skills/grr-spec-validate/)
+#   - This file copied to {project-root}/_bmad/custom/ via /bmad-grr-customize
+#
+# Note: AC measurability is NOT applied to architecture docs (they have no ACs).
+#       Checklist is optional — codebase conventions usually apply to story-time,
+#       not architecture-time.
+
+[workflow]
+
+activation_steps_prepend = [
+  """
+  ### Pre-flight: Verify grr-spec-validate is installed
+
+  Check ~/.claude/skills/grr-spec-validate/SKILL.md exists. If missing, HALT and
+  tell the user to install bmad-grr first (see the bmad-create-prd customization
+  for the install command).
+
+  Ask the user once (skip if already known from a prior workflow in this session):
+
+    "Architecture 검증을 위해 코드베이스 컨벤션 체크리스트가 있다면 절대 경로를 알려주세요.
+     아키텍처 문서엔 보통 적용 안 되니, `skip` 도 무방해요."
+
+  Save as $CHECKLIST_PATH (or null if skip).
+  """,
+]
+
+persistent_facts = [
+  "Non-functional requirements and quality attributes (latency, throughput, availability, capacity) must have numeric thresholds, not adjectives. If the user says 'fast' or 'highly available' without a number, ask for one ('p95 latency target? availability SLO?') before recording.",
+  "Trade-off decisions in this architecture must each be explicit: state the alternatives considered and the reason for the chosen path. A bare 'we will use X' without 'rejected Y because Z' is incomplete.",
+  "If the architecture introduces a pattern not present in the existing codebase (greenfield section), explicitly note which existing patterns it replaces or coexists with. Cross-check {project-root}/**/project-context.md.",
+  "file:{project-root}/**/project-context.md",
+]
+
+on_complete = """
+### Post-flight: Dispatch grr-spec-validate on the completed Architecture doc
+
+Get the final architecture doc path (typically under
+{implementation_artifacts}/architecture*.md). Dispatch a fresh sub-agent:
+
+  Task prompt:
+    Load and follow the grr-spec-validate skill.
+
+    Inputs:
+    - artifact_path: <absolute architecture doc path>
+    - rubrics: ambiguity, three-stage, checklist
+        # ac-measurability omitted — architecture docs do not have ACs
+    - checklist_path: <$CHECKLIST_PATH if set, otherwise omit>
+    - reference_paths: <absolute PRD path if present under {implementation_artifacts}/, otherwise omit>
+
+    Constraints:
+    - Fresh context, no access to main conversation.
+    - Read-only. Return single JSON block per SKILL.md schema.
+
+Parse JSON. Branch on `verdict`:
+
+- "PROCEED": tell the user "Architecture 검증 통과. Epic 분해 단계로 진행 가능."
+  End the workflow.
+
+- "REVISE": Architecture issues are usually structural (weakest stage = concept
+  or structure means the architecture itself needs rework, not just polish).
+  Present `revision_pointers` and `three_stage` scores. Offer:
+    [R] Address the pointers (re-draft affected sections, re-dispatch).
+    [O] Override: accept current doc as final, append a "Validator Override"
+        section with the JSON for audit, end.
+
+  When `weakest == "concept"`, recommend [R] strongly — the architecture is
+  solving the wrong problem (or solving the right problem in the wrong direction).
+"""

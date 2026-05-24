@@ -1,0 +1,86 @@
+# grr customization for bmad-create-prd
+# Source: bmad-grr (https://github.com/hojeongna/bmad-grr)
+# Effect: grr-spec-validate gate on PRD completion + inline anti-vagueness guidance.
+#
+# Requires:
+#   - bmad-grr installed (provides ~/.claude/skills/grr-spec-validate/)
+#   - This file copied to {project-root}/_bmad/custom/ via /bmad-grr-customize
+#
+# Override layers (per BMad convention):
+#   - This file: team/repo override (committed)
+#   - {project-root}/_bmad/custom/bmad-create-prd.user.toml: personal (gitignored)
+
+[workflow]
+
+activation_steps_prepend = [
+  """
+  ### Pre-flight: Verify grr-spec-validate is installed
+
+  Check that ~/.claude/skills/grr-spec-validate/SKILL.md exists. If missing, HALT
+  this workflow and tell the user:
+
+    The grr-spec-validate skill is required by this workflow's customization but
+    is not installed. Install bmad-grr first:
+
+        git clone https://github.com/hojeongna/bmad-grr.git
+        cd bmad-grr && bash install.sh
+
+    Then re-run /bmad-create-prd.
+
+  Ask the user once, in {communication_language}:
+
+    "PRD 검증을 위해 프로젝트 코드베이스 컨벤션 체크리스트가 있다면 절대 경로를 알려주세요.
+     없으면 `skip`이라고 입력하시면 됩니다."
+
+  Save the response as $CHECKLIST_PATH (or null if skip). It is used in on_complete.
+
+  Do NOT proceed to Stage 1 until this pre-flight is complete.
+  """,
+]
+
+persistent_facts = [
+  "Throughout this workflow, every acceptance criterion drafted must be measurable: contain numbers, time bounds, or explicit Pass/Fail conditions. If an AC uses vague qualifiers ('fast', 'better', 'soon', 'easy', 'good', 'maybe', 'should', 'roughly', 'around', '적절히', '충분히', '친절하게'), pause and ask the user for a measurable form before recording it.",
+  "When the user's answer to a stage question contains vague qualifiers, ask once for clarification with concrete examples ('what counts as fast — give a number?') before recording. Do not interrupt for every soft modifier — apply judgment; intervene only when the vagueness blocks measurability.",
+  "Goals, scope, and NFR sections must each individually be specific. A section that reads 'improve performance' or 'better UX' is incomplete — drill down to numbers, observable behaviors, or explicit out-of-scope statements.",
+  "file:{project-root}/**/project-context.md",
+]
+
+on_complete = """
+### Post-flight: Dispatch grr-spec-validate on the completed PRD
+
+Get the final PRD path produced by this workflow (typically under
+{implementation_artifacts}/prd*.md). Then dispatch a fresh sub-agent (Task /
+Agent tool) using the invocation pattern at
+~/.claude/skills/grr-spec-validate/invocation-template.md:
+
+  Task prompt:
+    Load and follow the grr-spec-validate skill.
+
+    Inputs:
+    - artifact_path: <absolute PRD path>
+    - rubrics: ambiguity, ac-measurability, three-stage, checklist
+    - checklist_path: <$CHECKLIST_PATH if set, otherwise omit this line>
+    - reference_paths: (none — PRD is itself the top-level reference)
+
+    Constraints:
+    - You see ONLY the artifact, the rubric files in this skill, and the
+      checklist (if provided). You do NOT have access to the main conversation.
+    - Do NOT modify the artifact. Return JSON only.
+
+    Return: a single fenced JSON block matching the schema in SKILL.md.
+
+Parse the JSON. Branch on `verdict`:
+
+- "PROCEED": tell the user "PRD 검증 통과. 다운스트림(Architecture / Epics)으로 진행 가능."
+  End the workflow normally.
+
+- "REVISE": present `revision_pointers` verbatim. Halt and offer:
+    [R] Apply pointers in this session (re-draft affected sections, then
+        re-dispatch the validator — fresh sub-agent each time, idempotent).
+    [O] Override: accept the current PRD as final. Append a "Validator
+        Override" section to the PRD containing the full JSON for audit,
+        then end the workflow.
+
+The validator is read-only and side-effect-free. Re-dispatch as many times
+as needed during [R].
+"""

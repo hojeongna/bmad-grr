@@ -1,0 +1,67 @@
+# grr customization for bmad-create-story
+# Source: bmad-grr (https://github.com/hojeongna/bmad-grr)
+# Effect: grr-spec-validate gate on single-story completion. The full four-rubric
+#         set runs — same shape as the quick-story step-04b gate.
+#
+# Requires:
+#   - bmad-grr installed
+#   - This file copied to {project-root}/_bmad/custom/ via /bmad-grr-customize
+
+[workflow]
+
+activation_steps_prepend = [
+  """
+  ### Pre-flight: Verify grr-spec-validate is installed
+
+  Check ~/.claude/skills/grr-spec-validate/SKILL.md exists. HALT if missing
+  (see bmad-create-prd customization for install instructions).
+
+  Ask once (skip if known from a prior workflow in this session):
+
+    "Story 검증을 위해 코드베이스 컨벤션 체크리스트가 있다면 절대 경로를 알려주세요.
+     없으면 `skip`."
+
+  Save as $CHECKLIST_PATH (or null if skip).
+  """,
+]
+
+persistent_facts = [
+  "Every acceptance criterion drafted in this story must be measurable: numbers, time bounds, or explicit Pass/Fail conditions. If an AC uses vague qualifiers, pause and ask the user for a measurable form before recording.",
+  "Tasks must be atomic, dependency-ordered, and reference at least one AC. A task that mixes domains ('build UI + write tests + deploy') is too broad — decompose.",
+  "Edge cases and failure paths must be explicit in the AC list or in a dedicated section. A story with only the happy path will fail validation at the three-stage detail rubric.",
+  "If the project has a codebase-convention checklist (asked for in pre-flight), planned implementation in this story must not contradict its rules. Check tasks against the checklist as they are drafted.",
+  "file:{project-root}/**/project-context.md",
+]
+
+on_complete = """
+### Post-flight: Dispatch grr-spec-validate on the completed story
+
+Get the final story file path (typically under {implementation_artifacts}/).
+Dispatch a fresh sub-agent:
+
+  Task prompt:
+    Load and follow the grr-spec-validate skill.
+
+    Inputs:
+    - artifact_path: <absolute story path>
+    - rubrics: ambiguity, ac-measurability, three-stage, checklist
+    - checklist_path: <$CHECKLIST_PATH if set, otherwise omit>
+    - reference_paths: <PRD path if present under {implementation_artifacts}/,
+                        otherwise omit; architecture path is NOT included>
+
+    Constraints:
+    - Fresh context, no access to main conversation.
+    - Read-only. Return JSON only.
+
+Parse JSON. Branch on `verdict`:
+
+- "PROCEED": tell the user "Story 검증 통과. dev-story로 진행 가능." End the workflow.
+
+- "REVISE": present `revision_pointers`. Offer:
+    [R] Apply pointers in this session (re-draft affected sections, re-dispatch).
+    [E] Inline edit — user edits the file directly, then we re-dispatch.
+    [O] Override: append "Validator Override" with the JSON to the story file,
+        end the workflow.
+
+Re-dispatch is idempotent (fresh sub-agent every time, no shared state).
+"""

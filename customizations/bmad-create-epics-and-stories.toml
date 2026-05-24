@@ -1,0 +1,79 @@
+# grr customization for bmad-create-epics-and-stories
+# Source: bmad-grr (https://github.com/hojeongna/bmad-grr)
+# Effect: grr-spec-validate dispatched IN PARALLEL — one sub-agent per story —
+#         after the epics-and-stories doc is produced. Each story is validated
+#         independently. The aggregated verdict gates downstream consumption.
+#
+# Requires:
+#   - bmad-grr installed
+#   - This file copied to {project-root}/_bmad/custom/ via /bmad-grr-customize
+
+[workflow]
+
+activation_steps_prepend = [
+  """
+  ### Pre-flight: Verify grr-spec-validate is installed
+
+  Check ~/.claude/skills/grr-spec-validate/SKILL.md exists. HALT if missing
+  (see bmad-create-prd customization for install instructions).
+
+  Ask once (skip if already known in this session):
+
+    "Story 검증을 위해 코드베이스 컨벤션 체크리스트가 있다면 절대 경로를 알려주세요.
+     없으면 `skip`."
+
+  Save as $CHECKLIST_PATH (or null if skip).
+  """,
+]
+
+persistent_facts = [
+  "Each story drafted must have measurable ACs. Vague ACs across multiple stories compound — drift becomes invisible at the epic level. Apply the same anti-vagueness guidance as bmad-create-story: numbers, observable outcomes, no soft modifiers.",
+  "Stories within an epic must not have overlapping scope. Before recording a new story, cross-check the in-progress epic for stories that already cover the same surface. If overlap exists, either merge or refine the boundary.",
+  "Story task lists must avoid 'implement feature' as a single task. Decompose into atomic tasks with explicit input/output and dependency markers.",
+  "file:{project-root}/**/project-context.md",
+]
+
+on_complete = """
+### Post-flight: Parallel grr-spec-validate dispatch (one sub-agent per story)
+
+Locate the produced epics-and-stories document (typically under
+{implementation_artifacts}/) and extract every story key + corresponding story
+section / file path. Stories may be sub-documents under
+{implementation_artifacts}/stories/ — discover them.
+
+For each story (concurrently):
+
+  Task prompt (one per story):
+    Load and follow the grr-spec-validate skill.
+
+    Inputs:
+    - artifact_path: <absolute path to this single story>
+    - rubrics: ambiguity, ac-measurability, three-stage, checklist
+    - checklist_path: <$CHECKLIST_PATH if set, otherwise omit>
+    - reference_paths: <PRD path if present, comma-separated with architecture
+                        path if present; otherwise omit>
+
+    Constraints:
+    - Fresh context, no access to main conversation.
+    - Read-only. Return single JSON block per SKILL.md schema.
+
+Dispatch all sub-agents at once (parallel dispatch). When all return, aggregate:
+
+- Worst verdict across stories → overall verdict (any REVISE → epic REVISE)
+- Concatenate revision_pointers per story, prefix with story key
+- Build a summary table: story_key | verdict | weakest_aspect
+
+Present the summary to the user in {communication_language}, sorted REVISE first.
+
+Branch on aggregate verdict:
+
+- "PROCEED": tell the user "전체 스토리 검증 통과." End the workflow.
+
+- "REVISE": offer per-story choice:
+    [R <story_key>] Revise the named story (re-draft, re-dispatch its validator).
+    [R *] Revise all REVISE stories in a single follow-up pass.
+    [O <story_key>] Override the named story (append override note to its file).
+    [O *] Override all REVISE stories.
+
+After any revision, re-dispatch the affected stories' validators — idempotent.
+"""
