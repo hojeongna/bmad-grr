@@ -13,6 +13,24 @@ Enough context exists to draft a 5-field mini architecture in step-03: project c
 
 ## Approach
 
+### Discover upstream PRD (if present)
+
+Before scanning code, look for an upstream PRD that may inform the Mini PRD draft in step-04 and the validation gate in step-04b. Glob the BMAD output area:
+
+- `_bmad-output/**/prd.md`
+- `_bmad-output/**/PRD.md`
+- `_bmad-output/**/product-*.md`
+
+If a PRD file exists:
+
+- Read it once, in full.
+- Note its path as `prd_path` — step-04b will pass this to `grr-spec-validate` as a `reference_path`.
+- Extract: problem statement, target users, success criteria, explicit out-of-scope items. These inform — but do **not** auto-fill — the Mini PRD questions in step-04.
+
+If no PRD exists, set `prd_path = null` and continue silently. quick-story is designed to work without one.
+
+**Architecture documents are intentionally NOT loaded** — they drift heavily during development and are unreliable validation input. Patterns are gathered from real code (next subsections) instead.
+
 ### Load project context
 
 Search for `project-context.md` (per the `{project_context}` glob). If found, read it and extract: coding standards/conventions, architectural patterns (layered/clean/hexagonal/DDD/etc.), domain rules and invariants, tech stack notes.

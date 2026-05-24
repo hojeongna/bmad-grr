@@ -1,7 +1,7 @@
 ---
 name: step-04-compose
 description: 'Collect 4-question Mini PRD inline; run a lightweight inline Premise Challenge; compose the unified story; register in sprint-status'
-nextStepFile: './step-05-route.md'
+nextStepFile: './step-04b-validate.md'
 storyTemplate: '~/.claude/workflows/quick-story/data/story-template.md'
 tddSkill: '~/.claude/skills/test-driven-development/SKILL.md'
 ---
@@ -23,7 +23,9 @@ Ask all four in a single message:
 3. **성공 기준** — 관찰 가능한 결과로 어떻게 성공을 판단하나요?
 4. **비범위** — 이번에 절대 건드리지 않을 것은?
 
-Halt for input. For "모르겠어요" / skip / empty answers, fill in a reasonable default from step-01 intent + step-02 patterns + step-03 architecture, and note which were auto-filled so the user can correct them later.
+Halt for input. For "모르겠어요" / skip / empty answers, fill in a reasonable default from step-01 intent + step-02 patterns + step-03 architecture + the upstream PRD (if `prd_path` was set in step-02), and note which were auto-filled so the user can correct them later.
+
+If step-02 surfaced a `prd_path`, the upstream PRD is a strong reference but **never** overrides the user's answers — it just informs defaults and provides cross-check material for step-04b.
 
 ### Lightweight Premise Challenge (inline pressure test)
 

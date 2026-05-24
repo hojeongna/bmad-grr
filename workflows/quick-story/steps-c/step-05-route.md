@@ -27,6 +27,7 @@ Present in `{communication_language}`:
 | Mini PRD | 4 fields ✓ |
 | Mini Architecture | 5 fields ✓ |
 | Architecture Impact | 4 points ✓ |
+| Validation | `grr-spec-validate` ✓ (or `overridden` if step-04b's `[O]` was chosen) |
 
 ### Offer routing
 

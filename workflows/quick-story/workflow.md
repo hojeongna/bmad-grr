@@ -25,6 +25,10 @@ design_pass_command: "{project-root}/bmad-grr/commands/bmad-grr-design-pass.md"
 tdd_skill: "~/.claude/skills/test-driven-development/SKILL.md"
 systematic_debugging_skill: "~/.claude/skills/systematic-debugging/SKILL.md"
 parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
+
+# grr-original skills
+validator_skill: "~/.claude/skills/grr-spec-validate/SKILL.md"
+validator_invocation: "~/.claude/skills/grr-spec-validate/invocation-template.md"
 ---
 
 # Quick Story
@@ -32,6 +36,10 @@ parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
 ## Overview
 
 Produce a lightweight but complete unified story document (mini PRD + mini architecture + story + tasks) that `dev-story` can pick up directly — no upstream PRD/architecture/epics required. Detects existing stories first and delegates to `refine-story` if a match is found, so this workflow only runs when a genuinely new story is needed.
+
+Before routing, the freshly composed story passes through `grr-spec-validate` (step-04b) in a **fresh sub-agent context** — checking ambiguity, AC measurability, three-stage coherence, and (optionally) a project-supplied codebase-convention checklist. The writer never validates its own work.
+
+If an upstream PRD exists under `_bmad-output/`, step-02 discovers it and passes the path through to the validator as a reference. Architecture files are NOT loaded — they drift too much to be reliable validation input.
 
 ## Your Role
 
