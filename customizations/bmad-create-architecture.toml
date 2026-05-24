@@ -30,10 +30,73 @@ activation_steps_prepend = [
   """,
 ]
 
+activation_steps_append = [
+  """
+  ### Pre-design: Codebase reuse survey (fresh sub-agent)
+
+  Before drafting any architecture, dispatch a sub-agent that surveys the
+  existing codebase for reusable pieces. The architect (this session) MUST
+  consider these before introducing new patterns.
+
+  Dispatch a Task / Agent with this prompt:
+
+    Survey the codebase at {project-root}. Return a structured JSON block
+    listing the reuse candidates in three categories.
+
+    1. Layout / Shell — page-level layouts, app shells, navigation containers,
+       providers, route wrappers, modal hosts. Look in src/layouts/, src/shells/,
+       src/app/, src/providers/, or wherever the project organizes these.
+
+    2. UI Primitives — basic shared components (Button, Input, Modal, Toast,
+       BottomSheet, etc.). Look in src/components/shared/, packages/shared/,
+       @<scope>/shared, or wherever the project keeps shared primitives.
+
+    3. Hook & Query patterns — custom hook conventions and React Query
+       (or equivalent) usage patterns. Look in src/hooks/, src/hooks/queries/,
+       and inline-defined hooks inside views. Note any consistent patterns:
+       useQuery key shapes, mutation onMutate/onError shapes, naming
+       conventions, where data transformation lives (select vs queryFn).
+
+    Constraints:
+    - Read-only. Do not modify any file.
+    - You do NOT have access to the main conversation.
+    - Use Glob and Grep to discover; Read only the files needed to confirm.
+    - Cap the output: list at most ~15 most-relevant items per category with
+      one-line purpose. Skip irrelevant noise (build artifacts, tests).
+
+    Output: a single fenced JSON block:
+
+    {
+      "layout_shell": [
+        { "path": "src/layouts/AppShell.tsx", "purpose": "outer chrome with nav" },
+        ...
+      ],
+      "ui_primitives": [
+        { "path": "@nexcube/shared/Button", "purpose": "shared button primitive" },
+        ...
+      ],
+      "hook_query_patterns": [
+        { "pattern": "queryKey shape", "example": "['daily-view', studentId]", "where": "src/hooks/queries/daily-view/useDailyViewQuery.ts" },
+        { "pattern": "mutation with onMutate/onError optimistic", "where": "src/hooks/queries/.../useUpdateMutation.ts" },
+        ...
+      ],
+      "notes": "<≤ 200 char summary of the dominant style>"
+    }
+
+  Carry this survey JSON into the architecture drafting as the primary reuse
+  reference. Every architectural decision that introduces a new primitive /
+  layout / hook pattern must explicitly justify why an existing one would not
+  do (cite the survey item rejected and the technical reason).
+  """,
+]
+
 persistent_facts = [
   "Non-functional requirements and quality attributes (latency, throughput, availability, capacity) must have numeric thresholds, not adjectives. If the user says 'fast' or 'highly available' without a number, ask for one ('p95 latency target? availability SLO?') before recording.",
   "Trade-off decisions in this architecture must each be explicit: state the alternatives considered and the reason for the chosen path. A bare 'we will use X' without 'rejected Y because Z' is incomplete.",
-  "If the architecture introduces a pattern not present in the existing codebase (greenfield section), explicitly note which existing patterns it replaces or coexists with. Cross-check {project-root}/**/project-context.md.",
+  "Before introducing a new UI primitive (Button, Input, Modal, etc.), cross-check the codebase reuse survey from pre-design. If an existing primitive exists in shared/, reuse it; introducing a duplicate requires an explicit rejection rationale recorded in the architecture.",
+  "Before introducing a new layout or shell component, cross-check the reuse survey's layout_shell list. Layouts are expensive to fork — extension via composition is the default, replacement requires explicit justification.",
+  "Before defining a new hook or query pattern, cross-check the reuse survey's hook_query_patterns. Inconsistency across views (different queryKey shapes, different mutation cache strategies) is a code-review pushback magnet — drift away from the dominant style needs justification.",
+  "If the architecture introduces a pattern not present in the existing codebase (greenfield section), explicitly note which existing patterns it replaces or coexists with. Cross-check {project-root}/**/project-context.md and the reuse survey output.",
   "file:{project-root}/**/project-context.md",
 ]
 

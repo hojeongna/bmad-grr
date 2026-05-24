@@ -36,12 +36,80 @@ activation_steps_prepend = [
 
   Do NOT proceed to Stage 1 until this pre-flight is complete.
   """,
+  """
+  ### Pre-flight: Brownfield detection — must read related files
+
+  Ask the user once, in {communication_language}:
+
+    "이 PRD는 다음 중 어디에 해당하나요?
+      [G] Greenfield — 완전 새로운 기능/제품 (기존 코드 없음)
+      [B] Brownfield — 기존 코드를 확장/변경하는 작업
+
+     B면 어느 영역(파일 경로 / 폴더 / feature 이름)에 영향이 가는지도 같이 알려주세요.
+     예: 'src/features/scheduler/, hooks/queries/daily-view/'"
+
+  Save the response as $PRD_MODE (G or B) and $BROWNFIELD_AREAS (string or empty).
+
+  If $PRD_MODE == "G", continue without further pre-flight.
+
+  If $PRD_MODE == "B", pre-flight is NOT complete until the brownfield context
+  survey has run. Dispatch a Task / Agent:
+
+    Survey the brownfield areas the user listed and return a structured
+    summary. The PRD author (main session) will consume this as the ground
+    truth for "what exists today" — the PRD must be written against this
+    reality, not invented assumptions.
+
+    Inputs:
+    - areas: $BROWNFIELD_AREAS  (file paths, folders, or feature names —
+      treat as Glob/Grep seeds)
+
+    Constraints:
+    - Read-only. You do NOT have access to the main conversation.
+    - Use Glob/Grep to discover, Read to confirm. Do NOT skim — actually
+      open the top files in each area.
+    - Cap at ~10 files total; pick the most central ones (entry points,
+      route files, the primary hook for the feature, the largest component).
+
+    For each file you actually read, capture:
+    - path
+    - role (one line: what this file does for the user)
+    - current capabilities (what the user can already do here)
+    - current limitations / friction (what's missing, awkward, or blocking)
+    - direct dependencies (what else this file touches)
+
+    Output: a single fenced JSON block:
+
+    {
+      "areas_surveyed": ["<area1>", "<area2>"],
+      "files": [
+        {
+          "path": "src/features/scheduler/WeeklyView.tsx",
+          "role": "weekly schedule grid for managers",
+          "capabilities": ["drag-and-drop tasks", "filter by student"],
+          "limitations": ["no bulk operations", "loads all weeks at once"],
+          "dependencies": ["useWeeklyPlanQuery", "BottomSheet", "shared/Button"]
+        }
+      ],
+      "open_questions": ["<question the PRD author must answer with the user>"]
+    }
+
+  Carry this JSON forward. EVERY PRD section that touches a surveyed area
+  must cite the relevant file paths and current behavior. PRD claims like
+  "currently we have no way to X" require evidence — if the survey did not
+  surface X, the PRD must record that as an open_question for the user to
+  resolve before drafting that claim.
+
+  Do NOT proceed to Stage 1 until this survey is complete (for brownfield)
+  or skipped (for greenfield).
+  """,
 ]
 
 persistent_facts = [
   "Throughout this workflow, every acceptance criterion drafted must be measurable: contain numbers, time bounds, or explicit Pass/Fail conditions. If an AC uses vague qualifiers ('fast', 'better', 'soon', 'easy', 'good', 'maybe', 'should', 'roughly', 'around', '적절히', '충분히', '친절하게'), pause and ask the user for a measurable form before recording it.",
   "When the user's answer to a stage question contains vague qualifiers, ask once for clarification with concrete examples ('what counts as fast — give a number?') before recording. Do not interrupt for every soft modifier — apply judgment; intervene only when the vagueness blocks measurability.",
   "Goals, scope, and NFR sections must each individually be specific. A section that reads 'improve performance' or 'better UX' is incomplete — drill down to numbers, observable behaviors, or explicit out-of-scope statements.",
+  "In brownfield mode (per pre-flight survey): any PRD claim about CURRENT STATE ('users can X', 'system does Y', 'currently no way to Z') must cite a specific file path from the survey output. A claim without a file-path citation is flagged — either provide the citation or convert the claim to an explicit open_question for the user to answer.",
   "file:{project-root}/**/project-context.md",
 ]
 
