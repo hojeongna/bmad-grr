@@ -257,6 +257,39 @@ grr bundles 4 Claude Code hooks as small Python scripts. `install.sh` copies the
 
 See [`hooks/README.md`](hooks/README.md) for the full snippet, env-var values, and authoring guidance for adding more hooks.
 
+## LSP (Optional, but recommended for typed codebases)
+
+Anthropic's [Claude Code in large codebases](https://claude.com/blog/how-claude-code-works-in-large-codebases-best-practices-and-where-to-start) post notes that LSP integration gives Claude symbol-level navigation (go-to-definition, find-references) instead of grep-style pattern matching. For typed codebases this is a major accuracy win — Claude reads fewer wrong files, types catch errors at edit time, and refactors stay coherent across files.
+
+bmad-grr does not bundle LSP — install it once and it benefits every workflow that touches code.
+
+### TypeScript / React Native (the most common stack here)
+
+Official Anthropic plugin — fastest setup:
+
+```bash
+claude plugins marketplace add claude-plugins-official
+claude plugins install typescript-lsp@claude-plugins-official
+npm install -g typescript typescript-language-server
+```
+
+Supports `.ts .tsx .js .jsx .mts .cts .mjs .cjs`. After every edit, the LSP runs diagnostics and reports errors back to Claude automatically.
+
+Requires **Claude Code 2.1.50+**. On Windows, see the [Kavoir setup guide](https://www.kavoir.com/2026/02/install-typescript-lsp-for-claude-code-on-windows.html) for path/quoting specifics.
+
+### Other languages
+
+For Rust / Python / Go / Java / etc., the community marketplace covers 30+ languages:
+
+```bash
+claude plugins marketplace add Piebald-AI/claude-code-lsps
+claude plugins        # enable per-language
+```
+
+### Known issues
+
+If you see *"No LSP server available"* after install: [issue #14803](https://github.com/anthropics/claude-code/issues/14803). The current workaround is restarting the session; the underlying recognition bug is being tracked.
+
 ## Installed File Structure
 
 ```
