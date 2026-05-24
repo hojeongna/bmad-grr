@@ -25,8 +25,10 @@ rm -f "$CLAUDE_DIR/commands/bmad-grr-create-story.md"
 echo "  - Removed deprecated forks: create-prd, create-architecture, create-epics-and-stories, create-story"
 echo "  - For these workflows, use upstream BMAD: /bmad-create-prd, /bmad-create-architecture, /bmad-create-epics-and-stories, /bmad-create-story"
 
-# 1. Install skills (9 superpowers bundled with bmad-grr — all from obra/superpowers)
+# 1. Install skills (11 superpowers from obra/superpowers + 1 grr-original skill)
 echo "[1/3] Installing global skills..."
+
+# Superpowers — synced from obra/superpowers v5.1.0
 mkdir -p "$CLAUDE_DIR/skills/test-driven-development"
 mkdir -p "$CLAUDE_DIR/skills/systematic-debugging"
 mkdir -p "$CLAUDE_DIR/skills/dispatching-parallel-agents"
@@ -36,6 +38,11 @@ mkdir -p "$CLAUDE_DIR/skills/finishing-a-development-branch"
 mkdir -p "$CLAUDE_DIR/skills/using-git-worktrees"
 mkdir -p "$CLAUDE_DIR/skills/requesting-code-review"
 mkdir -p "$CLAUDE_DIR/skills/receiving-code-review"
+mkdir -p "$CLAUDE_DIR/skills/writing-plans"
+mkdir -p "$CLAUDE_DIR/skills/executing-plans"
+
+# grr-original skill
+mkdir -p "$CLAUDE_DIR/skills/grr-spec-validate"
 
 cp "$SCRIPT_DIR/skills/test-driven-development/"* "$CLAUDE_DIR/skills/test-driven-development/"
 cp "$SCRIPT_DIR/skills/systematic-debugging/"* "$CLAUDE_DIR/skills/systematic-debugging/"
@@ -46,6 +53,9 @@ cp "$SCRIPT_DIR/skills/finishing-a-development-branch/"* "$CLAUDE_DIR/skills/fin
 cp "$SCRIPT_DIR/skills/using-git-worktrees/"* "$CLAUDE_DIR/skills/using-git-worktrees/"
 cp "$SCRIPT_DIR/skills/requesting-code-review/"* "$CLAUDE_DIR/skills/requesting-code-review/"
 cp "$SCRIPT_DIR/skills/receiving-code-review/"* "$CLAUDE_DIR/skills/receiving-code-review/"
+cp "$SCRIPT_DIR/skills/writing-plans/"* "$CLAUDE_DIR/skills/writing-plans/"
+cp "$SCRIPT_DIR/skills/executing-plans/"* "$CLAUDE_DIR/skills/executing-plans/"
+cp "$SCRIPT_DIR/skills/grr-spec-validate/"* "$CLAUDE_DIR/skills/grr-spec-validate/"
 echo "  - test-driven-development (SKILL.md + testing-anti-patterns.md)"
 echo "  - systematic-debugging (SKILL.md + 3 reference files)"
 echo "  - dispatching-parallel-agents (SKILL.md)"
@@ -55,6 +65,9 @@ echo "  - finishing-a-development-branch (SKILL.md)"
 echo "  - using-git-worktrees (SKILL.md)"
 echo "  - requesting-code-review (SKILL.md + code-reviewer template)"
 echo "  - receiving-code-review (SKILL.md)"
+echo "  - writing-plans (SKILL.md + plan-document-reviewer-prompt.md)"
+echo "  - executing-plans (SKILL.md)"
+echo "  - grr-spec-validate (SKILL.md + 4 rubric files + invocation-template) [grr-original]"
 
 # 2. Install workflows
 echo "[2/3] Installing workflows..."

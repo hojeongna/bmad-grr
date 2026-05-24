@@ -5,7 +5,7 @@ Workflow collection for BMAD — adds BDD-based ATDD for story implementation, c
 **v2 highlights**:
 - **Outcome-driven**, slim workflow files (Claude Opus 4.7 prompting guidance applied)
 - **gstack-free** — no external `gstack/*` skill dependencies
-- **9 superpowers skills bundled** (sourced from [obra/superpowers](https://github.com/obra/superpowers))
+- **11 superpowers skills bundled** (sourced from [obra/superpowers](https://github.com/obra/superpowers) v5.1.0) **+ `grr-spec-validate`** (grr-original spec-quality validator, sub-agent-dispatched)
 - **dev-story is BDD-based ATDD** — Gherkin scenarios drive a TDD inner loop
 - **set-worktree enforces monorepo style** — workspace root never becomes a git repo
 - **pr-create has a re-push branch** — post-edit CI test → fix → push to existing PR
@@ -139,9 +139,9 @@ Spec-first QA testing in a real browser.
 - **Decision gate** — chain to `refine-story`, `dev-story`, or stop.
 - **Deterministic Python scripts** — `qa-state.py` for state, `qa-spec-stats.py` for test counts (LLM context stays lean).
 
-## Included Skills (9 superpowers)
+## Included Skills (11 superpowers + 1 grr-original)
 
-All sourced from [obra/superpowers](https://github.com/obra/superpowers) (synced).
+**11 superpowers** synced from [obra/superpowers](https://github.com/obra/superpowers) v5.1.0:
 
 | Skill | Description |
 |---|---|
@@ -154,6 +154,14 @@ All sourced from [obra/superpowers](https://github.com/obra/superpowers) (synced
 | `using-git-worktrees` | Single-repo branch isolation via `git worktree add` (different shape from multi-repo `set-worktree`) |
 | `requesting-code-review` | Dispatch code-reviewer sub-agent with crafted context (with template) |
 | `receiving-code-review` | Verify before implementing, push back with reasoning, no performative agreement |
+| `writing-plans` | Plan-document drafting with reviewer prompt template |
+| `executing-plans` | Plan-document execution discipline (mark progress, defer, verify) |
+
+**1 grr-original skill:**
+
+| Skill | Description |
+|---|---|
+| `grr-spec-validate` | Sub-agent-dispatched spec/story validator. Four rubrics: ambiguity score (≤ 0.2), AC measurability (Gherkin-convertible), three-stage coherence (concept/structure/detail ≥ 0.7), and codebase-convention checklist conformance. Output is structured JSON (PROCEED / REVISE). Replaces the previous ouroboros plugin dependency. |
 
 ## Installation
 
@@ -165,7 +173,7 @@ bash install.sh
 
 This will:
 - Clean up any deprecated grr-fork workflows from prior versions (`create-prd`, `create-architecture`, `create-epics-and-stories`, `create-story` and their commands).
-- Install the 9 superpowers skills to `~/.claude/skills/`.
+- Install the 12 skills to `~/.claude/skills/` (11 superpowers + `grr-spec-validate`).
 - Install the 10 workflows to `~/.claude/workflows/`.
 - Install the 10 commands to `~/.claude/commands/`.
 
@@ -211,7 +219,7 @@ Removes everything, including any deprecated leftovers.
 │   ├── quick-story/      (5 step files + story template)
 │   ├── design-pass/      (6 step files + 3 data files)
 │   └── qa-test/          (5 step files + 2 templates + 2 scripts + tests)
-└── skills/                                # 9 superpowers
+└── skills/                                # 12 skills (11 superpowers + 1 grr-original)
     ├── test-driven-development/
     ├── systematic-debugging/
     ├── dispatching-parallel-agents/
@@ -220,7 +228,10 @@ Removes everything, including any deprecated leftovers.
     ├── finishing-a-development-branch/
     ├── using-git-worktrees/
     ├── requesting-code-review/
-    └── receiving-code-review/
+    ├── receiving-code-review/
+    ├── writing-plans/
+    ├── executing-plans/
+    └── grr-spec-validate/                  # grr-original, sub-agent-dispatched
 ```
 
 ## Usage
