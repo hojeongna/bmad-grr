@@ -11,6 +11,7 @@ Workflow collection for BMAD — adds BDD-based ATDD for story implementation, c
 - **pr-create has a re-push branch** — post-edit CI test → fix → push to existing PR
 - **grr-spec-validate gate for upstream BMAD `create-*`** — optional per-project customizations gate `/bmad-create-prd`, `/bmad-create-architecture`, `/bmad-create-epics-and-stories`, and `/bmad-create-story` via `grr-spec-validate` (sub-agent-dispatched, four-rubric validator). No external plugin required. Apply with `/bmad-grr-customize`.
 - **4 optional hooks bundled** — deterministic guardrails for Claude Code: refuse Edit/Write on files ≥ 500 lines, refuse dangerous Bash (`rm -rf`, `sudo`, `chmod 777`, force-push, `curl | sh`), auto-format on Edit/Write (prettier + eslint), refuse Stop while a `.grr/tests-failing` marker exists. Installed but opt-in via paste snippet.
+- **Global CLAUDE.md with Karpathy 4 principles** — `~/.claude/CLAUDE.md` carrying universal coding-agent principles (Think Before Coding / Simplicity / Surgical / Goal-Driven), loaded automatically in every session. install.sh prompts Replace / Append / Skip when an existing CLAUDE.md is found.
 
 For PRD / Architecture / Epics / Story creation, use **upstream BMAD** workflows directly (`/bmad-create-prd`, `/bmad-create-architecture`, `/bmad-create-epics-and-stories`, `/bmad-create-story`).
 
@@ -185,6 +186,7 @@ The script will:
 - Install the 10 workflows to `~/.claude/workflows/` — each workflow folder wiped first.
 - Install the 11 commands to `~/.claude/commands/` (10 grr workflows + `/bmad-grr-customize`).
 - Install 4 hook scripts to `~/.claude/hooks/grr/` (opt-in — `~/.claude/settings.json` is NOT auto-modified; install.sh prints a JSON snippet to paste).
+- Install **global CLAUDE.md** with Karpathy's 4 principles (Think Before Coding / Simplicity / Surgical / Goal-Driven) to `~/.claude/CLAUDE.md`. If an existing CLAUDE.md is found, install.sh **prompts** to Replace / Append / Skip — never overwrites without consent. Non-interactive shells skip with manual-install instructions.
 - (If a project path was given) Apply the four `customizations/*.toml` files to that project's `_bmad/custom/` — existing files preserved unless `--force`.
 
 ### Update

@@ -11,6 +11,10 @@
 # re-created from this repo on every run. User's other skills / workflows /
 # commands are NOT touched.
 #
+# Global CLAUDE.md (Karpathy 4 principles) is installed at ~/.claude/CLAUDE.md.
+# If an existing CLAUDE.md is found, install.sh prompts to Replace / Append /
+# Skip. In non-interactive shells (no TTY), it skips and prints manual commands.
+#
 # Project customizations preserve existing _bmad/custom/*.toml files unless
 # --force is passed.
 
@@ -27,7 +31,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --force) FORCE=1; shift ;;
     -h|--help)
-      sed -n '2,12p' "$0"  # print the usage block
+      sed -n '2,18p' "$0"  # print the usage block
       exit 0
       ;;
     *)
@@ -96,9 +100,9 @@ COMMANDS=(
   bmad-grr-customize
 )
 
-# --- [0/5] Cleanup deprecated forks ------------------------------------------
+# --- [0/6] Cleanup deprecated forks ------------------------------------------
 
-echo "[0/5] Cleaning up deprecated grr-fork workflows (if present)..."
+echo "[0/6] Cleaning up deprecated grr-fork workflows (if present)..."
 rm -rf "$CLAUDE_DIR/workflows/create-prd"
 rm -rf "$CLAUDE_DIR/workflows/create-architecture"
 rm -rf "$CLAUDE_DIR/workflows/create-epics-and-stories"
@@ -109,9 +113,9 @@ rm -f "$CLAUDE_DIR/commands/bmad-grr-create-epics-and-stories.md"
 rm -f "$CLAUDE_DIR/commands/bmad-grr-create-story.md"
 echo "  - removed deprecated forks (if any). Use upstream BMAD /bmad-create-* for those flows."
 
-# --- [1/5] Skills (clean reinstall) -----------------------------------------
+# --- [1/6] Skills (clean reinstall) -----------------------------------------
 
-echo "[1/5] Installing global skills (clean reinstall — wipes each grr skill folder first)..."
+echo "[1/6] Installing global skills (clean reinstall — wipes each grr skill folder first)..."
 for s in "${SKILLS[@]}"; do
   rm -rf "$CLAUDE_DIR/skills/$s"
   mkdir -p "$CLAUDE_DIR/skills/$s"
@@ -119,9 +123,9 @@ for s in "${SKILLS[@]}"; do
   echo "  - $s"
 done
 
-# --- [2/5] Workflows (clean reinstall) --------------------------------------
+# --- [2/6] Workflows (clean reinstall) --------------------------------------
 
-echo "[2/5] Installing workflows (clean reinstall — wipes each grr workflow folder first)..."
+echo "[2/6] Installing workflows (clean reinstall — wipes each grr workflow folder first)..."
 for w in "${WORKFLOWS[@]}"; do
   rm -rf "$CLAUDE_DIR/workflows/$w"
   mkdir -p "$CLAUDE_DIR/workflows/$w"
@@ -129,18 +133,18 @@ for w in "${WORKFLOWS[@]}"; do
   echo "  - $w"
 done
 
-# --- [3/5] Commands (clean reinstall of each grr command file) --------------
+# --- [3/6] Commands (clean reinstall of each grr command file) --------------
 
-echo "[3/5] Installing global commands..."
+echo "[3/6] Installing global commands..."
 for c in "${COMMANDS[@]}"; do
   rm -f "$CLAUDE_DIR/commands/$c.md"
   cp "$SCRIPT_DIR/commands/$c.md" "$CLAUDE_DIR/commands/"
   echo "  - /$c"
 done
 
-# --- [4/5] Hooks (clean reinstall) ------------------------------------------
+# --- [4/6] Hooks (clean reinstall) ------------------------------------------
 
-echo "[4/5] Installing hooks (clean reinstall of ~/.claude/hooks/grr/)..."
+echo "[4/6] Installing hooks (clean reinstall of ~/.claude/hooks/grr/)..."
 rm -rf "$CLAUDE_DIR/hooks/grr"
 mkdir -p "$CLAUDE_DIR/hooks/grr"
 cp "$SCRIPT_DIR/hooks/"*.py "$CLAUDE_DIR/hooks/grr/"
@@ -151,17 +155,69 @@ echo "  - posttool-format.py          (run prettier + eslint after Edit/Write)"
 echo "  - stop-test-gate.py           (block Stop while .grr/tests-failing marker exists)"
 echo "  - README.md                   (per-hook docs + env-var overrides)"
 
-# --- [5/5] Project customizations (optional) --------------------------------
+# --- [5/6] Global CLAUDE.md (Karpathy 4 principles) -------------------------
+
+GLOBAL_CLAUDE_MD="$CLAUDE_DIR/CLAUDE.md"
+SOURCE_CLAUDE_MD="$SCRIPT_DIR/data/global-CLAUDE.md"
+
+echo "[5/6] Installing global CLAUDE.md (Karpathy 4 principles)..."
+
+if [ ! -f "$SOURCE_CLAUDE_MD" ]; then
+  echo "  Warning: $SOURCE_CLAUDE_MD missing — skipping."
+elif [ -f "$GLOBAL_CLAUDE_MD" ]; then
+  existing_lines=$(wc -l < "$GLOBAL_CLAUDE_MD")
+  echo ""
+  echo "  Existing ~/.claude/CLAUDE.md found ($existing_lines lines). Preview:"
+  echo "  ------------------------------------------------------------"
+  head -20 "$GLOBAL_CLAUDE_MD" | sed 's/^/  | /'
+  if [ "$existing_lines" -gt 20 ]; then
+    echo "  | ..."
+  fi
+  echo "  ------------------------------------------------------------"
+  echo ""
+  if [ -t 0 ]; then
+    echo "  Options:"
+    echo "    [R] Replace existing with grr's Karpathy 4 principles"
+    echo "    [A] Append grr's Karpathy 4 principles to existing"
+    echo "    [S] Skip (keep existing as-is)"
+    printf "  Choose [R/A/S] (default: S): "
+    read -r choice
+    case "$choice" in
+      R|r)
+        cp "$SOURCE_CLAUDE_MD" "$GLOBAL_CLAUDE_MD"
+        echo "  - Replaced"
+        ;;
+      A|a)
+        printf "\n---\n\n" >> "$GLOBAL_CLAUDE_MD"
+        cat "$SOURCE_CLAUDE_MD" >> "$GLOBAL_CLAUDE_MD"
+        echo "  - Appended (separated by ---)"
+        ;;
+      *)
+        echo "  - Skipped"
+        ;;
+    esac
+  else
+    echo "  Skipping (non-interactive shell — cannot prompt)."
+    echo "  To install manually:"
+    echo "    cp '$SOURCE_CLAUDE_MD' '$GLOBAL_CLAUDE_MD'           # replace"
+    echo "    cat '$SOURCE_CLAUDE_MD' >> '$GLOBAL_CLAUDE_MD'       # append"
+  fi
+else
+  cp "$SOURCE_CLAUDE_MD" "$GLOBAL_CLAUDE_MD"
+  echo "  - Installed: $GLOBAL_CLAUDE_MD"
+fi
+
+# --- [6/6] Project customizations (optional) --------------------------------
 
 if [ -n "$PROJECT" ]; then
-  echo "[5/5] Applying customizations to project: $PROJECT"
+  echo "[6/6] Applying customizations to project: $PROJECT"
   if [ "$FORCE" = "1" ]; then
     bash "$SCRIPT_DIR/install-customizations.sh" --force "$PROJECT"
   else
     bash "$SCRIPT_DIR/install-customizations.sh" "$PROJECT"
   fi
 else
-  echo "[5/5] Skipping project customizations (no project path passed)."
+  echo "[6/6] Skipping project customizations (no project path passed)."
   echo "      To apply the grr-spec-validate gate to a BMAD project later, run:"
   echo "        bash $SCRIPT_DIR/install.sh /path/to/your/bmad-project"
   echo "      or, from inside Claude Code in that project:"
