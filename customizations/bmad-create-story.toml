@@ -30,6 +30,10 @@ persistent_facts = [
   "Tasks must be atomic, dependency-ordered, and reference at least one AC. A task that mixes domains ('build UI + write tests + deploy') is too broad — decompose.",
   "Edge cases and failure paths must be explicit in the AC list or in a dedicated section. A story with only the happy path will fail validation at the three-stage detail rubric.",
   "If the project has a codebase-convention checklist (asked for in pre-flight), planned implementation in this story must not contradict its rules. Check tasks against the checklist as they are drafted.",
+  "This is a STORY — focus is on SPECIFIC related code, not overall patterns (those are the architecture's job). Code reads here target the exact files this story will touch and 1-2 sibling features with the closest shape, not the whole codebase.",
+  "STAGE — Acceptance Criteria: USE Glob/Grep to find at least one sibling feature with the closest shape to this story (same domain, same CRUD/UI/flow type). Read that sibling's tests or AC docs to align AC style and edge-case coverage. Cite the sibling. ACs drafted without referencing a sibling pattern drift from project conventions.",
+  "STAGE — Tasks: each Task must cite the SPECIFIC file(s) it will create or modify. USE Glob to discover the actual paths in the story's blast radius. A task that says 'Implement X' or 'Update Y' without naming files is non-actionable — break it down until each task has a concrete file mapping. Tasks introducing new files must say where the new file lives (folder + filename).",
+  "STAGE — Dev Notes / Implementation guidance: USE Read on the most central files in the blast radius — the file being modified + its direct dependents (1 hop). Capture the existing imports, hook usage, and inline patterns so the dev-story agent does not re-discover them. Cite paths and line ranges. Dev Notes drafted without reading the actual neighbor files are flagged 'speculative — verify before dev-story consumes this'.",
   "file:{project-root}/**/project-context.md",
 ]
 

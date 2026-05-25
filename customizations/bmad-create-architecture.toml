@@ -91,6 +91,7 @@ activation_steps_append = [
 ]
 
 persistent_facts = [
+  "This is ARCHITECTURE — the OUTPUT speaks in overall patterns, conventions, and structural decisions. BUT to design well, you must READ ACTUAL CODE: patterns are derived from real files, not invented or remembered. USE Read/Glob/Grep on existing modules to find the dominant style, and ground every architectural decision in observed reality (cite the files you read even when the output is a pattern statement). Migration/Rollout is the stage where the design maps back to specific file changes — that step names exact files. All other stages: read code, write patterns.",
   "Non-functional requirements and quality attributes (latency, throughput, availability, capacity) must have numeric thresholds, not adjectives. If the user says 'fast' or 'highly available' without a number, ask for one ('p95 latency target? availability SLO?') before recording.",
   "Trade-off decisions in this architecture must each be explicit: state the alternatives considered and the reason for the chosen path. A bare 'we will use X' without 'rejected Y because Z' is incomplete.",
   "Before introducing a new UI primitive (Button, Input, Modal, etc.), cross-check the codebase reuse survey from pre-design. If an existing primitive exists in shared/, reuse it; introducing a duplicate requires an explicit rejection rationale recorded in the architecture.",

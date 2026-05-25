@@ -30,6 +30,10 @@ persistent_facts = [
   "Each story drafted must have measurable ACs. Vague ACs across multiple stories compound — drift becomes invisible at the epic level. Apply the same anti-vagueness guidance as bmad-create-story: numbers, observable outcomes, no soft modifiers.",
   "Stories within an epic must not have overlapping scope. Before recording a new story, cross-check the in-progress epic for stories that already cover the same surface. If overlap exists, either merge or refine the boundary.",
   "Story task lists must avoid 'implement feature' as a single task. Decompose into atomic tasks with explicit input/output and dependency markers.",
+  "This is EPIC-LEVEL planning — focus on overall PATTERNS and module boundaries, not specific files. The granular file-level reads happen later in bmad-create-story for each story; here we only need enough structure to partition coherently.",
+  "STAGE — Epic boundary definition: USE Glob to map the existing module / feature folder structure (e.g., src/features/*/, src/modules/*/, packages/*/). Each epic should align to a recognizable module boundary unless the user explicitly wants to cut across them. Cite the boundary patterns observed. Epics that cut across without justification produce stories with unclear ownership.",
+  "STAGE — Story partitioning: for each story being created, identify its CENTRAL module (the one file or folder the story is most-anchored on). Different stories should anchor to different modules, OR to clearly different surfaces within a module. Two stories anchored to the same single file usually mean the file is too large or the stories overlap — flag this.",
+  "STAGE — Cross-story dependencies: when one story depends on another (story B needs story A's output), explicitly record it. USE Grep to verify the dependency direction is one-way at the code level (no circular module imports between the anchor files of A and B). Bi-directional dependencies are an architecture smell — surface for the user to resolve before locking the epic.",
   "file:{project-root}/**/project-context.md",
 ]
 
