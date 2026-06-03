@@ -33,6 +33,57 @@ activation_steps_prepend = [
   brownfield mode the validator (on_complete) re-reads the actual files
   this story names and confirms the story's claims about them are true.
   """,
+  """
+  ### Pre-drafting: Blast-radius code read — MANDATORY in brownfield
+
+  Run ONLY if $STORY_MODE == "B". This is a HARD GATE: do NOT draft Tasks
+  or Dev Notes until this read has returned. A story drafted without reading
+  the actual files it will touch produces wrong file paths, missed
+  dependencies, and tasks that contradict how the code really works.
+
+  If $STORY_AREAS is empty, infer the target area from the story's
+  identifier / epic context first, then confirm with the user in one line
+  before proceeding.
+
+  Dispatch a Task / Agent:
+
+    Read the blast radius of a story targeting: $STORY_AREAS.
+    The story author will write Tasks and Dev Notes against this — so read
+    the SPECIFIC files this story will touch, not the whole codebase.
+
+    Constraints:
+    - Read-only. No access to the main conversation.
+    - Glob/Grep to find the files in the target area, then Read:
+      (a) the primary file(s) the story modifies,
+      (b) their direct dependents and the hooks/types they import (1 hop),
+      (c) the closest sibling feature with the same shape (for pattern alignment).
+    - Cap at ~10 files. Depth over breadth — actually open them.
+
+    For each file read, capture:
+    - path
+    - what it currently does (one line)
+    - the specific functions / components / exports relevant to this story
+    - existing patterns to follow (imports, hook usage, naming, error handling)
+    - anything that would BREAK if changed carelessly (callers, shared state)
+
+    Output: a single fenced JSON block:
+
+    {
+      "target": "$STORY_AREAS",
+      "files": [
+        { "path": "src/features/roster/RosterRow.tsx", "does": "renders one roster row", "relevant": "no delete handler yet", "patterns": "uses shared/Button, handle* event naming", "breaks_if": "RosterTable maps over rows expecting stable keys" }
+      ],
+      "sibling_pattern": { "path": "src/features/attendance/AttendanceRow.tsx", "note": "has the delete+confirm flow this story should mirror" },
+      "notes": "<≤ 200 char>"
+    }
+
+  Write this to {project-root}/_bmad-output/_grr-analysis/story-blast-radius.md
+  (create the folder if needed). Remember the path as $BLAST_RADIUS.
+
+  Every Task must name files from this read; every Dev Note must reflect the
+  patterns it captured. The on_complete validator re-checks this against
+  real source — so getting it right here avoids a REVISE round.
+  """,
 ]
 
 persistent_facts = [
@@ -63,8 +114,9 @@ Dispatch a fresh sub-agent:
     - checklist_path: <$CHECKLIST_PATH if set, otherwise omit>
     - project_root: <absolute project root — include ONLY if $STORY_MODE == "B">
     - brownfield_areas: <$STORY_AREAS — include ONLY if $STORY_MODE == "B">
-    - reference_paths: <PRD path if present under {implementation_artifacts}/,
-                        otherwise omit; architecture path is NOT included>
+    - reference_paths: <comma-separated: $BLAST_RADIUS if written + PRD path if
+                        present under {implementation_artifacts}/; architecture
+                        path is NOT included; omit if none>
 
     Constraints:
     - Fresh context, no access to main conversation.

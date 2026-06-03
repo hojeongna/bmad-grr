@@ -33,6 +33,52 @@ activation_steps_prepend = [
   (on_complete) additionally re-verifies each story's claims about existing
   code against real source.
   """,
+  """
+  ### Pre-planning: Module-boundary code survey — MANDATORY in brownfield
+
+  Run ONLY if $EPIC_MODE == "B". This is a HARD GATE: do NOT partition any
+  epics or draft any stories until this survey has returned. Epic
+  partitioning that does not reflect the real module structure produces
+  stories with wrong ownership and overlapping scope.
+
+  Dispatch a Task / Agent:
+
+    Survey the existing module / feature structure of the codebase at
+    {project-root}. The epic planner will partition work along these real
+    boundaries, so map them accurately.
+
+    Constraints:
+    - Read-only. No access to the main conversation.
+    - Use Glob to map structure (src/features/*/, src/modules/*/,
+      packages/*/, app/*/ — adapt to the project's real layout). Read each
+      module's index/entry + one representative file to understand its
+      responsibility. Do NOT read the whole tree — one representative read
+      per module is enough.
+    - Cap at ~15 modules; if more, list the rest by name only.
+
+    For each module capture:
+    - path (the folder)
+    - responsibility (one line: what this module owns)
+    - public surface (what it exports / how others depend on it)
+    - rough size (small / medium / large by file count)
+
+    Output: a single fenced JSON block:
+
+    {
+      "modules": [
+        { "path": "src/features/scheduler", "responsibility": "manager weekly/daily scheduling", "public_surface": "WeeklyView, useWeeklyPlanQuery", "size": "large" }
+      ],
+      "notes": "<≤ 200 char summary of how the codebase is partitioned today>"
+    }
+
+  Write this to {project-root}/_bmad-output/_grr-analysis/epic-module-survey.md
+  (create the folder if needed). Remember the path as $MODULE_SURVEY.
+
+  Use it as the partition reference: each epic should map to one (or a small
+  set of) real modules; each story anchors to a module from this list. An
+  epic boundary that does not correspond to anything in the survey needs an
+  explicit rationale.
+  """,
 ]
 
 persistent_facts = [
@@ -66,8 +112,8 @@ For each story (concurrently):
     - checklist_path: <$CHECKLIST_PATH if set, otherwise omit>
     - project_root: <absolute project root — include ONLY if $EPIC_MODE == "B">
     - brownfield_areas: <this story's target module/files — include ONLY if $EPIC_MODE == "B">
-    - reference_paths: <PRD path if present, comma-separated with architecture
-                        path if present; otherwise omit>
+    - reference_paths: <comma-separated: $MODULE_SURVEY if written + PRD path if
+                        present + architecture path if present; otherwise omit>
 
     Constraints:
     - Fresh context, no access to main conversation.
