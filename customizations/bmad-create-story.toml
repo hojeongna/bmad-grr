@@ -41,9 +41,13 @@ activation_steps_prepend = [
   the actual files it will touch produces wrong file paths, missed
   dependencies, and tasks that contradict how the code really works.
 
-  If $STORY_AREAS is empty, infer the target area from the story's
-  identifier / epic context first, then confirm with the user in one line
-  before proceeding.
+  First, anchor the target. The story usually comes from an epic / PRD —
+  read that source of truth before reading code so you target the right
+  files: check the epic doc or PRD ({implementation_artifacts}/prd*.md,
+  _bmad-output/**/) for this story's intent and stated area. Combined with
+  $STORY_AREAS, that gives the precise blast-radius target. If $STORY_AREAS
+  is empty and no epic/PRD pins it down, confirm the area with the user in
+  one line before proceeding.
 
   Dispatch a Task / Agent:
 

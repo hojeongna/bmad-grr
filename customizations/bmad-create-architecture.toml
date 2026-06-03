@@ -37,11 +37,36 @@ activation_steps_prepend = [
   reads real code, and the validator (on_complete) re-verifies the
   architecture's claims about existing structure against source.
   """,
+  """
+  ### Pre-design STEP 1: Read the PRD first (scope discovery before any code read)
+
+  Do this BEFORE the reuse survey. You cannot know WHICH code to read until
+  you know what this architecture is for — so read the PRD first.
+
+  Glob for the PRD: {implementation_artifacts}/prd*.md, then
+  {project-root}/_bmad-output/**/prd*.md, then {project-root}/docs/**/prd*.md.
+
+  - If found: READ it in full. Extract, as $ARCH_SCOPE:
+      • the features / capabilities this architecture must support
+      • the affected areas the PRD names (especially brownfield areas it
+        surveyed — reuse those file paths)
+      • explicit non-goals / out-of-scope
+  - If no PRD exists: ask the user one line — "이 아키텍처가 다루는 기능/범위를
+    한 줄로 알려주세요" — and use that as $ARCH_SCOPE.
+
+  $ARCH_SCOPE is the targeting input for STEP 2 (the reuse survey). The
+  survey must focus on the areas $ARCH_SCOPE will touch — not a blind sweep
+  of the whole repo.
+  """,
 ]
 
 activation_steps_append = [
   """
-  ### Pre-design: Codebase reuse survey (fresh sub-agent) — MANDATORY in brownfield
+  ### Pre-design STEP 2: Codebase reuse survey (fresh sub-agent) — MANDATORY in brownfield
+
+  Runs AFTER STEP 1 (PRD read). The survey is targeted by $ARCH_SCOPE — it
+  reads the areas the PRD's features will touch plus the shared resources
+  those features could reuse, NOT a blind sweep of the whole repo.
 
   Before drafting any architecture, dispatch a sub-agent that surveys the
   existing codebase for reusable pieces. The architect (this session) MUST
@@ -55,8 +80,11 @@ activation_steps_append = [
 
   Dispatch a Task / Agent with this prompt:
 
-    Survey the codebase at {project-root}. Return a structured JSON block
-    listing the reuse candidates in three categories.
+    Survey the codebase at {project-root}, focused on this scope:
+    $ARCH_SCOPE  (the features/areas the architecture must support, from the PRD).
+    Prioritize the areas this scope will touch; also surface shared resources
+    anywhere in the repo that the scope could reuse. Return a structured JSON
+    block listing the reuse candidates in three categories.
 
     1. Layout / Shell — page-level layouts, app shells, navigation containers,
        providers, route wrappers, modal hosts. Look in src/layouts/, src/shells/,

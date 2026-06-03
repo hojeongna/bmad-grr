@@ -34,7 +34,21 @@ activation_steps_prepend = [
   code against real source.
   """,
   """
-  ### Pre-planning: Module-boundary code survey — MANDATORY in brownfield
+  ### Pre-planning STEP 1: Read the PRD first (what are we partitioning?)
+
+  Before mapping modules, read the PRD — it defines the features that the
+  epics will partition. Glob {implementation_artifacts}/prd*.md, then
+  {project-root}/_bmad-output/**/prd*.md, then {project-root}/docs/**/prd*.md.
+
+  - If found: READ it. Extract the feature list / capabilities to be built
+    as $EPIC_SCOPE.
+  - If none: ask the user one line for the scope and use that.
+
+  $EPIC_SCOPE targets STEP 2 — you map the modules those features will land
+  in, not every module in the repo.
+  """,
+  """
+  ### Pre-planning STEP 2: Module-boundary code survey — MANDATORY in brownfield
 
   Run ONLY if $EPIC_MODE == "B". This is a HARD GATE: do NOT partition any
   epics or draft any stories until this survey has returned. Epic
@@ -44,7 +58,8 @@ activation_steps_prepend = [
   Dispatch a Task / Agent:
 
     Survey the existing module / feature structure of the codebase at
-    {project-root}. The epic planner will partition work along these real
+    {project-root}, focused on the areas the PRD's features ($EPIC_SCOPE)
+    will land in. The epic planner will partition work along these real
     boundaries, so map them accurately.
 
     Constraints:
