@@ -100,6 +100,13 @@ activation_steps_prepend = [
   surface X, the PRD must record that as an open_question for the user to
   resolve before drafting that claim.
 
+  ALSO write this survey JSON to a durable file so it survives the long
+  workflow without context dilution: save it to
+  `{project-root}/_bmad-output/_grr-analysis/prd-brownfield-survey.md`
+  (create the folder if needed). Remember the path as $SURVEY_ARTIFACT —
+  it is passed to the validator in on_complete. Re-Read this file at the
+  start of each PRD stage rather than relying on it staying in context.
+
   Do NOT proceed to Stage 1 until this survey is complete (for brownfield)
   or skipped (for greenfield).
   """,
@@ -131,13 +138,18 @@ Agent tool) using the invocation pattern at
     Inputs:
     - artifact_path: <absolute PRD path>
     - rubrics: ambiguity, ac-measurability, three-stage, checklist
+               # if $PRD_MODE == "B", ALSO add: brownfield-grounding
     - checklist_path: <$CHECKLIST_PATH if set, otherwise omit this line>
-    - reference_paths: (none — PRD is itself the top-level reference)
+    - project_root: <absolute project root — include ONLY if $PRD_MODE == "B">
+    - brownfield_areas: <$BROWNFIELD_AREAS — include ONLY if $PRD_MODE == "B">
+    - reference_paths: <$SURVEY_ARTIFACT if it was written, otherwise omit>
 
     Constraints:
-    - You see ONLY the artifact, the rubric files in this skill, and the
-      checklist (if provided). You do NOT have access to the main conversation.
-    - Do NOT modify the artifact. Return JSON only.
+    - For the artifact-only rubrics you see ONLY the artifact, the rubric
+      files, and the checklist (if provided). For brownfield-grounding you
+      may additionally Read/Glob/Grep project_root to verify current-state
+      claims. You do NOT have access to the main conversation.
+    - Do NOT modify the artifact or any source file. Return JSON only.
 
     Return: a single fenced JSON block matching the schema in SKILL.md.
 

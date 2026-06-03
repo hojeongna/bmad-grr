@@ -23,6 +23,15 @@ activation_steps_prepend = [
      없으면 `skip`."
 
   Save as $CHECKLIST_PATH (or null if skip).
+
+  Then determine greenfield vs brownfield (skip if already known this session):
+
+    "이 에픽들은 기존 코드베이스를 확장/변경하나요(Brownfield) 아니면 새 프로젝트인가요(Greenfield)?
+      [B] Brownfield  [G] Greenfield"
+
+  Save as $EPIC_MODE (B or G). In brownfield mode, per-story validation
+  (on_complete) additionally re-verifies each story's claims about existing
+  code against real source.
   """,
 ]
 
@@ -53,13 +62,19 @@ For each story (concurrently):
     Inputs:
     - artifact_path: <absolute path to this single story>
     - rubrics: ambiguity, ac-measurability, three-stage, checklist
+               # if $EPIC_MODE == "B", ALSO add: brownfield-grounding
     - checklist_path: <$CHECKLIST_PATH if set, otherwise omit>
+    - project_root: <absolute project root — include ONLY if $EPIC_MODE == "B">
+    - brownfield_areas: <this story's target module/files — include ONLY if $EPIC_MODE == "B">
     - reference_paths: <PRD path if present, comma-separated with architecture
                         path if present; otherwise omit>
 
     Constraints:
     - Fresh context, no access to main conversation.
-    - Read-only. Return single JSON block per SKILL.md schema.
+    - Artifact-only rubrics read the artifact alone; brownfield-grounding
+      may Read/Glob/Grep project_root to verify the story's claims about
+      existing code (e.g. files it says it will touch, "no existing X").
+    - Read-only — never edit source. Return single JSON block per SKILL.md schema.
 
 Dispatch all sub-agents at once (parallel dispatch). When all return, aggregate:
 

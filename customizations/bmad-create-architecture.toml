@@ -27,6 +27,15 @@ activation_steps_prepend = [
      아키텍처 문서엔 보통 적용 안 되니, `skip` 도 무방해요."
 
   Save as $CHECKLIST_PATH (or null if skip).
+
+  Then determine greenfield vs brownfield (skip if already known this session):
+
+    "이 아키텍처는 기존 코드베이스를 확장/변경하나요(Brownfield), 아니면 완전히 새 프로젝트인가요(Greenfield)?
+      [B] Brownfield  [G] Greenfield"
+
+  Save as $ARCH_MODE (B or G). In brownfield mode the reuse survey below
+  reads real code, and the validator (on_complete) re-verifies the
+  architecture's claims about existing structure against source.
   """,
 ]
 
@@ -87,6 +96,12 @@ activation_steps_append = [
   reference. Every architectural decision that introduces a new primitive /
   layout / hook pattern must explicitly justify why an existing one would not
   do (cite the survey item rejected and the technical reason).
+
+  ALSO write this survey JSON to a durable file:
+  `{project-root}/_bmad-output/_grr-analysis/architecture-reuse-survey.md`
+  (create the folder if needed). Remember the path as $SURVEY_ARTIFACT —
+  it is passed to the validator in on_complete. Re-Read it at the start of
+  each architecture stage instead of trusting it to stay in context.
   """,
 ]
 
@@ -118,12 +133,17 @@ Get the final architecture doc path (typically under
     - artifact_path: <absolute architecture doc path>
     - rubrics: ambiguity, three-stage, checklist
         # ac-measurability omitted — architecture docs do not have ACs
+        # if $ARCH_MODE == "B", ALSO add: brownfield-grounding
     - checklist_path: <$CHECKLIST_PATH if set, otherwise omit>
-    - reference_paths: <absolute PRD path if present under {implementation_artifacts}/, otherwise omit>
+    - project_root: <absolute project root — include ONLY if $ARCH_MODE == "B">
+    - reference_paths: <comma-separated: PRD path if present + $SURVEY_ARTIFACT if written; otherwise omit>
 
     Constraints:
     - Fresh context, no access to main conversation.
-    - Read-only. Return single JSON block per SKILL.md schema.
+    - Artifact-only rubrics read the artifact alone; brownfield-grounding
+      may Read/Glob/Grep project_root to verify claims about existing
+      structure (e.g. "module X already does Y", "no existing layout for Z").
+    - Read-only — never edit source. Return single JSON block per SKILL.md schema.
 
 Parse JSON. Branch on `verdict`:
 

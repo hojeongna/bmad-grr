@@ -164,7 +164,7 @@ Spec-first QA testing in a real browser.
 
 | Skill | Description |
 |---|---|
-| `grr-spec-validate` | Sub-agent-dispatched spec/story validator. Four rubrics: ambiguity score (≤ 0.2), AC measurability (Gherkin-convertible), three-stage coherence (concept/structure/detail ≥ 0.7), and codebase-convention checklist conformance. Output is structured JSON (PROCEED / REVISE). Replaces the previous ouroboros plugin dependency. |
+| `grr-spec-validate` | Sub-agent-dispatched spec/story validator. Five rubrics: ambiguity score (≤ 0.2), AC measurability (Gherkin-convertible), three-stage coherence (concept/structure/detail ≥ 0.7), codebase-convention checklist conformance, and **brownfield grounding** (validator independently reads real source to verify the spec's claims about existing code — catches "spec describes the codebase as imagined, not as it is"). Output is structured JSON (PROCEED / REVISE). Replaces the previous ouroboros plugin dependency. |
 
 ## Installation
 
@@ -208,7 +208,9 @@ Removes everything, including any deprecated leftovers.
 
 ## grr-spec-validate Gate (Optional)
 
-grr ships customizations that gate the four upstream BMAD `create-*` workflows with `grr-spec-validate` — a sub-agent-dispatched, four-rubric spec validator. No external plugin or MCP server is required; the validator is dispatched via Claude Code's Task / Agent mechanism against the locally-installed skill.
+grr ships customizations that gate the four upstream BMAD `create-*` workflows with `grr-spec-validate` — a sub-agent-dispatched, five-rubric spec validator. No external plugin or MCP server is required; the validator is dispatched via Claude Code's Task / Agent mechanism against the locally-installed skill.
+
+In **brownfield mode** (extending existing code), each `create-*` workflow asks greenfield-vs-brownfield up front and, when brownfield, the validator additionally runs the **brownfield-grounding** rubric — it reads the real source to confirm every "currently X / no existing Y / file F does Z" claim in the spec is actually true. This is the deterministic backstop against specs written without reading the code.
 
 **What gets gated:**
 

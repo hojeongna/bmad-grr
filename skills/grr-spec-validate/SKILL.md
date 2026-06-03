@@ -24,9 +24,16 @@ the next step (proceed / revise / re-dispatch).
 2. The rubric files in this skill.
 3. (Optional) a user-supplied checklist file path.
 4. (Optional) reference files such as a PRD.
+5. (Brownfield-grounding rubric ONLY) the project's real source code, read
+   via Read/Glob/Grep to verify the artifact's claims about existing code.
 
 Nothing else. No prior conversation, no plan, no answer to "why did you
 write it this way." The artifact must stand on its own.
+
+The one deliberate exception is the **brownfield-grounding** rubric: it
+reads project source to confirm the spec's claims about the existing
+codebase are true. Even there, the invariant holds — the validator reads
+*code*, never the *drafting conversation*.
 
 ## When to use
 
@@ -62,9 +69,11 @@ The minimum dispatch payload:
 | Key | Required | Notes |
 |---|---|---|
 | `artifact_path` | yes | Absolute path to the spec / story file under evaluation |
-| `rubrics` | yes | Comma-separated subset of {`ambiguity`, `ac-measurability`, `three-stage`, `checklist`}. Default: all four. |
+| `rubrics` | yes | Comma-separated subset of {`ambiguity`, `ac-measurability`, `three-stage`, `checklist`, `brownfield-grounding`}. Default: the first four (NOT brownfield-grounding — that one is opt-in for brownfield specs). |
 | `checklist_path` | conditional | Required if `rubrics` includes `checklist`. Main session **must ask the user** for this path — do not infer. |
-| `reference_paths` | optional | Additional context files (e.g. PRD path when validating a story) |
+| `project_root` | conditional | Required if `rubrics` includes `brownfield-grounding` — the directory the validator reads source from. |
+| `brownfield_areas` | optional | Glob/Grep seeds for `brownfield-grounding` (file paths, folders, feature names the spec targets). Narrows the verification scope. |
+| `reference_paths` | optional | Additional context files (e.g. PRD path when validating a story, or a prior code-analysis artifact — used as a hint, never as ground truth) |
 
 **Parallel invocation is the norm.** Two patterns:
 
@@ -78,7 +87,7 @@ The minimum dispatch payload:
 
 The main session aggregates the results and presents them to the user.
 
-## The four rubrics
+## The rubrics
 
 | Rubric | File | Score | Pass threshold |
 |---|---|---|---|
@@ -86,6 +95,12 @@ The main session aggregates the results and presents them to the user.
 | AC measurability | `rubric-ac-measurability.md` | YES per AC | All YES |
 | Three-stage coherence | `rubric-three-stage.md` | Stage 1/2/3 each 0.0–1.0 | All ≥ 0.7 |
 | Checklist conformance | `rubric-checklist.md` (consumes user-supplied file) | Violation count | 0 hard violations |
+| Brownfield grounding | `rubric-brownfield-grounding.md` (reads project source) | grounded / ungrounded / contradicted claim counts | 0 contradicted, ≤ 2 ungrounded |
+
+The first four work from the artifact alone. **Brownfield grounding is
+different** — it reads the real codebase to verify the spec's claims about
+existing code, and is requested only for brownfield specs (it needs
+`project_root`).
 
 Each rubric file contains: scoring procedure, heuristics, and worked
 examples. **Load only the rubric files the dispatch payload requests** —
@@ -126,6 +141,17 @@ The sub-agent **must** return a single fenced JSON block (no prose around it):
       "severity": "HIGH"
     }
   ],
+  "brownfield_grounding": {
+    "claims_checked": 9,
+    "grounded": 6,
+    "ungrounded": [
+      { "claim": "the scheduler reloads on every keystroke", "location": "NFR-2", "searched": "src/features/scheduler/** input handlers" }
+    ],
+    "contradicted": [
+      { "claim": "there is no shared confirmation modal", "location": "FR-4", "reality": "ConfirmModal exists and is exported", "file": "packages/shared/src/modal/ConfirmModal.tsx" }
+    ],
+    "verdict": "REVISE"
+  },
   "revision_pointers": [
     "AC-2 needs a measurable threshold (e.g. 'within 200ms')",
     "Detail stage missing — no failure scenarios listed",
@@ -156,12 +182,19 @@ stop — that information must come from the artifact or not be used.
 verdict is `REVISE`, period. Do not write "mostly fine, just polish."
 The whole point of fresh-context validation is honest scoring.
 
-**❌ Inventing rubrics.** Use only the four rubrics in this skill. If a
+**❌ Inventing rubrics.** Use only the rubrics in this skill. If a
 new dimension is needed, the main session must add a rubric file
 explicitly — not the sub-agent inline.
 
-**❌ Modifying the artifact.** This skill is read-only. Validation output
-drives revision; the main session (or `refine-story`) does the revision.
+**❌ Modifying the artifact OR any source file.** This skill is read-only —
+including the brownfield-grounding rubric, which reads source only to
+verify, never to edit. Validation output drives revision; the main session
+(or `refine-story`) does the revision.
+
+**❌ Reading source for the artifact-only rubrics.** Only
+brownfield-grounding touches the codebase. Ambiguity / AC / three-stage /
+checklist work from the artifact (and checklist file) alone — do not go
+reading project files for those.
 
 **❌ Asking the user clarifying questions.** The sub-agent is
 non-interactive. If a rubric cannot be applied (missing input, malformed

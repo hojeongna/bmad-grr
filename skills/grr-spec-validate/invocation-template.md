@@ -32,6 +32,14 @@ When validating a **story**, the main session also looks for a PRD file
 **Architecture files are intentionally NOT included** — they drift too
 much during development to be reliable validation input.
 
+**Brownfield mode.** If the spec is brownfield (extends existing code),
+the main session adds `brownfield-grounding` to the rubric list and passes
+`project_root` (and optionally `brownfield_areas` to narrow scope). That
+rubric makes the validator read the real source to confirm the spec's
+current-state claims are true — it catches "spec describes the codebase as
+imagined, not as it is." Omit it for greenfield specs (nothing to ground
+against).
+
 ---
 
 ## Step 2 — Dispatch prompt (single sub-agent, all rubrics)
@@ -46,15 +54,23 @@ Load and follow the grr-spec-validate skill.
 Inputs:
 - artifact_path: <ABSOLUTE_PATH_TO_ARTIFACT>
 - rubrics: ambiguity, ac-measurability, three-stage, checklist
+           # brownfield specs: also add `brownfield-grounding`
 - checklist_path: <ABSOLUTE_PATH or omit if user said 'skip'>
+- project_root: <ABSOLUTE_PROJECT_ROOT — required only if brownfield-grounding is in rubrics>
+- brownfield_areas: <comma-separated paths/folders/feature names — optional scope hint for brownfield-grounding>
 - reference_paths: <comma-separated absolute paths or omit>
 
 Constraints:
-- You see ONLY the artifact, the rubric files in this skill, the
-  checklist (if provided), and reference files (if provided).
+- For the artifact-only rubrics you see ONLY the artifact, the rubric
+  files in this skill, the checklist (if provided), and reference files
+  (if provided).
+- For the brownfield-grounding rubric ONLY, you may additionally
+  Read/Glob/Grep the project source under project_root — to VERIFY the
+  spec's claims about existing code, never to edit.
 - You do NOT have access to the main conversation that produced this
   artifact.
-- You do NOT modify the artifact. Return validation output only.
+- You do NOT modify the artifact or any source file. Return validation
+  output only.
 - If a rubric cannot be applied (missing input, malformed artifact),
   add a revision_pointer noting the issue and continue with remaining
   rubrics.
@@ -75,8 +91,9 @@ Load and follow the grr-spec-validate skill — rubric: <RUBRIC_NAME>.
 
 Inputs:
 - artifact_path: <ABSOLUTE_PATH>
-- rubrics: <RUBRIC_NAME>          # one of: ambiguity, ac-measurability, three-stage, checklist
+- rubrics: <RUBRIC_NAME>          # one of: ambiguity, ac-measurability, three-stage, checklist, brownfield-grounding
 - checklist_path: <PATH>          # required if RUBRIC_NAME == checklist
+- project_root: <PATH>            # required if RUBRIC_NAME == brownfield-grounding
 - reference_paths: <PATHS>        # optional
 
 Return only the JSON fields for the requested rubric, with `verdict`

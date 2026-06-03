@@ -22,6 +22,16 @@ activation_steps_prepend = [
      없으면 `skip`."
 
   Save as $CHECKLIST_PATH (or null if skip).
+
+  Then determine greenfield vs brownfield (skip if known this session):
+
+    "이 스토리는 기존 코드를 확장/변경하나요(Brownfield) 아니면 새 코드인가요(Greenfield)?
+      [B] Brownfield  [G] Greenfield
+     B면 건드릴 영역(파일/폴더/feature)도 알려주세요."
+
+  Save as $STORY_MODE (B or G) and $STORY_AREAS (string or empty). In
+  brownfield mode the validator (on_complete) re-reads the actual files
+  this story names and confirms the story's claims about them are true.
   """,
 ]
 
@@ -49,13 +59,19 @@ Dispatch a fresh sub-agent:
     Inputs:
     - artifact_path: <absolute story path>
     - rubrics: ambiguity, ac-measurability, three-stage, checklist
+               # if $STORY_MODE == "B", ALSO add: brownfield-grounding
     - checklist_path: <$CHECKLIST_PATH if set, otherwise omit>
+    - project_root: <absolute project root — include ONLY if $STORY_MODE == "B">
+    - brownfield_areas: <$STORY_AREAS — include ONLY if $STORY_MODE == "B">
     - reference_paths: <PRD path if present under {implementation_artifacts}/,
                         otherwise omit; architecture path is NOT included>
 
     Constraints:
     - Fresh context, no access to main conversation.
-    - Read-only. Return JSON only.
+    - Artifact-only rubrics read the artifact alone; brownfield-grounding
+      may Read/Glob/Grep project_root to verify the story's file-level
+      claims (the files each Task names, "no existing X" assertions).
+    - Read-only — never edit source. Return JSON only.
 
 Parse JSON. Branch on `verdict`:
 
