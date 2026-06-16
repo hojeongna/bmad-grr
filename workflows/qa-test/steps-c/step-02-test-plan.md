@@ -34,6 +34,12 @@ If sub-agents aren't available, read the source code directly with focused scans
 - **Direct impact** — pages/routes added or modified, components changed, API endpoints called.
 - **Indirect impact** — other pages using the same components, features sharing the same data/state, navigation paths through affected pages, shared layouts/headers/sidebars.
 
+### Verify and expand the blast radius
+
+If the change touches a single isolated surface, skip this. Otherwise **proceed with a dynamic workflow** so the indirect-impact list is neither padded nor missing consumers: dispatch a fresh sub-agent per claimed edge to check it against the code (e.g. "is component Y actually imported by page X?", drop refuted edges), then for each confirmed shared component or state, re-discover its *other* consumers (consumers-of-consumers) and verify those — repeat until a round adds nothing new (cap at 3 rounds).
+
+Fold the confirmed indirect surface into the Regression (REG-NN) cases below — an escaped consumer is an escaped bug.
+
 ### Author the QA spec
 
 Read `{qaTestSpecTemplate}` for structure. Save the spec at `{implementation_artifacts}/qa/qa-spec-{story-or-epic-id}-{date}.md`. Fill every section concretely:

@@ -69,8 +69,12 @@ activation_steps_append = [
   those features could reuse, NOT a blind sweep of the whole repo.
 
   Before drafting any architecture, dispatch a sub-agent that surveys the
-  existing codebase for reusable pieces. The architect (this session) MUST
-  consider these before introducing new patterns.
+  existing codebase for reusable pieces. **Proceed with a dynamic workflow**:
+  when the returned survey implicates a reuse area the scope also touches but
+  that was not surveyed (a shared module a candidate depends on), re-dispatch a
+  focused survey over just that area and repeat until no new reuse candidate
+  surfaces. The architect (this session) MUST consider these before introducing
+  new patterns.
 
   In brownfield mode ($ARCH_MODE == "B") this survey is a HARD GATE: do NOT
   write a single architecture section until the survey has run and returned.

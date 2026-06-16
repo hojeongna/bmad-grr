@@ -94,6 +94,11 @@ activation_steps_prepend = [
       "open_questions": ["<question the PRD author must answer with the user>"]
     }
 
+  **Proceed with a dynamic workflow**: if a surveyed file's dependencies point
+  to another brownfield area the user did not list but the PRD will touch,
+  re-dispatch a focused survey over it and repeat until no new affected area
+  surfaces.
+
   Carry this JSON forward. EVERY PRD section that touches a surveyed area
   must cite the relevant file paths and current behavior. PRD claims like
   "currently we have no way to X" require evidence — if the survey did not

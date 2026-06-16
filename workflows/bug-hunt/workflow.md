@@ -47,6 +47,10 @@ No fix attempts without root cause investigation. Hypotheses must be grounded in
 
 Escalate only after the previous level produces inconclusive evidence.
 
+## Documentation-First Fork
+
+Once a root cause is confirmed, the success menu offers `[Q]` alongside `[S]` Skip to Fix. `[Q]` converts the bug into a structured story (`quick-story` → `dev-story`, or `refine-story` when a story was already bound) instead of patching inline — for multi-file or recurrence-prone bugs that deserve documentation. The fork (`step-05b`) **fresh-judges the root cause and removes every tracked `[BUG-HUNT]` log before leaving**, so the Iron Law holds across the handoff. The bug-hunt session does not resume — `dev-story` owns the fix — and the state file closes as `HANDED_OFF`.
+
 ## Activation
 
 Load config from `{config_source}`. If missing, fall back to sensible defaults.

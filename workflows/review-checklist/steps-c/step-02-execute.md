@@ -21,7 +21,7 @@ Each selected automatic mode has its own dedicated sub-agent that returns a stru
 
 ### Load the parallel agents skill
 
-Read `{parallelAgentsSkill}` for the dispatch pattern. Load `{analysisCategories}` for category guidance. One agent per selected mode — never batch multiple modes into one agent.
+Read `{parallelAgentsSkill}` for the dispatch pattern. Load `{analysisCategories}` for category guidance. One agent per selected mode — never batch multiple modes into one agent. **Proceed with a dynamic workflow**: let each mode-agent's judgment drive which categories it surfaces from the actual code, and have it re-scan when a first pass reveals a new convention or risk area, until no new category surfaces.
 
 ### Prepare per-agent prompts
 

@@ -3,6 +3,7 @@ name: step-04-web-search
 description: 'Level 3 — web search for known issues; combine with Levels 1-2 evidence; trigger architecture review at 3+ failures'
 nextStepFile: './step-04b-architecture.md'
 skipToFixFile: './step-05-fix.md'
+branchToStoryFile: './step-05b-branch-to-story.md'
 stateFile: '{output_folder}/bug-hunt-{date}.state.md'
 advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
 partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
@@ -44,8 +45,8 @@ Update `{stateFile}`:
 
 Present a menu (halt for input):
 
-- **Hypothesis succeeded**: `[A]` `[P]` `[S]` Skip to Fix, `[C]` Continue
+- **Hypothesis succeeded**: `[A]` `[P]` `[S]` Skip to Fix, `[Q]` Document as story (quick-story → dev-story), `[C]` Continue
 - **Failed and total failures ≥ 3**: `[A]` `[P]` `[C]` Proceed to Architecture Review
 - **Failed and total failures < 3**: `[A]` `[P]` `[R]` Retry this level, `[C]` Proceed to Architecture Review
 
-Menu handling: `A`/`P` as standard; `S` → `{skipToFixFile}`; `R` (retry) returns to the search-strategy step within this file with refined queries; `C` → `{nextStepFile}` (architecture review).
+Menu handling: `A`/`P` as standard; `S` → `{skipToFixFile}`; `Q` (success only) → `{branchToStoryFile}` (best for multi-file or recurrence-prone bugs; otherwise `[S]` is lighter); `R` (retry) returns to the search-strategy step within this file with refined queries; `C` → `{nextStepFile}` (architecture review).

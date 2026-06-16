@@ -19,7 +19,7 @@ For each loaded story, the gap between the story's AC/Tasks and the current impl
 
 **Single story** — compare the story's AC and Tasks against the situation. Check completed `[x]` vs incomplete `[ ]` tasks. Identify what was implemented correctly, what diverged, and what's missing entirely.
 
-**Multiple stories or epic** — dispatch one sub-agent per story for parallel analysis. Each sub-agent loads the story, scores AC satisfaction and task completion, and returns structured findings (`{story_key, gaps_found, tasks_affected, recommendation}`). Sequential fallback if sub-agents unavailable. Aggregate.
+**Multiple stories or epic** — **proceed with a dynamic workflow**: dispatch one sub-agent per story for parallel analysis (each loads the story, scores AC satisfaction and task completion against the actual implementation, and returns structured findings `{story_key, gaps_found, tasks_affected, recommendation}`), and where a story implicates another, pull it in and repeat until no new story surfaces. Sequential fallback if sub-agents unavailable. Aggregate.
 
 If the cause of the gap is unclear (not surfaced in step-02 visual findings, not obvious from the diff), do a focused web search for related error patterns, framework behaviors, or known issues, and incorporate findings.
 

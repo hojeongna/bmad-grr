@@ -13,6 +13,17 @@ The user's intent is captured in a single round, the sprint status is scanned fo
 
 ## Approach
 
+### Handoff detection (bug-hunt → story)
+
+If `$ARGUMENTS` contains the marker `HANDOFF: bug-hunt → story`, this run was forked from a bug-hunt session — handle it specially and skip the rest of this step:
+
+- Parse the block: `intent`, `stateFile`, `coherence`, `gaps`, `touchpoints`, `existingStory`.
+- **Force `change_type = 'fix'`** — do not infer it. This guarantees step-03 emits the Fix-Specific Review.
+- Read `{stateFile}` for seed material (`bugDescription`, the confirmed `hypotheses` entry, Investigation Log). This feeds step-02 touchpoint discovery and the step-04 Mini PRD — the reproduction *is* the acceptance criterion.
+- Record `stateFile` so step-04 can back-fill `documentationTarget.path` and flip the bug-hunt state to `HANDED_OFF` after registration.
+- **Do not run the intent interview or the existing-story scan below.** step-05b already routes existing-story cases to refine-story, so a handoff run is always a new story.
+- One-line confirm in `{communication_language}` (intent + "버그 수정 스토리로 작성"), then load and follow `{nextStepFile}`.
+
 ### Capture intent
 
 If `$ARGUMENTS` already contains a clear intent description, use it directly and echo a one-line confirmation in `{communication_language}`. Otherwise, ask one warm, concise question:

@@ -29,7 +29,9 @@ If step-02 surfaced a `prd_path`, the upstream PRD is a strong reference but **n
 
 ### Lightweight Premise Challenge (inline pressure test)
 
-Apply directly — no external skill load. Four short questions to pressure-test the PRD:
+**Skip this entirely on a bug-hunt handoff** (step-01 detected `HANDOFF: bug-hunt → story`, `change_type = fix`). The premise is an already fresh-judged, confirmed defect — re-litigating it risks a `(D) 취소` after bug-hunt state is partly closed. Note `Premise Challenge: skipped (bug-hunt handoff)` and continue to the next section.
+
+Otherwise apply directly — no external skill load. Four short questions to pressure-test the PRD:
 
 - **Premise** — Is the stated problem the real problem? Is there a simpler cut?
 - **Existing leverage** — Is there code, feature, or story that already (half-)solves this? Cross-check step-02 touchpoints.
@@ -110,6 +112,16 @@ Load `{sprint_status}`, append a new entry:
 - `created` — today's date
 
 **Preserve every existing entry, comment, and structural element exactly.** Use Edit for targeted insertion when possible; only use Write if Edit can't preserve structure.
+
+### Back-fill the bug-hunt handoff (if applicable)
+
+If this run is a bug-hunt handoff (step-01 recorded a `stateFile`), close the loop now that the story exists and is registered — this is the only safe moment, because the artifact is confirmed:
+
+- In the bug-hunt `stateFile`, set `documentationTarget.path` to the new story path and `documentationTarget.type: story`.
+- Set `status: HANDED_OFF` (a terminal status, distinct from `COMPLETED`/`UNRESOLVED`, invisible to bug-hunt's `IN_PROGRESS` resume scan).
+- Preserve the rest of the state file exactly (use Edit).
+
+If the user took `(D) 취소` earlier, the story was never written — do nothing here, leaving the bug-hunt state `IN_PROGRESS` and resumable.
 
 ## Next
 

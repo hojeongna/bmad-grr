@@ -3,6 +3,7 @@ name: step-02-code-analysis
 description: 'Level 1 — code analysis with parallel sub-agents, hypothesis formation, minimal-change test'
 nextStepFile: './step-03-debug-logs.md'
 skipToFixFile: './step-05-fix.md'
+branchToStoryFile: './step-05b-branch-to-story.md'
 stateFile: '{output_folder}/bug-hunt-{date}.state.md'
 systematic_debugging_skill: '~/.claude/skills/systematic-debugging/SKILL.md'
 parallel_agents_skill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
@@ -38,6 +39,12 @@ Find similar working code in the codebase and compare against the broken path. L
 
 Run `git log --oneline -10` and `git diff` on the candidate files. New dependencies, config drift, or recent refactors often surface here.
 
+### Adversarially verify the candidates
+
+For a single-file bug, skip this — the hypothesis is cheap to test directly below. For a multi-file investigation, **proceed with a dynamic workflow** over the suspicious areas surfaced above: dispatch a fresh sub-agent per candidate to confirm or refute it against the code (drop refuted), and if a confirmed candidate implicates new files (a caller, a shared util), re-discover over just those and repeat until nothing new surfaces (cap at 3 rounds). Stay inside Level 1 — do not pull in runtime evidence or web sources, and do not escalate; that is what the escalation levels and their menus are for.
+
+The survivors are **candidate root causes for the user to confirm**, not a settled hypothesis. They feed the next section — they do not bypass it.
+
 ### Hypothesis
 
 Present the analysis findings to the user, propose one specific hypothesis with its evidence and a minimal test method, and adjust based on the user's domain knowledge.
@@ -58,11 +65,12 @@ Update `{stateFile}`:
 
 After the test, present a menu (halt for input):
 
-- **If hypothesis succeeded**: `[A]` Advanced Elicitation, `[P]` Party Mode, `[S]` Skip to Fix, `[C]` Continue to Level 2
+- **If hypothesis succeeded**: `[A]` Advanced Elicitation, `[P]` Party Mode, `[S]` Skip to Fix, `[Q]` Document as story (quick-story → dev-story), `[C]` Continue to Level 2
 - **If hypothesis failed**: `[A]` Advanced Elicitation, `[P]` Party Mode, `[C]` Continue to Level 2
 
 Menu handling:
 - `A` → execute `{advancedElicitationTask}`, then redisplay
 - `P` → execute `{partyModeWorkflow}`, then redisplay
 - `S` (success only) → load and follow `{skipToFixFile}`
+- `Q` (success only) → load and follow `{branchToStoryFile}`. Best for multi-file or recurrence-prone bugs; for a single-file, low-complexity fix, `[S]` is the lighter choice.
 - `C` → load and follow `{nextStepFile}`

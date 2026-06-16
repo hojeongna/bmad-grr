@@ -3,6 +3,7 @@ name: step-03-debug-logs
 description: 'Level 2 — instrument with debug logs, gather Chrome DevTools evidence, retest hypothesis'
 nextStepFile: './step-04-web-search.md'
 skipToFixFile: './step-05-fix.md'
+branchToStoryFile: './step-05b-branch-to-story.md'
 stateFile: '{output_folder}/bug-hunt-{date}.state.md'
 systematic_debugging_skill: '~/.claude/skills/systematic-debugging/SKILL.md'
 advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
@@ -59,7 +60,7 @@ Update `{stateFile}`:
 
 After the test, present a menu (halt for input):
 
-- **If hypothesis succeeded**: `[A]` `[P]` `[S]` Skip to Fix, `[C]` Continue to Level 3
+- **If hypothesis succeeded**: `[A]` `[P]` `[S]` Skip to Fix, `[Q]` Document as story (quick-story → dev-story), `[C]` Continue to Level 3
 - **If hypothesis failed**: `[A]` `[P]` `[C]` Continue to Level 3
 
-Menu handling matches step-02 (`A` → elicitation, `P` → party mode, `S` → `{skipToFixFile}`, `C` → `{nextStepFile}`).
+Menu handling matches step-02 (`A` → elicitation, `P` → party mode, `S` → `{skipToFixFile}`, `C` → `{nextStepFile}`). `Q` (success only) → load and follow `{branchToStoryFile}`; best for multi-file or recurrence-prone bugs, otherwise `[S]` is lighter.

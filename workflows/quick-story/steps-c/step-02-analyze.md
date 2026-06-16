@@ -52,7 +52,7 @@ For each touchpoint, capture:
 - relevant existing patterns observed (imports, structure, conventions)
 - blast radius (what else changes if we modify this)
 
-When 2+ files need deep reading, load `{parallelAgentsSkill}` and dispatch one sub-agent per file (each returns a structured summary). For small/obvious files, read directly.
+When 2+ files need deep reading, **proceed with a dynamic workflow** — load `{parallelAgentsSkill}`, dispatch one sub-agent per file by judgment, and pull in any new touchpoint a file reveals until the blast-radius set stops growing. For small/obvious files, read directly.
 
 ### Present a tight summary
 
