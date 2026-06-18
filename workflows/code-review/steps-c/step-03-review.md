@@ -33,7 +33,7 @@ Dispatch all agents in parallel. Wait for every agent to return before continuin
 
 ### Adversarially verify findings
 
-If `candidate_findings` is trivial — one or two findings a quick re-read settles — verify them inline and skip this. Otherwise **proceed with a dynamic workflow**: dispatch one fresh sub-agent per finding (claim = the violation, evidence = the cited checklist item + the changed lines) to confirm or refute it against the code; keep confirmed findings, drop refuted ones, surface uncertain ones to the report. Verification only — do **not** loop to re-discover, since the diff is already the entire work-list.
+If `candidate_findings` is trivial — one or two findings a quick re-read settles — verify them inline and skip this. Otherwise **proceed with a dynamic workflow**: take the full set of candidate findings and distribute them across sub-agents however the workflow balances best — batched or grouped as makes sense, not forced to one sub-agent per finding. Each agent confirms or refutes its assigned findings against the code (claim = the violation, evidence = the cited checklist item + the changed lines); keep confirmed findings, drop refuted ones, surface uncertain ones to the report. Verification only — do **not** loop to re-discover, since the diff is already the entire work-list.
 
 Store the surviving findings as `primary_findings` for step-04, and carry the refuted/uncertain list so the report can show what was checked and dropped.
 
