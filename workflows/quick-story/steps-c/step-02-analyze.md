@@ -2,7 +2,6 @@
 name: step-02-analyze
 description: 'Gather lightweight context — project-context, touchpoint discovery, observed patterns — to inform the mini architecture'
 nextStepFile: './step-03-architect.md'
-parallelAgentsSkill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
 ---
 
 # Step 2 — Pattern Analysis
@@ -52,7 +51,7 @@ For each touchpoint, capture:
 - relevant existing patterns observed (imports, structure, conventions)
 - blast radius (what else changes if we modify this)
 
-When 2+ files need deep reading, **proceed with a dynamic workflow** — load `{parallelAgentsSkill}`, dispatch one sub-agent per file by judgment, and pull in any new touchpoint a file reveals until the blast-radius set stops growing. For small/obvious files, read directly.
+Call the **Workflow** tool for touchpoint reading — every quick-story, regardless of file count. Write a script that dispatches one `agent()` per touchpoint file by judgment, and pipelines another round over any new touchpoint a file reveals, repeating until the blast-radius set stops growing (cap at 3 rounds).
 
 ### Present a tight summary
 

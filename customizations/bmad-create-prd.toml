@@ -53,7 +53,8 @@ activation_steps_prepend = [
   If $PRD_MODE == "G", continue without further pre-flight.
 
   If $PRD_MODE == "B", pre-flight is NOT complete until the brownfield context
-  survey has run. Dispatch a Task / Agent:
+  survey has run. Call the Workflow tool: write a script whose first `agent()`
+  call uses the survey prompt below.
 
     Survey the brownfield areas the user listed and return a structured
     summary. The PRD author (main session) will consume this as the ground
@@ -94,10 +95,9 @@ activation_steps_prepend = [
       "open_questions": ["<question the PRD author must answer with the user>"]
     }
 
-  **Proceed with a dynamic workflow**: if a surveyed file's dependencies point
-  to another brownfield area the user did not list but the PRD will touch,
-  re-dispatch a focused survey over it and repeat until no new affected area
-  surfaces.
+  If a surveyed file's dependencies point to another brownfield area the user
+  did not list but the PRD will touch, pipeline another round scoped to it and
+  repeat until no new affected area surfaces (cap at 3 rounds).
 
   Carry this JSON forward. EVERY PRD section that touches a surveyed area
   must cite the relevant file paths and current behavior. PRD claims like

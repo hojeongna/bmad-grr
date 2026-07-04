@@ -5,7 +5,6 @@ nextStepFile: './step-03-execute-and-fix.md'
 stateFile: '{output_folder}/qa-test-{date}.state.md'
 qaTestSpecTemplate: '../data/qa-test-spec-template.md'
 qaReportTemplate: '../data/qa-report-template.md'
-parallel_agents_skill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
 implementation_artifacts: '{config_source}:implementation_artifacts'
 ---
 
@@ -21,22 +20,18 @@ A QA Test Specification document exists as a saved file. It enumerates every con
 
 Read `{stateFile}` for the current story index, path, and app URL. Read the current story document completely — all ACs (exact wording), tasks/subtasks, referenced pages/components/routes, noted constraints, and related stories.
 
-### Read the implementation (parallel sub-agent when available)
+### Read the implementation
 
-The story describes intent; the code reveals what's actually testable.
-
-If `{parallel_agents_skill}` is available, dispatch a sub-agent that reads the affected pages/components and returns a compact JSON summary (route definitions, interactive elements, form validation rules, API endpoints called, shared state affected). This keeps the parent context lean.
-
-If sub-agents aren't available, read the source code directly with focused scans — don't load entire files unless necessary.
+The story describes intent; the code reveals what's actually testable. Call the **Workflow** tool with a script whose `agent()` reads the affected pages/components and returns a compact JSON summary (route definitions, interactive elements, form validation rules, API endpoints called, shared state affected). This keeps the parent context lean.
 
 ### Map the blast radius
 
 - **Direct impact** — pages/routes added or modified, components changed, API endpoints called.
 - **Indirect impact** — other pages using the same components, features sharing the same data/state, navigation paths through affected pages, shared layouts/headers/sidebars.
 
-### Verify and expand the blast radius
+### Verify and expand the blast radius via the Workflow tool
 
-If the change touches a single isolated surface, skip this. Otherwise **proceed with a dynamic workflow** so the indirect-impact list is neither padded nor missing consumers: dispatch a fresh sub-agent per claimed edge to check it against the code (e.g. "is component Y actually imported by page X?", drop refuted edges), then for each confirmed shared component or state, re-discover its *other* consumers (consumers-of-consumers) and verify those — repeat until a round adds nothing new (cap at 3 rounds).
+Call the **Workflow** tool for this — every plan, regardless of surface size — so the indirect-impact list is neither padded nor missing consumers. Write a script that fans out one `agent()` per claimed edge to check it against the code (e.g. "is component Y actually imported by page X?", drop refuted edges), then pipelines a fresh round per confirmed shared component or state to find its *other* consumers (consumers-of-consumers) and verify those; repeat until a round adds nothing new (cap at 3 rounds).
 
 Fold the confirmed indirect surface into the Regression (REG-NN) cases below — an escaped consumer is an escaped bug.
 

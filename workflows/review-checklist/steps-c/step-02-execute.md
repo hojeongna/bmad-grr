@@ -4,7 +4,6 @@ description: 'Dispatch parallel agents for selected automatic modes (A/P/U/S/R/A
 nextStepFile: './step-03-interactive.md'
 skipToIntegrate: './step-04-integrate.md'
 outputFile: '{output_folder}/checklist-{project_name}.md'
-parallelAgentsSkill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
 analysisCategories: '../data/analysis-categories.md'
 
 # ui-ux-pro-max plugin skill (NOT gstack)
@@ -19,9 +18,9 @@ Each selected automatic mode has its own dedicated sub-agent that returns a stru
 
 ## Approach
 
-### Load the parallel agents skill
+### Analyze via the Workflow tool
 
-Read `{parallelAgentsSkill}` for the dispatch pattern. Load `{analysisCategories}` for category guidance. One agent per selected mode — never batch multiple modes into one agent. **Proceed with a dynamic workflow**: let each mode-agent's judgment drive which categories it surfaces from the actual code, and have it re-scan when a first pass reveals a new convention or risk area, until no new category surfaces.
+Load `{analysisCategories}` for category guidance. Call the **Workflow** tool for this: write a script with one `agent()` per selected mode (never batch multiple modes into one agent); let each mode-agent's judgment drive which categories it surfaces from the actual code, and pipeline a re-scan when a first pass reveals a new convention or risk area, repeating until no new category surfaces (cap at 3 rounds).
 
 ### Prepare per-agent prompts
 
@@ -46,9 +45,9 @@ Common rules across all agents: every item must be objectively verifiable (pass/
 
 **Agent Au — Audit (auto-enabled when `auditSkill` is installed)**: tech stack. Load `{auditSkill}` in full and apply its accessibility / performance / theming / responsive / anti-pattern framework. Produce dedicated categories: `## Accessibility` (WCAG 2.x AA references), `## Performance` (Core Web Vitals, bundle size, rendering — measurable thresholds where possible), `## Theming` (design-token consistency), `## Responsive` (breakpoints, touch targets). Skip silently if `auditSkill` doesn't exist.
 
-### Dispatch and collect
+### Collect
 
-Dispatch all agents in parallel. Wait for every agent to return before continuing. Aggregate results grouped by mode for the integration step. Note any agent that returned empty or failed.
+The Workflow script already dispatches and aggregates internally. Group the returned results by mode for the integration step, and note any mode that returned empty or failed.
 
 ### Route
 

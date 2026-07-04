@@ -68,13 +68,15 @@ activation_steps_append = [
   reads the areas the PRD's features will touch plus the shared resources
   those features could reuse, NOT a blind sweep of the whole repo.
 
-  Before drafting any architecture, dispatch a sub-agent that surveys the
-  existing codebase for reusable pieces. **Proceed with a dynamic workflow**:
-  when the returned survey implicates a reuse area the scope also touches but
-  that was not surveyed (a shared module a candidate depends on), re-dispatch a
-  focused survey over just that area and repeat until no new reuse candidate
-  surfaces. The architect (this session) MUST consider these before introducing
-  new patterns.
+  Before drafting any architecture, call the Workflow tool to survey the
+  existing codebase for reusable pieces — every architecture, greenfield or
+  brownfield (greenfield still runs it; it simply returns mostly-empty
+  categories). Write a script whose first `agent()` call uses the survey
+  prompt below; when the returned survey implicates a reuse area the scope
+  also touches but was not surveyed (a shared module a candidate depends on),
+  pipeline another round scoped to just that area, and repeat until no new
+  reuse candidate surfaces (cap at 3 rounds). The architect (this session)
+  MUST consider these before introducing new patterns.
 
   In brownfield mode ($ARCH_MODE == "B") this survey is a HARD GATE: do NOT
   write a single architecture section until the survey has run and returned.
@@ -82,7 +84,7 @@ activation_steps_append = [
   is the exact failure this gate prevents. (In greenfield it still runs and
   simply returns mostly-empty categories — that is fine.)
 
-  Dispatch a Task / Agent with this prompt:
+  Use this prompt for each `agent()` call in the script:
 
     Survey the codebase at {project-root}, focused on this scope:
     $ARCH_SCOPE  (the features/areas the architecture must support, from the PRD).

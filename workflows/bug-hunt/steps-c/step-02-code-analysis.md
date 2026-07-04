@@ -6,7 +6,6 @@ skipToFixFile: './step-05-fix.md'
 branchToStoryFile: './step-05b-branch-to-story.md'
 stateFile: '{output_folder}/bug-hunt-{date}.state.md'
 systematic_debugging_skill: '~/.claude/skills/systematic-debugging/SKILL.md'
-parallel_agents_skill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
 advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
 partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
 ---
@@ -25,25 +24,26 @@ Follow the loaded systematic-debugging skill's Phase 1 (root cause) and Phase 2 
 
 Load `{stateFile}` for the bug description and prior context. Re-read error messages and stack traces carefully (line numbers, file paths, exact wording). Identify candidate files based on the bug description.
 
-### Parallel multi-file analysis
+### Analyze candidates via the Workflow tool
 
-For multi-file investigations, load `{parallel_agents_skill}` and dispatch one sub-agent per candidate file. Each sub-agent reads its file fully and returns structured findings: relevant code segments, suspicious patterns, data-flow notes. Aggregate results in the main thread.
+Call the **Workflow** tool for this — every investigation, regardless of file count. Write a script that:
 
-If sub-agents are unavailable, read files sequentially.
+- **Discover** — one `agent()` per candidate file, each reading its file fully and returning structured findings (relevant code segments, suspicious patterns, data-flow notes).
+- **Verify** — a fresh `agent()` per candidate to confirm or refute it against the code; drop refuted candidates.
+- **Loop** — when a confirmed candidate implicates a new file (a caller, a shared util), pipeline another discover-and-verify round over just that file; repeat until a round surfaces nothing new (cap at 3 rounds).
+- **Return** the surviving candidates.
+
+Stay inside Level 1 inside the script — do not pull in runtime evidence or web sources, and do not escalate; that is what the escalation levels and their menus are for.
+
+The survivors are **candidate root causes for the user to confirm**, not a settled hypothesis. They feed the next sections — they do not bypass them.
 
 ### Pattern compare
 
-Find similar working code in the codebase and compare against the broken path. List every difference, however small.
+Find similar working code in the codebase and compare the survivors against the broken path. List every difference, however small.
 
 ### Recent changes
 
-Run `git log --oneline -10` and `git diff` on the candidate files. New dependencies, config drift, or recent refactors often surface here.
-
-### Adversarially verify the candidates
-
-For a single-file bug, skip this — the hypothesis is cheap to test directly below. For a multi-file investigation, **proceed with a dynamic workflow** over the suspicious areas surfaced above: dispatch a fresh sub-agent per candidate to confirm or refute it against the code (drop refuted), and if a confirmed candidate implicates new files (a caller, a shared util), re-discover over just those and repeat until nothing new surfaces (cap at 3 rounds). Stay inside Level 1 — do not pull in runtime evidence or web sources, and do not escalate; that is what the escalation levels and their menus are for.
-
-The survivors are **candidate root causes for the user to confirm**, not a settled hypothesis. They feed the next section — they do not bypass it.
+Run `git log --oneline -10` and `git diff` on the surviving candidate files. New dependencies, config drift, or recent refactors often surface here.
 
 ### Hypothesis
 

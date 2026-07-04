@@ -2,7 +2,6 @@
 name: step-03-review
 description: 'Parallel per-file checklist review — one sub-agent per file, every finding cites a specific checklist item'
 nextStepFile: '~/.claude/workflows/code-review/steps-c/step-04-report.md'
-parallelAgentsSkill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
 ---
 
 # Step 3 — Parallel Review
@@ -12,10 +11,6 @@ parallelAgentsSkill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
 Every collected file has been reviewed by its own dedicated sub-agent against the full checklist, restricted to the file's changed/added lines. Findings are aggregated for the report step. No file is modified during this step.
 
 ## Approach
-
-### Load the parallel agents skill
-
-Read the full content of `{parallelAgentsSkill}` and follow its dispatch pattern. One sub-agent per file — never batch multiple files into a single agent. Batching breaks scope isolation.
 
 ### Prepare each agent
 
@@ -27,13 +22,12 @@ Each agent receives:
 4. **A scope-locked instruction**: review only the changed/added lines; the agent may use Read for surrounding context but only the diff lines are subject to checklist evaluation; for each violation, return the checklist category, the specific item, file path and line number, what is wrong, and how to fix it; do not modify any files; do not flag unchanged code.
 5. **Output format**: a structured list of findings; if no violations exist on the changed lines, return `PASS - no checklist violations in changed lines of {file_path}`.
 
-### Dispatch and collect
+### Review and verify via the Workflow tool
 
-Dispatch all agents in parallel. Wait for every agent to return before continuing. Aggregate findings: group by file, retain checklist references, deduplicate identical findings on the same location, and note files that passed with no violations. Hold these as `candidate_findings`.
+Call the **Workflow** tool for this — every review, regardless of file or finding count. Write a script with two phases:
 
-### Adversarially verify findings
-
-If `candidate_findings` is trivial — one or two findings a quick re-read settles — verify them inline and skip this. Otherwise **proceed with a dynamic workflow**: take the full set of candidate findings and distribute them across sub-agents however the workflow balances best — batched or grouped as makes sense, not forced to one sub-agent per finding. Each agent confirms or refutes its assigned findings against the code (claim = the violation, evidence = the cited checklist item + the changed lines); keep confirmed findings, drop refuted ones, surface uncertain ones to the report. Verification only — do **not** loop to re-discover, since the diff is already the entire work-list.
+- **Review** — one `agent()` per collected file (never batched — batching breaks scope isolation), each reviewing only its changed/added lines per the per-agent context above. Aggregate the results as `candidate_findings` (group by file, retain checklist references, dedupe identical findings on the same location, note files that passed clean).
+- **Verify** — distribute `candidate_findings` across `agent()` calls however the script balances best (batched or grouped, not forced to one-per-finding); each confirms or refutes its assigned findings against the code (claim = the violation, evidence = the cited checklist item + the changed lines). Keep confirmed findings, drop refuted ones, surface uncertain ones. Verification only — do **not** loop to re-discover, since the diff is already the entire work-list.
 
 Store the surviving findings as `primary_findings` for step-04, and carry the refuted/uncertain list so the report can show what was checked and dropped.
 
