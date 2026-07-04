@@ -15,7 +15,7 @@ Workflow collection for BMAD — adds BDD-based ATDD for story implementation, c
 
 For PRD / Architecture / Epics / Story creation, use **upstream BMAD** workflows directly (`/bmad-create-prd`, `/bmad-create-architecture`, `/bmad-create-epics-and-stories`, `/bmad-create-story`).
 
-## Included Workflows (10)
+## Included Workflows (11)
 
 ### 1. `dev-story` — BDD-based ATDD + TDD
 
@@ -141,6 +141,20 @@ Spec-first QA testing in a real browser.
 - **Persistent QA report** — named by story/epic ID for long-term reference.
 - **Decision gate** — chain to `refine-story`, `dev-story`, or stop.
 - **Deterministic Python scripts** — `qa-state.py` for state, `qa-spec-stats.py` for test counts (LLM context stays lean).
+
+### 11. `design-handoff` — PRD → HTML UX/UI draft via Mobbin + Claude Design
+
+Takes a completed PRD (optionally plus an existing screen) and turns it into a detailed handoff prompt for Claude Design (claude.ai/design), informed by Mobbin MCP reference research.
+
+- **Three entry modes** — Greenfield (PRD only), Brownfield (PRD + existing screen), Improvement-only (existing screen, no PRD). If neither a PRD nor an existing screen is available, delegates to `quick-story` first (same pattern as `design-pass`) and continues as Greenfield from its output.
+- **Inline PRD UX/UI gap-scan** — screen inventory, IA, per-interaction states, responsive, accessibility, microcopy, design-system anchoring; unresolved gaps tagged `[ASSUMPTION]` (same convention as `bmad-ux`) rather than blocking. **Never edits the PRD** — findings go into a standalone UX/UI Guide document instead.
+- **Persisted UX/UI Guide document** (`ux-ui-guide-{date}.md`) — a living doc this workflow builds step by step (product context, screens & flows, gap-scan, design system, Mobbin references, handoff log), the same "living document" treatment `bmad-ux` gives `DESIGN.md`/`EXPERIENCE.md`. The handoff prompt is rendered *from* this doc, not from scratch — it stays useful on its own, editable, and resumable across runs.
+- **Brownfield capture handling** — accepts `.mhtml` (browser "Webpage, Single File" save), `.html`, screenshot, or URL. `.mhtml` is converted to a clean, self-contained `.html` via a bundled deterministic script (`mhtml_to_html.py`).
+- **Dual design-system check** — asks the user directly whether a local design system exists (no file-hunting through `.impeccable.md`/`DESIGN.md`; falls back to `frontend-design` general guidance only if they say no) **and** checks the target Claude Design project's own design system via the native `DesignSync` tool — recorded into the guide's Design System section.
+- **Mobbin MCP research** — curated, user-confirmed reference patterns tied to specific screens/PRD locations, never keyword-matched; halts (doesn't silently skip) if Mobbin MCP isn't connected.
+- **One composed handoff prompt** — rendered from the UX/UI Guide (product context, screen-by-screen spec, IA, design tokens, Mobbin call-outs, brownfield base, `[ASSUMPTION]` list), bundled into a single copy-paste block for claude.ai/design.
+- **Sub-agent draft verification** — the returned HTML draft is checked against the UX/UI Guide by a fresh Review + Verify sub-agent pipeline (`Workflow` tool), never the same context that wrote the prompt.
+- **Closes the loop** — standalone fix-prompts per surviving finding, optional `DesignSync` push of the approved draft into the Claude Design project, both logged into the guide's Handoff Log, then routes to `quick-story` / `dev-story` or stops.
 
 ## Included Skills (11 superpowers + 1 grr-original)
 
@@ -319,7 +333,7 @@ If you see *"No LSP server available"* after install: [issue #14803](https://git
 
 ```
 ~/.claude/
-├── commands/                              # 11 grr commands
+├── commands/                              # 12 grr commands
 │   ├── bmad-grr-dev-story.md
 │   ├── bmad-grr-code-review.md
 │   ├── bmad-grr-review-checklist.md
@@ -330,8 +344,9 @@ If you see *"No LSP server available"* after install: [issue #14803](https://git
 │   ├── bmad-grr-quick-story.md
 │   ├── bmad-grr-design-pass.md
 │   ├── bmad-grr-qa-test.md
+│   ├── bmad-grr-design-handoff.md
 │   └── bmad-grr-customize.md              # applies grr-spec-validate gate to a BMAD project
-├── workflows/                             # 10 workflows
+├── workflows/                             # 11 workflows
 │   ├── dev-story/        (5 step files + checklist)
 │   ├── code-review/      (6 step files)
 │   ├── review-checklist/ (5 + 3 + 2 step files across modes)
@@ -341,7 +356,8 @@ If you see *"No LSP server available"* after install: [issue #14803](https://git
 │   ├── refine-story/     (5 step files)
 │   ├── quick-story/      (5 step files + story template)
 │   ├── design-pass/      (6 step files + 3 data files)
-│   └── qa-test/          (5 step files + 2 templates + 2 scripts + tests)
+│   ├── qa-test/          (5 step files + 2 templates + 2 scripts + tests)
+│   └── design-handoff/   (8 step files + 3 data files + mhtml converter script + test)
 └── skills/                                # 12 skills (11 superpowers + 1 grr-original)
     ├── test-driven-development/
     ├── systematic-debugging/
@@ -382,6 +398,9 @@ In any project with BMAD installed:
 
 # UI/UX design pass (pre-dev or live-fix)
 /bmad-grr-design-pass
+
+# PRD -> HTML UX/UI draft via Mobbin MCP + Claude Design handoff
+/bmad-grr-design-handoff
 
 # Stuck bug — systematic escalation-based debugging
 /bmad-grr-bug-hunt
@@ -590,6 +609,32 @@ step-04-story-wrapup ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
    ↓ (all done)
 step-05-final-report (END)
    │ [R] refine-story / [D] dev-story / [S] stop
+```
+
+### design-handoff
+
+```
+step-01-init                   [A] greenfield / [B] brownfield / [C] improvement-only → resolve has_prd/has_existing_screen
+   │                                  (neither PRD nor screen → delegate to quick-story, resume as [A] with its output)
+   ↓
+step-02-gap-scan (skip if !has_prd)   Read full PRD · Inline UX/UI gap-scan · [ASSUMPTION] tags · user confirms/corrects
+   │                                  → seeds ux-ui-guide-{date}.md (sections 1–3)
+   ↓
+step-03-design-systems          Ask user directly re: local design system (no file-hunting) · Claude Design project via DesignSync
+   │                                  → creates guide doc if Branch C (no step-02) · writes section 4
+   ↓
+step-04-brownfield-prep (skip if !has_existing_screen)   mhtml → html (bundled script) / html passthrough / image or url fallback
+   ↓
+step-05-mobbin-research         Mobbin MCP search per screen/flow · curated + user-confirmed references
+   │                                  → writes section 5
+   ↓
+step-06-compose-prompt          Read the guide doc · fill handoff-prompt-template FROM it · present as copy-paste block · save to disk
+   ↓
+   (user pastes prompt into claude.ai/design, pastes HTML draft back)
+   ↓
+step-07-receive-and-verify      Fresh sub-agent Review + Verify (Workflow tool) vs the guide doc (screens/design-system/assumptions)
+   ↓
+step-08-route (END)             Fix-prompts per finding · optional DesignSync push · logs Handoff Log (section 6) · status: draft/final · [Q] quick-story / [D] dev-story / [S] stop
 ```
 
 ## License
