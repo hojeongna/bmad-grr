@@ -2,6 +2,7 @@
 name: step-05-mobbin-research
 description: 'Research relevant reference patterns via Mobbin MCP for the actual screens at hand, present a curated (not flooded) selection, get user confirmation, append to the UX/UI Guide document'
 nextStepFile: './step-06-compose-prompt.md'
+nextStepPrescribe: './step-05b-reference-reaudit-and-prescribe.md'
 uxGuidePath: '{ux_guide_path}'
 ---
 
@@ -47,4 +48,6 @@ Fill Section 5 (Mobbin References) of `{uxGuidePath}` with the confirmed list (o
 
 ## Next
 
-Load and follow `{nextStepFile}`.
+If `mobbin_references` is non-empty and there are findings to prescribe against (any `ux_gaps`, brownfield screen issues from step-04/04b, or `user_concern` items) — which is the common case, especially in brownfield/improvement-only mode — load and follow `{nextStepPrescribe}`. A confirmed reference that never gets re-checked against the live screen or turned into a concrete fix is a citation, not a spec; step-05b is what turns "here's a similar pattern" into "here's exactly what to build."
+
+Skip straight to `{nextStepFile}` only when `mobbin_references` is empty (the `S` skip above) or this is a from-scratch greenfield PRD with no existing screen to re-audit against — there's nothing live to re-verify findings on yet.

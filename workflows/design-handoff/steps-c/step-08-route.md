@@ -9,6 +9,8 @@ uxGuidePath: '{ux_guide_path}'
 
 # Step 8 — Fix-Prompts, Design Sync, Route
 
+This is the tail end of the `[D]` (Claude Design) path from step-06/07. The `[C]` (direct implementation) path doesn't route here — step-07b's checklist-and-edit loop is its own closing point, since there's no external draft to Design-Sync-push and no separate fix-prompt to hand to a tool that already has the code in hand.
+
 ## Outcome
 
 Every surviving `conformance_findings` entry has a standalone, independently-pasteable fix-prompt. If a Claude Design project is attached, the user has been offered a Design Sync push of the approved draft. The user sees a final summary and picks what happens next.

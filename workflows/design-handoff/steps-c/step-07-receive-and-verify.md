@@ -3,9 +3,12 @@ name: step-07-receive-and-verify
 description: 'Intake the HTML draft(s) back from Claude Design, dispatch a fresh sub-agent Review+Verify pipeline against the UX/UI Guide document, collect surviving findings'
 nextStepFile: './step-08-route.md'
 uxGuidePath: '{ux_guide_path}'
+redesignSpecPath: '{redesign_spec_path}'
 ---
 
 # Step 7 — Receive & Verify the Draft
+
+This is the `[D]` (Claude Design) path from step-06 — it assumes an external draft is coming back to be checked. If the user instead picked `[C]` (their own scaffold, no external draft), this step doesn't apply; that path runs step-07b's own checklist loop instead.
 
 ## Outcome
 
@@ -21,7 +24,7 @@ Ask the user for the file path(s) (or inline pasted code) of what Claude Design 
 
 Call the **Workflow** tool — this is the same pattern this repo's `code-review` step-03 uses, and for the same reason: the agent that wrote the prompt is a bad judge of whether the result actually matches it. Two phases:
 
-- **Review** — one `agent()` per screen/file, each given: that screen's entry from `{uxGuidePath}` section 2, the relevant section 3 `[ASSUMPTION]` entries, section 4's design-system tokens (or the design system Claude Design proposed, if none existed locally), and the file content. Scope-locked: report only concrete mismatches (missing state, wrong IA, unaddressed assumption, off-system token/color, accessibility gap) with what's wrong and where — never a style opinion dressed as a requirement. If `has_prd` is false (improvement-only mode), section 3 is N/A — skip assumption checks and focus the review on design-system anchoring and internal consistency instead.
+- **Review** — one `agent()` per screen/file, each given: that screen's entry from `{redesignSpecPath}` (preferred, when it exists — it has the actual prescriptions to check against) or `{uxGuidePath}` section 2 otherwise, the relevant section 3 `[ASSUMPTION]` entries, section 4's design-system tokens (or the design system Claude Design proposed, if none existed locally), and the file content. Scope-locked: report only concrete mismatches (missing state, wrong IA, unaddressed assumption or open question, off-system token/color, accessibility gap, a prescription that was cited as done but doesn't actually match its named pattern) with what's wrong and where — never a style opinion dressed as a requirement. If `has_prd` is false (improvement-only mode), section 3 is N/A — skip assumption checks and focus the review on design-system anchoring, internal consistency, and prescription conformance instead.
 - **Verify** — distribute the candidate findings across `agent()` calls to confirm or refute each against the actual file content. Keep confirmed, drop refuted, surface uncertain.
 
 Store the surviving findings as `conformance_findings`, grouped by screen/file, each with the requirement it violates and a one-line description of the mismatch.

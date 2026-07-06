@@ -18,7 +18,19 @@ Generated and maintained by `design-handoff`. This document — not the PRD — 
 Target users: {{target_users}}
 Core goal: {{core_goal}}
 
+{{#if product_context_notes}}
+**Intentional design notes (confirmed with the user — do not treat these as bugs):** {{product_context_notes}}
+{{/if}}
+
 ## 2. Screens & Flows
+
+{{#if top_issues}}
+**Cross-cutting issues** (recur across 3+ screens — see each screen's own notes for the local instance):
+
+{{#each top_issues}}
+- {{issue}}
+{{/each}}
+{{/if}}
 
 {{#each screens}}
 ### {{name}}
@@ -56,6 +68,10 @@ No PRD for this run (improvement-only mode) — this section is N/A; see section
 {{#unless mobbin_references}}
 None selected for this run.
 {{/unless}}
+
+{{#if redesign_spec_path}}
+These references were re-verified live and rewritten into concrete prescriptions in `{{redesign_spec_path}}` (step-05b) — that document, not this list, is what step-06 renders the handoff prompt from.
+{{/if}}
 
 ## 6. Handoff Log
 

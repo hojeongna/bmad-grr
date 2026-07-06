@@ -12,7 +12,7 @@ implementationArtifacts: '{implementation_artifacts}'
 
 ## Outcome
 
-`has_prd` and `has_existing_screen` are both resolved (each true/false), along with `prd_or_story_path` (if `has_prd`), `screen_capture_path` + `screen_capture_kind` (if `has_existing_screen`), and any free-form `user_concern`. When neither a PRD nor an existing screen is available, this step delegates to `quick-story` and continues rather than dead-ending. The workflow routes to exactly one next step.
+`has_prd` and `has_existing_screen` are both resolved (each true/false), along with `prd_or_story_path` (if `has_prd`), `screen_capture_path` + `screen_capture_kind` (if `has_existing_screen`), `capture_scope` (`single`/`site`, if `has_existing_screen`), any free-form `user_concern`, and any `product_context_notes` the user flagged up front. When neither a PRD nor an existing screen is available, this step delegates to `quick-story` and continues rather than dead-ending. The workflow routes to exactly one next step.
 
 ## Approach
 
@@ -34,8 +34,11 @@ Otherwise greet the user by `{user_name}` in `{communication_language}` and ask 
 
 기존 화면 캡처 참고: 브라우저에서 Ctrl+S 로 "웹페이지, 단일 파일" 저장하면 .mhtml로 받을 수 있어요
 (Ctrl+C는 복사라서 화면 저장은 안 돼요 🙂). html 파일, 스크린샷, 그냥 URL도 다 괜찮아요.
+B/C를 고르셨다면: 화면 하나만 다듬을 건가요, 아니면 사이트 전체(여러 탭/페이지)를 다 볼 건가요?
 
 고민 있으시면 한 줄로 같이 알려주세요 (선택): "카드 레이아웃이 애매해" 같은 것도 OK.
+혹시 일부러 그렇게 만든 특이사항(테스트용 스위처, 샘플/더미 데이터, 특정 인물 전용 기능 등)이 있다면
+지금 미리 알려주시면 나중에 오판을 줄일 수 있어요 (선택).
 ```
 
 Halt for input.
@@ -47,6 +50,16 @@ Halt for input.
 - `[C]` → `has_prd = false`, `has_existing_screen = true`.
 
 `screen_capture_kind` from the supplied path/text: `.mhtml` extension → `mhtml`; `.html`/`.htm` → `html`; image extension or "스크린샷"/pasted image → `image`; starts with `http`/`/` → `url`.
+
+### Resolve `capture_scope` (when `has_existing_screen`)
+
+Default to `single` unless the user says otherwise — don't ask a second round-trip question for this alone; infer it from what they already said (e.g. "전체 사이트", "탭이 여러 개", a URL that's obviously one route among many) or take their direct answer to the bundled question above. If it's genuinely ambiguous and matters (the product clearly has multiple screens/routes but they only gave one), ask once before routing past step-03: "이 화면 하나만 다듬을까요, 사이트 전체(여러 탭)를 다 볼까요?"
+
+`capture_scope = 'site'` changes what step-04 does — it hands off to a full multi-screen live walkthrough (step-04b) instead of converting a single capture. Don't default to `site` just because the product has more than one screen; default to what the user actually asked for, and only widen scope on an explicit signal (theirs, not an assumption you're making on their behalf).
+
+### Capture `product_context_notes` (optional, when `has_existing_screen`)
+
+If the user volunteered anything in response to the "일부러 그렇게 만든 특이사항" prompt, store it verbatim as `product_context_notes` and carry it forward — step-04b and step-05b must read this before calling anything a bug. If they said nothing, leave it empty; don't press for it a second time here (a live walkthrough will surface real intentional-design surprises anyway — this question just gives the user a chance to save everyone the round-trip).
 
 ### Resolve `prd_or_story_path` (when `has_prd`)
 
@@ -62,7 +75,7 @@ After quick-story completes, if a new story key is available, set `prd_or_story_
 
 ### Route
 
-If `has_prd` → load and follow `{nextStepGapScan}` with `prd_or_story_path`, `has_existing_screen`, `screen_capture_path`, `screen_capture_kind`, and `user_concern` in context.
+If `has_prd` → load and follow `{nextStepGapScan}` with `prd_or_story_path`, `has_existing_screen`, `screen_capture_path`, `screen_capture_kind`, `capture_scope`, `product_context_notes`, and `user_concern` in context.
 
 Otherwise → load and follow `{nextStepDesignSystems}` with the same context (PRD-related fields absent), noting explicitly that this is improvement-only mode so step-03 onward must not assume a PRD exists.
 
