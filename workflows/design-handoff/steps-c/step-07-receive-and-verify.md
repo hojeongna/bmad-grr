@@ -18,7 +18,7 @@ The HTML draft(s) from Claude Design are collected, and a fresh sub-agent pipeli
 
 ### Collect the draft
 
-Ask the user for the file path(s) (or inline pasted code) of what Claude Design returned, plus any notes it gave about which `[ASSUMPTION]` items it resolved differently. Read every file in full.
+If `auto_draft_paths` is already populated (the `[A]` automated path from step-06c ran and saved the draft files itself), read those files directly — don't ask the user for paths they never manually received. Otherwise (the `[D]` manual path was used, so `auto_draft_paths` is empty), ask the user for the file path(s) (or inline pasted code) of what Claude Design returned, plus any notes it gave about which `[ASSUMPTION]` items it resolved differently. Either way, read every file in full.
 
 ### Dispatch via the Workflow tool
 

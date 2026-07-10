@@ -4,10 +4,12 @@ description: 'Render the handoff prompt — from the redesign spec when step-05b
 nextStepFile: './step-07-receive-and-verify.md'
 nextStepDirect: './step-07b-direct-implementation.md'
 nextStepReport: './step-06b-stakeholder-report.md'
+nextStepAuto: './step-06c-auto-claude-design.md'
 promptTemplate: '{prompt_template}'
 redesignSpecPath: '{redesign_spec_path}'
 uxGuidePath: '{ux_guide_path}'
 handoffOutputPath: '{handoff_output_path}'
+convertedScreensDir: '{converted_screens_dir}'
 ---
 
 # Step 6 — Compose the Handoff Prompt
@@ -29,7 +31,7 @@ Load `{promptTemplate}` (or, when rendering from the redesign spec, follow that 
 Show the fully composed prompt as one fenced block so it's a single copy action. Tell the user, in `{communication_language}`:
 
 - Paste it into the claude.ai/design chat for `{claude_design_project.name}` (if one was confirmed/created in step-03) — this keeps the design system it produces attached to that project.
-- If `converted_html_path`/`reference_image_path` (single screen) or per-screen files under `{converted_screens_dir}` (multi-screen) exist, attach the relevant file(s) alongside the pasted prompt.
+- If `converted_html_path`/`reference_image_path` (single screen) or per-screen files under `{convertedScreensDir}` (multi-screen) exist, attach the relevant file(s) alongside the pasted prompt.
 - If no Claude Design project was set up, paste it into a fresh claude.ai/design chat anyway — section 0 of the prompt handles that case.
 
 Save the prompt to `{handoffOutputPath}/prompt-{date}.md` so it survives a session break. Mention the source document too (`{redesignSpecPath}` or `{uxGuidePath}`) — it's the editable, durable version of everything the prompt just summarized.
@@ -42,6 +44,7 @@ Don't assume Claude Design is the only route — ask once:
 구현을 어떻게 진행할까요?
 
 [D] Claude Design에 붙여넣어 생성 (지금 저장한 프롬프트 그대로 사용)
+[A] Claude Design 자동 진행 (브라우저 자동화로 프롬프트 제출부터 결과 수집까지 대신 처리)
 [C] 이미 코드 스캐폴드가 있어요 — 직접(또는 저와 함께) 그 코드를 고쳐나갈게요
 [S] 지금은 여기까지 — 문서만 저장
 
@@ -53,6 +56,7 @@ Halt for input.
 ## Next
 
 - `[D]` → load and follow `{nextStepFile}` (step-07, the Claude-Design-draft verification path).
+- `[A]` → load and follow `{nextStepAuto}`.
 - `[C]` → load and follow `{nextStepDirect}` (step-07b, direct implementation against the user's own scaffold) — skip step-07 entirely, there's no external draft to receive.
 - `[S]` → stop here; the saved prompt/spec is enough to resume from later.
 - If the user separately asks for a stakeholder-facing report at any point (now or later), load and follow `{nextStepReport}` — it's independent of the D/C/S choice above and can run alongside or after either path.

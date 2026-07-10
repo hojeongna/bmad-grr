@@ -85,6 +85,7 @@ WORKFLOWS=(
   qa-test
   review-checklist
   design-handoff
+  loop
 )
 
 COMMANDS=(
@@ -99,6 +100,7 @@ COMMANDS=(
   bmad-grr-design-pass
   bmad-grr-qa-test
   bmad-grr-design-handoff
+  bmad-grr-loop
   bmad-grr-customize
 )
 
@@ -241,6 +243,7 @@ echo "  /bmad-grr-quick-story        - Lightweight pre-dev story (mini PRD + arc
 echo "  /bmad-grr-design-pass        - LLM-judgment UI/UX pass (pre-dev story enhance OR live screen audit)"
 echo "  /bmad-grr-qa-test            - Story/Epic-based browser QA via Chrome DevTools MCP"
 echo "  /bmad-grr-design-handoff     - PRD -> HTML UX/UI draft via Mobbin MCP + Claude Design handoff"
+echo "  /bmad-grr-loop               - Orchestrate idea-to-deploy: planning/design/architecture/epics/story loop/PR/deploy"
 echo "  /bmad-grr-customize          - Apply grr-spec-validate gate to a BMAD project (per-project)"
 echo ""
 echo "For PRD / Architecture / Epics / Story creation, use upstream BMAD workflows:"
