@@ -240,7 +240,7 @@ echo "  /bmad-grr-set-worktree       - Multi-repo monorepo-style workspace setup
 echo "  /bmad-grr-pr-create          - PR lifecycle management with split, merge tracking, and post-edit re-push"
 echo "  /bmad-grr-refine-story       - Story refinement after dev-story / QA / improvement requests"
 echo "  /bmad-grr-quick-story        - Lightweight pre-dev story (mini PRD + architecture + tasks) from zero"
-echo "  /bmad-grr-design-pass        - LLM-judgment UI/UX pass (pre-dev story enhance OR live screen audit)"
+echo "  /bmad-grr-design-pass        - Mockup fidelity check: HTML draft vs story doc (P) or running screen (L)"
 echo "  /bmad-grr-qa-test            - Story/Epic-based browser QA via Chrome DevTools MCP"
 echo "  /bmad-grr-design-handoff     - PRD -> HTML UX/UI draft via Mobbin MCP + Claude Design handoff"
 echo "  /bmad-grr-loop               - Orchestrate idea-to-deploy: planning/design/architecture/epics/story loop/PR/deploy"

@@ -70,7 +70,7 @@ A pragmatic UX-to-handoff broker. Read the PRD (or the live screens) like a desi
 ## Branch Distinction
 
 - `bmad-ux` runs full Discovery from zero to author `DESIGN.md`/`EXPERIENCE.md`, with its own external-tool handoff (default producer: Google Stitch).
-- `design-pass` audits an already-written story document or a live running screen and produces judgment-based improvement notes — no external generation tool, no HTML draft produced.
+- `design-pass` runs *after* this workflow, on its output: it renders the HTML draft produced here into a normalized DOM spec and checks whether the story document (pre-dev) or the running screen (post-dev) actually matches it. It has no opinion on whether the design is good — that judgment happens here.
 - **`design-handoff`** starts from a completed PRD (optionally plus a screen capture, one screen or a whole site) — or, when neither exists yet, delegates to `quick-story` first and continues from its output — gap-scans it for UX/UI completeness, re-verifies findings against Mobbin reference standards, and produces a prescriptive redesign spec that routes to Claude Design generation, direct implementation against an existing scaffold, and/or a stakeholder report, then verifies what comes back against it and closes the gap either via Design Sync or fix-prompts.
 
 ## Activation

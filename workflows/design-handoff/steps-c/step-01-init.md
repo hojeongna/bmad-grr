@@ -69,7 +69,7 @@ If they said "있어요" without a path, Glob `{prdGlob}` for candidates. Zero m
 
 ### Nothing to work with → delegate to quick-story
 
-If `has_prd = false` and `has_existing_screen = false` (mode `C` picked but no capture actually supplied, or genuinely nothing on hand), there's no anchor yet — but that's fixable, not a dead end. Tell the user briefly that this needs a lightweight story first, then load and follow `{quickStoryCommand}` with the user's intent (mirrors `design-pass`'s own quick-story delegation for the same situation).
+If `has_prd = false` and `has_existing_screen = false` (mode `C` picked but no capture actually supplied, or genuinely nothing on hand), there's no anchor yet — but that's fixable, not a dead end. Tell the user briefly that this needs a lightweight story first, then load and follow `{quickStoryCommand}` with the user's intent.
 
 After quick-story completes, if a new story key is available, set `prd_or_story_path = {implementationArtifacts}/{story_key}.md`, `has_prd = true`, and continue here as if `[A]` (greenfield) had been picked from the start — quick-story's mini-PRD stands in for a full PRD; step-02's gap-scan is exactly where its thinner spots surface. If the session ends before quick-story finishes, tell the user how to re-run `design-handoff` pointing at the new story key, and end this workflow.
 

@@ -48,7 +48,7 @@ Strict checklist-based code review — no subjective judgment.
 
 Three-mode workflow producing checklists for `code-review`.
 
-- **Combinable modes** — `[A]` project analysis · `[P]` PR review mining · `[I]` interactive Q&A · `[U]` universal best practices · `[S]` security (OWASP/STRIDE inline) · `[R]` structural (SQL safety, race, LLM trust boundary, coupling) · `[Au]` audit (a11y / perf / theming / responsive — auto when `ui-ux-pro-max/audit` is installed).
+- **Combinable modes** — `[A]` project analysis · `[P]` PR review mining · `[I]` interactive Q&A · `[U]` universal best practices · `[S]` security (OWASP/STRIDE inline) · `[R]` structural (SQL safety, race, LLM trust boundary, coupling) · `[Au]` audit (a11y / perf / theming / responsive — WCAG AA refs, Core Web Vitals thresholds, token usage, breakpoints; generated inline).
 - **Parallel agents** for automatic modes (one per mode).
 - **Direct compatibility** — output is structured for immediate `code-review` use.
 - **Three step folders** — `steps-c/` create, `steps-v/` validate, `steps-e/` edit.
@@ -98,7 +98,7 @@ Bridge dev-story runs when implementation results differ from expectations.
 - **Visual verification** (optional) — Chrome DevTools MCP / Playwright MCP browser inspection.
 - **Modify vs create** — per-story decision with explicit user checkpoint.
 - **Receiving-code-review discipline** — when the situation is QA / reviewer feedback, `receiving-code-review` skill governs handling: verify before agreeing, push back with technical reasoning, no performative agreement.
-- **dev-story / design-pass chaining** — `[D]` chain into dev-story, `[U]` design-pass Branch A first for UI stories, `[S]` end.
+- **dev-story / design-pass chaining** — `[D]` chain into dev-story, `[U]` design-pass Mode P first when an HTML mockup exists to check the story against, `[S]` end.
 
 ### 8. `quick-story` — Lightweight pre-dev story from zero
 
@@ -113,19 +113,23 @@ No upstream PRD / architecture / epics required. For fast solo work on a single 
 - **TDD-aware testing standards** — `test-driven-development` skill informs the testing section.
 - **dev-story-compatible output** — chain `[D]` in the same session.
 
-### 9. `design-pass` — LLM-judgment UI/UX pass (two branches)
+### 9. `design-pass` — Mockup fidelity verification
 
-Two-branch workflow using inline audit checklists + auto-dispatched ui-ux-pro-max skills.
+Checks whether what got built actually matches the HTML draft `design-handoff` produced. Runs standalone at any point after a handoff.
 
-- **Branch A (Pre-dev)** — read full story document, identify UX risks from actual content, enhance with "UX Considerations" section.
-- **Branch B (Live-fix)** — audit running screen via Chrome DevTools MCP (screenshots / console / network), produce improvement document with priorities.
-- **Branch C** — no story yet → delegate to `quick-story`, return as Branch A.
-- **Inline audit framework** (replaces gstack/plan-design-review + gstack/design-review) — visual hierarchy, states (empty/error/loading), AI-slop patterns, accessibility, edge cases, motion/feedback, micro-copy, responsive, token drift.
-- **Inline critique scoring** (Visual Hierarchy / Information Architecture / Cognitive Load / Emotional Resonance, 0-10).
-- **15+ ui-ux-pro-max skills auto-dispatched** by judgment from actual content (NOT keyword matching) — `polish`, `normalize`, `arrange`, `distill`, `typeset`, `colorize`, `bolder`, `quieter`, `delight`, `animate`, `overdrive`, `adapt`, `harden`, `clarify`, `onboard`, `critique`.
-- **User confirmation** — every selection presented with reasoning tied to specific source (AC #N / screenshot / user concern).
-- **Branch B save targets** — new `dp-{N}-{slug}` story / append to existing via refine-story / file only.
-- **Routing** — Branch A: `[D]` dev-story / `[S]` save. Branch B: `[D]` / `[R]` (refine-story) / `[S]` per save target.
+- **Mockup auto-discovery** — reads `design-handoff`'s own output first (`auto-draft/`, `converted/`, `redesign-spec-*.md`) before asking for paths. No mockup anywhere → offers `design-handoff` rather than falling back to generic design critique.
+- **Render, never read** — both sides are extracted from a live browser render. Source-reading is explicitly rejected: computed tokens, cascade resolution, and behavior are exactly what source can't show, and source-only comparison was the failure mode this workflow was rewritten to fix.
+- **Deterministic extractor** (`scripts/extract-dom-spec.js`) — one script pasted into both sides via claude-in-chrome `javascript_tool`, so the two specs are produced by identical code instead of two agents' judgment. Emits the 7 axes as JSON with normalization applied at record time (hex colors, integer px, unitless line-height, expanded shorthands), plus a readiness gate (`document.fonts.ready` + MutationObserver quiet + animation settle, never a fixed sleep), a scroll sweep for lazy content, and a fingerprint projection for interaction deltas.
+- **Runs on the user's real Chrome** — claude-in-chrome throughout, so an authenticated app is reachable without anyone handling credentials. Per-screen tabs fan out in parallel; the S7 responsive pass is forced sequential because `resize_window` hits the shared window. `loading` / `error` states are reached by patching `fetch`/`XHR` from page context (the app's own branches render — no DOM injection), with the genuinely unreachable cases recorded as `not reached` rather than passed off as checked.
+- **7-axis DOM spec** (`dom-spec-schema.md`) — structure tree (with DOM-vs-visual order, row-banded so baseline-aligned inline elements don't false-positive), component inventory by rendered variant, computed tokens plus CSS custom properties at source, verbatim copy, interaction traces, states, responsive at 375/768/1440. Anchors are landmark-scoped accessible names, so they survive a Tailwind→CSS-modules rewrite that would break any selector.
+- **Live capture protocol** (`live-capture-protocol.md`) — the rules that make a running app comparable to a static file: ready-gate before extracting (halt on unresolved fonts), sweep for lazy/virtualized content, explicit noise exclusion (framework dev overlays filtered by default, app-specific banners passed in), template-not-instance comparison so 47 real rows vs 3 placeholder rows is never a finding, stated permission level, states reached by driving the app and never by injecting DOM, reload-between-traces resets, and destructive-action skipping with the skipped list reported.
+- **Mode P (pre-dev)** — mockup spec vs story document. Walks the *spec* asking "does the story cover this?", never the reverse. Uncovered elements/interactions promote to AC **and** Task (both halves); fixed values go to Dev Notes, not AC.
+- **Mode L (post-dev)** — live DOM extracted through the identical schema and diffed 1:1, then every finding adversarially re-verified on the live page by fresh sub-agents (confirmed / refuted / uncertain — refute by default).
+- **Same-agent rule** — one screen's mockup spec and its live spec are extracted by the same agent, back to back. Two agents extract at different granularity and the diff becomes noise.
+- **Capture parallel, edit sequential** — read-only extraction fans out one agent per screen with its own tab; fix edits run one at a time, since shared token/component files collide.
+- **Fidelity rubric** (`fidelity-rubric.md`) — F0 missing capability / F1 structural / F2 token drift / F3 copy / F4 within tolerance, with numeric thresholds (colors exact, font-size ±1px, spacing ±2px-or-±10%). Asymmetric by design: mockup-only findings classify normally, implementation-only findings drop a level and are tagged `[ADDED]`, static-mockup dead buttons are never a finding.
+- **Routing** — F2/F3 in ≤2 files → fix now; F0/F1 or 3+ files or new component → `quick-story`; F4 / `[ADDED]` / mockup defects → report only. One batch approval, not per-finding.
+- **Re-extraction as regression gate** — after each screen's fixes, that screen is re-extracted and re-diffed. An unconfirmed fix is reported as unconfirmed, not as done.
 
 ### 10. `qa-test` — Story/Epic browser QA via Chrome DevTools
 
@@ -146,7 +150,7 @@ Spec-first QA testing in a real browser.
 
 Takes a completed PRD (optionally plus an existing screen) and turns it into a detailed handoff prompt for Claude Design (claude.ai/design), informed by Mobbin MCP reference research.
 
-- **Three entry modes** — Greenfield (PRD only), Brownfield (PRD + existing screen), Improvement-only (existing screen, no PRD). If neither a PRD nor an existing screen is available, delegates to `quick-story` first (same pattern as `design-pass`) and continues as Greenfield from its output.
+- **Three entry modes** — Greenfield (PRD only), Brownfield (PRD + existing screen), Improvement-only (existing screen, no PRD). If neither a PRD nor an existing screen is available, delegates to `quick-story` first and continues as Greenfield from its output.
 - **Inline PRD UX/UI gap-scan** — screen inventory, IA, per-interaction states, responsive, accessibility, microcopy, design-system anchoring; unresolved gaps tagged `[ASSUMPTION]` (same convention as `bmad-ux`) rather than blocking. **Never edits the PRD** — findings go into a standalone UX/UI Guide document instead.
 - **Persisted UX/UI Guide document** (`ux-ui-guide-{date}.md`) — a living doc this workflow builds step by step (product context, screens & flows, gap-scan, design system, Mobbin references, handoff log), the same "living document" treatment `bmad-ux` gives `DESIGN.md`/`EXPERIENCE.md`. The handoff prompt is rendered *from* this doc, not from scratch — it stays useful on its own, editable, and resumable across runs.
 - **Brownfield capture handling** — accepts `.mhtml` (browser "Webpage, Single File" save), `.html`, screenshot, or URL. `.mhtml` is converted to a clean, self-contained `.html` via a bundled deterministic script (`mhtml_to_html.py`).
@@ -355,7 +359,7 @@ If you see *"No LSP server available"* after install: [issue #14803](https://git
 │   ├── pr-create/        (7 step files including step-04b-update-pr)
 │   ├── refine-story/     (5 step files)
 │   ├── quick-story/      (5 step files + story template)
-│   ├── design-pass/      (6 step files + 3 data files)
+│   ├── design-pass/      (5 step files + 4 data files + DOM extractor script)
 │   ├── qa-test/          (5 step files + 2 templates + 2 scripts + tests)
 │   └── design-handoff/   (8 step files + 3 data files + mhtml converter script + test)
 └── skills/                                # 12 skills (11 superpowers + 1 grr-original)
@@ -396,7 +400,7 @@ In any project with BMAD installed:
 # Browser-verified QA testing
 /bmad-grr-qa-test
 
-# UI/UX design pass (pre-dev or live-fix)
+# Mockup fidelity check (story doc or live screen vs the HTML draft)
 /bmad-grr-design-pass
 
 # PRD -> HTML UX/UI draft via Mobbin MCP + Claude Design handoff
@@ -558,7 +562,7 @@ step-03-analyze               Gap analysis (parallel for epic) · Modify vs crea
    ↓
 step-04-execute               Update AC / Tasks (reset [ ]) / Dev Notes · Sprint-status
    ↓
-step-05-complete (END)        [D] dev-story / [U] design-pass first / [S] save
+step-05-complete (END)        [D] dev-story / [U] design-pass Mode P (if mockup exists) / [S] save
 ```
 
 ### quick-story
@@ -572,21 +576,20 @@ step-03-architect             5-field Mini Architecture · Inline 4-point Impact
    ↓
 step-04-compose               Inline 4-Q Mini PRD · Inline Premise Challenge · Render template · Write file · Sprint-status
    ↓
-step-05-route (END)           [D] dev-story / [U] design-pass first / [S] save
+step-05-route (END)           [D] dev-story / [U] design-pass Mode P (if mockup exists) / [S] save
 ```
 
 ### design-pass
 
 ```
-step-01-init                  Branch decision: [A] pre-dev / [B] live-fix / [C] no-story → quick-story
+step-01-init                  Find mockup (design-handoff output first) · Mode [P] doc / [L] live · Screen map · Browser MCP
    ↓
-[A] step-02a-plan-audit       Read full story · Inline plan-audit framework · Auto-dispatch ui-ux-pro-max
-[B] step-02b-live-audit       Verify server · Chrome DevTools capture · Inline live-audit framework + critique scoring · Auto-dispatch
+step-02-mockup-spec           Serve mockups · 1 agent per screen (parallel, own tab) · inject extractor → ready → sweep → extract
    ↓
-[A] step-03a-enhance-doc      Compose UX Considerations section · Insert before Dev Agent Record
-[B] step-03b-document-fix     Compose improvement doc · Save target [N/A/S] · Sprint-status (when N)
+[P] step-03p-doc-diff         Walk spec vs story AC/Tasks/Dev Notes · Promote uncovered → AC + Task · Approve · Edit-insert
+[L] step-03l-live-diff        Fix capture conditions (env/role/noise/data) · same agent extracts live side · 1:1 diff · Adversarial re-verify · Classify + map to source
    ↓
-step-04-route (END)           [D] dev-story / [R] refine-story (B+A only) / [S] save
+step-04-route (END)           One batch approval · Fix sequentially · Re-extract as regression gate · quick-story handoff · Report
 ```
 
 ### qa-test

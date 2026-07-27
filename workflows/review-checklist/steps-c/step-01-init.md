@@ -26,7 +26,7 @@ Present the mode catalog. Modes can be combined (comma-separated):
 - `[U]` Universal — best practices for the declared tech stack
 - `[S]` Security — OWASP/STRIDE-flavored items generated inline
 - `[R]` Structural — pre-landing structural items generated inline
-- `[Au]` Audit (a11y / performance / theming / responsive) — auto-included when ui-ux-pro-max `audit` skill is installed
+- `[Au]` Audit (a11y / performance / theming / responsive) — generated inline
 
 Halt for input. Examples: `A,U,S` or `A,P,I,U,S,R`. Halt with no proceed if zero modes are selected.
 
@@ -38,8 +38,7 @@ For each selected mode, collect what it needs:
 - **P** — GitHub repo (`owner/repo`); PR range (e.g., "last 20", "last 3 months").
 - **U** — tech stack (e.g., "React, TypeScript, Next.js, Tailwind").
 - **I** — no input here (handled in step-03).
-- **S, R** — no extra input beyond the tech stack already provided for `U` (or asked separately if `U` wasn't selected).
-- **Au** — auto-detected from `auditSkill` presence; no extra input required.
+- **S, R, Au** — no extra input beyond the tech stack already provided for `U` (or asked separately if `U` wasn't selected).
 
 ### Convention document discovery (if A or U is selected)
 

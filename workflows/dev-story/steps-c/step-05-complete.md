@@ -4,6 +4,9 @@ description: 'Gather evidence, dispatch a fresh sub-agent to verify Definition o
 checklistFile: '~/.claude/workflows/dev-story/data/checklist.md'
 finishingBranchSkill: '~/.claude/skills/finishing-a-development-branch/SKILL.md'
 verificationBeforeCompletion: '~/.claude/skills/verification-before-completion/SKILL.md'
+codeReviewCommand: '{project-root}/bmad-grr/commands/bmad-grr-code-review.md'
+designPassCommand: '{project-root}/bmad-grr/commands/bmad-grr-design-pass.md'
+handoffOutputPath: '{output_folder}/design-handoff'
 ---
 
 # Step 5 — Complete
@@ -118,8 +121,15 @@ Tell the user, in `{communication_language}`:
 - Status now `review`
 - BDD scenarios authored and passing (count)
 - Files changed (count + summary)
-- Recommended next actions: review the diff, run `code-review` (ideally with a different model), and if UI was touched, consider `bmad-grr-design-pass` on the live result
 
 Tailor explanation depth to `{user_skill_level}`. Offer to walk through anything that needs explaining.
 
-End the workflow.
+### Offer routing
+
+Halt for input:
+
+- `[C]` Run `code-review` now — load `{codeReviewCommand}`. Recommended, and ideally with a different model than the one that wrote the code.
+- `[U]` Run `design-pass` Mode L — check the running screen against the HTML mockup it was built from. Offer this **only** when the story touched UI **and** a mockup actually exists (look for `{handoffOutputPath}/auto-draft/*.html` or `converted/*.html`); without a mockup there's nothing to compare against, so don't show the option at all.
+- `[S]` Stop — the story is at `review` and sprint tracking is updated.
+
+Execute the choice by loading the corresponding command file, passing the story path (and, for `U`, the mockup path and the app URL). On `S`, end the workflow.

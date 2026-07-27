@@ -1,6 +1,6 @@
 ---
 name: review-checklist
-description: 'Generate a code review checklist for the code-review workflow. Modes (combinable): project analysis, PR review mining, interactive Q&A, universal best practices, security, structural, audit (when ui-ux-pro-max is installed). Use when the user says "create review checklist" or "generate checklist for code review"'
+description: 'Generate a code review checklist for the code-review workflow. Modes (combinable): project analysis, PR review mining, interactive Q&A, universal best practices, security, structural, audit. Use when the user says "create review checklist" or "generate checklist for code review"'
 web_bundle: true
 
 # Critical variables from config
@@ -16,9 +16,6 @@ project_context: "**/project-context.md"
 
 # Required external skill (superpowers — bundled with bmad-grr)
 parallelAgentsSkill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
-
-# ui-ux-pro-max plugin skill — auto-enabled if installed (NOT gstack)
-auditSkill: '~/.claude/skills/audit/SKILL.md'
 ---
 
 # Review Checklist
@@ -33,7 +30,7 @@ Generate a comprehensive code-review checklist for use with the `code-review` wo
 - **Universal (U)** — generic best practices for the declared tech stack.
 - **Security (S)** — OWASP/STRIDE-flavored security checklist (always available, generated inline from native knowledge).
 - **Structural (R)** — pre-landing structural review items (always available, generated inline).
-- **Audit (Au)** — accessibility, performance, theming, responsive (auto-enabled if ui-ux-pro-max `audit` skill is installed).
+- **Audit (Au)** — accessibility, performance, theming, responsive (always available, generated inline).
 
 ## Your Role
 

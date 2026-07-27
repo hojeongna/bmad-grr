@@ -1,6 +1,8 @@
 ---
 name: step-06-complete
-description: 'Update story/sprint status if applicable, reflect changes back into story docs, present summary'
+description: 'Update story/sprint status if applicable, reflect changes back into story docs, present summary, offer design-pass routing when UI was touched'
+designPassCommand: '{project-root}/bmad-grr/commands/bmad-grr-design-pass.md'
+handoffOutputPath: '{output_folder}/design-handoff'
 ---
 
 # Step 6 — Complete
@@ -34,6 +36,15 @@ Tight summary in `{communication_language}`:
 - Violations found / fixed
 - Checklist used
 - Story status (if updated)
-- Suggested next steps: review and test the modified code; update the checklist if new patterns emerged; if UI was touched, consider running `bmad-grr-design-pass` on the live result.
+- Suggested next steps: review and test the modified code; update the checklist if new patterns emerged.
+
+### Offer routing
+
+If the review touched UI **and** a mockup exists (look for `{handoffOutputPath}/auto-draft/*.html` or `converted/*.html`), halt for input:
+
+- `[U]` Run `design-pass` Mode L — check the running screen against the HTML mockup it was built from. Review fixes can drift a screen away from its mockup, and that drift is invisible to a checklist-based review.
+- `[S]` Stop.
+
+On `U`, load and follow `{designPassCommand}` with the mockup path, the app URL, and the story path (when known). Don't show this menu at all when the review was non-UI or no mockup exists — there's nothing to compare against, and offering it anyway trains the user to skip the prompt.
 
 End the workflow.

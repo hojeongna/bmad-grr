@@ -5,9 +5,6 @@ nextStepFile: './step-03-interactive.md'
 skipToIntegrate: './step-04-integrate.md'
 outputFile: '{output_folder}/checklist-{project_name}.md'
 analysisCategories: '../data/analysis-categories.md'
-
-# ui-ux-pro-max plugin skill (NOT gstack)
-auditSkill: '~/.claude/skills/audit/SKILL.md'
 ---
 
 # Step 2 — Parallel Execute
@@ -43,7 +40,7 @@ Common rules across all agents: every item must be objectively verifiable (pass/
 
 **Agent R — Structural** (when R selected): tech stack. Instruction: produce a dedicated **Structural** category for issues that are hard to catch line-by-line — SQL safety; race conditions; LLM trust-boundary violations; conditional side effects spanning multiple files; coupling and layering violations; dependency inversion; null-propagation pitfalls; error-rescue maps. Each item must be objectively verifiable by a reviewer. Focus on items that catch real bugs in production, not style. Produce only the structured `## Structural` category.
 
-**Agent Au — Audit (auto-enabled when `auditSkill` is installed)**: tech stack. Load `{auditSkill}` in full and apply its accessibility / performance / theming / responsive / anti-pattern framework. Produce dedicated categories: `## Accessibility` (WCAG 2.x AA references), `## Performance` (Core Web Vitals, bundle size, rendering — measurable thresholds where possible), `## Theming` (design-token consistency), `## Responsive` (breakpoints, touch targets). Skip silently if `auditSkill` doesn't exist.
+**Agent Au — Audit** (when Au selected): tech stack. Instruction: produce four dedicated categories for front-end quality that line-by-line review reliably misses — `## Accessibility` (keyboard reachability and focus order, visible focus indicators, ARIA roles on dynamic UI, form labeling, contrast ratios, motion-reduction preferences — cite the WCAG 2.x AA criterion each item maps to); `## Performance` (Core Web Vitals with numeric thresholds, bundle and asset budgets, render-blocking resources, list virtualization, image formats and dimensions); `## Theming` (design-token usage over hard-coded values, light/dark parity, semantic color roles); `## Responsive` (declared breakpoints actually handled, touch targets ≥ 44px, no horizontal overflow, text reflow at 320px). Each item must be objectively verifiable — by reading code, running a specific command, or checking a stated numeric threshold. Skip any of the four categories that don't apply to the stack.
 
 ### Collect
 

@@ -56,7 +56,7 @@ UX/UI 가이드: {ux_guide_path}
 
 - `[Q]` Run `quick-story` now — wrap this UI work into a lightweight story before implementation (recommended when there's no PRD-derived story yet).
 - `[D]` Run `dev-story` now — implement directly, if a story already exists that this handoff was meant to inform.
-- `[U]` Note that `design-pass` is the right next stop once this is actually built and running (live-screen audit) — not something to chain into immediately from a static HTML draft.
+- `[U]` Note that `design-pass` is what later checks whether the draft was actually built as drawn — Mode P against the story document before implementation, Mode L against the running screen after it. It reads the draft files this run just produced, so nothing needs re-supplying; it just needs something to compare them against, which doesn't exist yet at this point.
 - `[S]` Stop — everything is saved; resume anytime by pointing a future `design-handoff` run at the same `{handoff_output_path}` folder.
 
 Halt for input. Execute the choice by loading the corresponding command file (`{quickStoryCommand}` / `{devStoryCommand}`), passing the draft screens and any staged story context. On `U` or `S`, just tell the user what's saved and end the workflow.
