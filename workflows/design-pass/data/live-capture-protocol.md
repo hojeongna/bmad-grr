@@ -23,8 +23,9 @@ It returns a report. Act on it:
 - `fontsReady: false` → the font stack never resolved. **Stop.** Every typography row is now measuring a fallback, and the whole S3 comparison is invalid.
 - `fallbackFonts: [...]` non-empty → those families are rendering as fallbacks. Record them in the spec's meta and say so in the report; a family that didn't load makes the implementation look wrong when it isn't.
 - `quiet: false` → the DOM never stopped mutating within the timeout. Usually a polling widget, a live clock, or an animation loop. Identify it, add it to `noiseSelectors`, and re-run — don't extract over a moving target.
+- `visibility: "hidden"` / `hasFocus: false` / `rafFired: false` → **expected, not a problem.** A tab driven by an agent is backgrounded, so `requestAnimationFrame` never fires. The gate falls through on a timer instead of hanging, which is the whole reason those three fields are reported. What it *does* mean: anything that only runs on a frame callback may not have run, and `:focus-visible` cannot be observed live — the pseudo-state axis reads the rules out of the stylesheets rather than trying to trigger them.
 
-Re-inject the script after every navigation and after every reload. `window.__grrSpec` does not survive a page load.
+Re-inject the script after every navigation and after every reload. `window.__grrSpec` does not survive a page load. Never put a reload and an extraction in the same `javascript_tool` call — the evaluation context dies mid-call and the tool returns "Inspected target navigated or closed".
 
 ## 2. Sweep before extracting
 
@@ -72,6 +73,29 @@ A full-access account makes role-gated differences invisible, and a restricted o
 If the app has visibly different views per role (an admin console, a "view as" switcher, a restricted item), capture the screens where that matters at more than one permission level and say which level each spec came from. A single-permission pass is a known blind spot — the same one `design-handoff` step-04b:35 already calls out — and it must not stand as the final word on anything permission-sensitive.
 
 Record the role in spec meta. A spec without a stated role is not comparable to anything.
+
+## 5.1 Assert the app's own view state before extracting anything
+
+A route is not a screen. Modern apps persist view state — a table/card toggle, a density or
+font-size step, a collapsed sidebar, an expanded row, a saved filter — in `localStorage`, and it
+survives reloads, new tabs, and the responsive iframes.
+
+This is not hypothetical. A mockup drawn for a table view was compared against a route that, on
+a later day, was sitting in card view; a run that didn't check would have diffed a table spec
+against a card screen and reported the entire screen as missing. A separate capture recorded a
+cell font at step 2/5 (12px) when the product default is 3/5 (13px), which turned a 1px
+difference into a 2px one and nearly promoted it to a real finding.
+
+Before the first extraction, for each screen:
+
+1. **Read the toggles.** `[role=radio]`, `[role=tab]`, `aria-checked` / `aria-selected` /
+   `aria-expanded`, and anything in `localStorage` whose key names a view or a preference.
+2. **Say which state the mockup depicts** and set the app to it — through the app's own
+   controls, never by writing to `localStorage` behind its back.
+3. **Record the asserted state in spec meta**, and re-assert it inside `responsive()`'s
+   `prepare` callback, since each iframe is a fresh app instance reading the same storage.
+4. If the state can't be reached (the toggle needs data that isn't there), **halt that screen**
+   and say so. A diff of two different views is not a partial result; it is a wrong one.
 
 ## 6. Reaching states (S6)
 
@@ -143,13 +167,44 @@ Set differences over the fingerprint projection — never two full DOM dumps. A 
 
 Live outcomes are richer than a mockup's. Record the specific one: `modal-open`, `drawer-open`, `expand`, `navigate(route)`, `state-change`, `toast`, `validation-error`, `async-load`, `optimistic-then-settle`, `none`, `not-reachable(why)`.
 
-## 8. Responsive (S7) — and why it can't be parallelized
+## 8. Responsive (S7) — iframes, not window resizing
 
-Re-run `ready()` → `sweep()` → `extract()` at 375 / 768 / 1440. Do not resize and re-extract without re-running the gate: a resize retriggers media queries, re-lays out, and often refetches.
+```
+await window.__grrSpec.responsive([375, 768, 1440], { noiseSelectors, prepare })
+```
 
-**`resize_window` resizes the window, and every tab `tabs_create_mcp` made shares one.** Resizing for one screen changes the viewport under every other tab in the group. So S1–S6 fan out in parallel across per-screen tabs, and then S7 walks screens **one at a time**. A parallel S7 pass silently records each screen at whatever width some other agent last set, and the resulting breakpoint findings are fiction.
+**Never use `resize_window` for this.** Verified: it returns `"Successfully resized window ... to
+1024x800 pixels"` and then `innerWidth` is still 1920. Asked again for 700x600, same success
+string, same 1920. A maximized window silently ignores it, and nothing in the return value says
+so — which is why S7 was reported as "미측정" on runs that believed they had measured it.
 
-Record only what changes from the 1440 baseline. Overflow, clipped text, and touch targets under 44px are recorded on both sides — a mockup that breaks at 375px is a mockup defect, not something to hold the implementation to.
+`responsive()` loads the same URL into a same-origin iframe at each width. Verified on a real
+authenticated production route: `innerWidth` is exactly the requested width, media queries
+evaluate against **the iframe's** viewport (`(max-width:768px)` true at 375, false at 1440),
+computed styles flip accordingly, geometry measures inside it, and the parent window is
+untouched at 1920.
+
+Three consequences:
+
+- **S7 parallelizes now.** The old rule — fan out S1–S6, then walk S7 one screen at a time —
+  existed only because `resize_window` hit the shared window. It doesn't apply; drop it.
+- **Capture both sides through iframes at the same fixed width.** Then the viewport is identical
+  by construction instead of by luck, and `@doc viewport` stops appearing in every diff.
+- **The iframe inherits cookies, session and `localStorage` from the parent origin.** That is
+  what makes an authenticated route reachable. It also means every persisted UI preference comes
+  along — see §5.1. Assert that state via `opts.prepare(win, doc)`; never assume it.
+
+The iframe is positioned on-screen and on top on purpose. An off-screen iframe suppresses
+`IntersectionObserver` in Chrome, so lazy content never loads and a narrow viewport reads as
+half-empty. The capture tab is dedicated to this, so covering it briefly costs nothing.
+
+**When framing is refused** — `X-Frame-Options` or `CSP frame-ancestors` — `responsive()` returns
+`{ width, error }` for that width instead of a spec. Record S7 as `not measurable: framing
+refused`. Do not substitute a window resize; it will report success and measure nothing.
+
+Record only what changes from the 1440 baseline. Overflow, clipped text, and touch targets under
+44px are recorded on both sides — a mockup that breaks at 375px is a mockup defect, not something
+to hold the implementation to.
 
 ## 9. Meta that must be in every live spec
 
@@ -165,6 +220,31 @@ Without these, the spec is not comparable and the diff can't be trusted:
 | `readyReport` | The `ready()` return value verbatim |
 | `sweepPasses` | How far the sweep got |
 | `env` | dev / staging / prod, and whether it's a throwaway account |
+
+## 9.1 The spec goes to disk, not through the agent
+
+```
+await window.__grrSpec.upload('http://localhost:{port}', '{slug}.live.tsv', window.__grrSpec.tsv(spec))
+```
+
+A real screen's record dump is on the order of half a megabyte — a production route measured
+5,145 records / 8,328 lines / 442 KB. Returning that through a tool result puts every byte into
+the agent's context, and an agent holding two of those is back to eyeballing, which is the defect
+this workflow was rewritten to remove. `spec-server.py` accepts the POST and writes the file;
+`diff` compares two files; only the differences are ever read.
+
+Verified from an https production origin to `http://localhost`: Chrome exempts localhost from
+mixed-content blocking and the server sends permissive CORS, so the upload succeeds from the
+application's own origin. The server binds to 127.0.0.1 and refuses any name outside
+`[A-Za-z0-9._-]`, which is what makes an open CORS policy safe here.
+
+**Never return a page-derived name as an object KEY.** The claude-in-chrome result filter
+redacts values under keys that look sensitive: a CSS custom property named `--media-token` comes
+back as `"[BLOCKED: Sensitive key]"` while `--brand` passes. Renaming the key doesn't help — the
+substring is what triggers it. Array pairs and TSV lines pass through untouched, which is why the
+extractor emits `[name, value]` triples everywhere. A design system named `--token-*` would
+otherwise vanish from the spec silently, and the report would state a variable count that is
+simply false.
 
 ## 10. Map findings back to source while the page is still open
 

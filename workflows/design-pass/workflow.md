@@ -16,6 +16,7 @@ live_capture_protocol: "~/.claude/workflows/design-pass/data/live-capture-protoc
 fidelity_rubric: "~/.claude/workflows/design-pass/data/fidelity-rubric.md"
 gap_report_template: "~/.claude/workflows/design-pass/data/gap-report-template.md"
 extractor: "~/.claude/workflows/design-pass/scripts/extract-dom-spec.js"
+spec_server: "~/.claude/workflows/design-pass/scripts/spec-server.py"
 
 # Story and sprint references
 planning_artifacts: "{config_source}:planning_artifacts"
@@ -50,16 +51,37 @@ design_handoff_command: "{project-root}/bmad-grr/commands/bmad-grr-design-handof
 #   user's real Chrome, which is what makes an authenticated app reachable without anyone handling
 #   credentials. Load the tools via ToolSearch at first run; call tabs_context_mcp before anything
 #   else, and never reuse a tab id from a prior session.
-# - Three claude-in-chrome facts this workflow is built around: the extractor must be PASTED into
-#   javascript_tool rather than added as a <script src> tag (extension-injected script ignores page
-#   CSP; a page-context tag does not); javascript_tool has REPL semantics, so each call ends in the
-#   expression to return and a top-level `return` is a syntax error; and resize_window resizes the
-#   shared window, so the S7 responsive pass must run sequentially while S1-S6 fan out in parallel.
+# - claude-in-chrome facts this workflow is built around, all verified against a live target rather
+#   than assumed: the extractor is injected by fetching it from the spec server and eval-ing it
+#   (Chrome exempts localhost from mixed-content blocking, the server sends permissive CORS, and
+#   neither eval nor Function was restricted on a real production origin) with pasting the contents
+#   as the CSP fallback — a <script src> tag added from page context does get blocked, so never use
+#   one; javascript_tool has REPL semantics, so each call ends in the expression to return and a
+#   top-level `return` is a syntax error; a navigation or reload in the same call as an extraction
+#   kills the evaluation context mid-call; and an agent-driven tab is backgrounded, so
+#   requestAnimationFrame never fires and any readiness gate awaiting a frame hangs forever.
+# - resize_window does not work here. It returns "Successfully resized window ... to 1024x800
+#   pixels" and leaves innerWidth at 1920 on a maximized window, twice, silently. The responsive
+#   pass runs through same-origin iframes instead (__grrSpec.responsive), which set a real viewport,
+#   flip media queries, inherit the authenticated session, and leave the parent window alone — so S7
+#   parallelizes with everything else rather than having to walk screens one at a time.
+# - The spec never passes through the agent's context. A production route measures ~5,100 records /
+#   440 KB; pages POST their own TSV to scripts/spec-server.py and findings come from a mechanical
+#   `diff` of two files. An agent that reads two specs and reports what it noticed is the original
+#   defect this rewrite exists to remove.
+# - Never return page-derived strings as object KEYS. The claude-in-chrome result filter redacts
+#   values under keys that look sensitive: a CSS custom property named `--media-token` comes back as
+#   "[BLOCKED: Sensitive key]" while `--brand` passes, and renaming the key does not help. Array
+#   pairs and TSV lines pass through untouched.
 # - There is no network throttling or request blocking on this path. S6 loading and error states are
 #   reached instead by patching fetch/XMLHttpRequest from page context, which drives the app down its
 #   own branches rather than faking markup — see live-capture-protocol.md section 6, including what
 #   that genuinely cannot reach (initial-page-load states, module-scope-captured fetch, resource-level
 #   slowness) and must be recorded as `not reached`.
+# - A route is not a screen. Apps persist view state (table/card toggle, density step, saved filter)
+#   in localStorage, and it survives reloads, new tabs and the responsive iframes. The state the
+#   mockup depicts must be asserted through the app's own controls and recorded in spec meta before
+#   anything is extracted — see live-capture-protocol.md section 5.1.
 # - Per-screen extraction is dispatched in parallel via the Workflow tool, one agent per screen with
 #   its own tab, the same pattern design-handoff step-04b/07b already use. Two rules that pattern
 #   does not cover and that this workflow depends on: (1) capture holds a browser, diffing does not —
@@ -74,7 +96,9 @@ design_handoff_command: "{project-root}/bmad-grr/commands/bmad-grr-design-handof
 
 `design-handoff` produces an HTML draft. Nothing downstream ever checks whether the thing that got built actually resembles it — the draft gets looked at once, implemented from memory, and the drift is never measured. This workflow closes that loop.
 
-It renders the mockup in a real browser and extracts it into a normalized DOM spec across seven axes (structure, component inventory, computed design tokens, verbatim copy, interaction traces, states, responsive behavior) using a bundled deterministic extractor, `{extractor}`. The same script is then injected into whatever is supposed to match it, so both specs are produced by identical code rather than by two agents' independent judgment — granularity drift between the two sides is what makes a spec diff worthless, and running one extractor removes the possibility. Both halves must come from a rendered page; source-reading is not an accepted substitute for either side.
+It renders the mockup in a real browser and extracts it with a bundled deterministic extractor, `{extractor}` — structure, component inventory, computed tokens and CSS custom properties resolved to their cascade winners, verbatim copy, interaction targets, hover/focus/disabled treatments, table geometry, option sets, alignment and placement, and measured facts no declaration states (whether text is actually clipped, how many lines it actually renders, contrast ratios, real column boundaries). The same script is then injected into whatever is supposed to match it, so both specs are produced by identical code rather than by two agents' independent judgment.
+
+The output is a flat, sorted `key ⇥ field ⇥ value` dump per side, uploaded straight to disk by `{spec_server}`, and **the comparison is a mechanical `diff` of two files.** That is the load-bearing change. Handing an agent two specs and asking what differs is how the previous version missed things: it read structure trees at 66 nodes against 283, gave up on the axis, and fell back to coordinates measured by hand. A `diff` cannot skim, and every difference it emits names the element, the property, and both values — `align.textAlign right → left`, not "the column looks shifted".
 
 Capturing a running app is not the same job as capturing a static file — it hydrates, fetches, animates, lazy-loads, renders whatever data is in the database, and carries dev tooling the mockup never had. `{live_capture_protocol}` holds the rules that earn the right to compare the two: a readiness gate instead of a sleep, a scroll sweep before extraction, explicit noise exclusion, template-not-instance comparison so real data volume never reads as a gap, a stated permission level, and state-reaching that drives the app rather than injecting DOM.
 

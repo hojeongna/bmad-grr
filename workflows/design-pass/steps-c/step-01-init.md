@@ -61,27 +61,77 @@ For mode `L`, ask which app route corresponds to each mockup screen. Guessing th
 
 Store as `screen_map`: `[{ slug, mockup_path, mockup_selector_or_route, target_route (L only) }]`.
 
+### Start the spec server
+
+One process serves the mockups and receives the extracted specs:
+
+```
+python {installed_path}/scripts/spec-server.py --serve {mockup dir} --out {spec_dir} --port 8973
+```
+
+Both jobs matter. Serving over `http://` rather than `file://` keeps relative assets and fetches
+resolving, which `file://` does inconsistently — a stylesheet that never arrived is not a
+responsive finding. And the POST endpoint is what keeps half a megabyte of records out of the
+agent's context: pages upload their own specs straight to disk, and `diff` does the comparison.
+
+Confirm it responds before going further. If the port is taken, pick another and carry it
+through every later step.
+
 ### Set up the browser — claude-in-chrome
 
 This workflow runs on **claude-in-chrome** for both sides. It drives the user's real Chrome, which is what makes an authenticated app reachable without anyone handling credentials. Load the tools via ToolSearch before calling anything:
 
 ```
-ToolSearch "select:mcp__claude-in-chrome__tabs_context_mcp,mcp__claude-in-chrome__tabs_create_mcp,mcp__claude-in-chrome__navigate,mcp__claude-in-chrome__javascript_tool,mcp__claude-in-chrome__resize_window,mcp__claude-in-chrome__read_console_messages"
+ToolSearch "select:mcp__claude-in-chrome__tabs_context_mcp,mcp__claude-in-chrome__tabs_create_mcp,mcp__claude-in-chrome__navigate,mcp__claude-in-chrome__javascript_tool,mcp__claude-in-chrome__read_console_messages"
 ```
 
 Call `tabs_context_mcp` once before anything else — the other tools need a valid tab id and the group has to exist. Then `tabs_create_mcp` per screen; never reuse a tab id from a previous session.
 
-Four operating facts this workflow depends on. Getting any of them wrong produces a spec that looks fine and diffs wrong:
+`resize_window` is deliberately not in that list. It reports success and changes nothing when the
+window is maximized — verified twice, at 1024×800 and 700×600, with `innerWidth` staying at 1920
+both times. Viewport work goes through `__grrSpec.responsive()`, which uses same-origin iframes.
 
-1. **Inject the extractor by pasting its contents, not with a `<script src>` tag.** `javascript_tool` runs extension-injected script, which the page's CSP does not block; a script tag added from page context does get blocked on any app with a strict `script-src`. Paste the file.
-2. **`javascript_tool` has REPL semantics** — the last expression is the return value and a top-level `return` is a syntax error. Top-level `await` works. The extractor file is an IIFE, so pasting it whole returns its own result object; subsequent calls should end in the expression you want back (`await window.__grrSpec.extract({...})`).
-3. **Parallel screens are fine; parallel resizing is not.** Every tool takes a `tabId`, so per-screen agents don't collide during extraction or tracing. But `resize_window` resizes the *window*, and tabs created by `tabs_create_mcp` share one — so the S7 responsive pass must run **sequentially across screens**, not inside the parallel fan-out. Do S1–S6 in parallel, then walk S7 one screen at a time.
-4. **Screenshots are the one focus-bound operation.** Extraction is all JS and needs no focus. If evidence screenshots are wanted, take them serially at the end rather than mid-fan-out.
+Operating facts this workflow depends on. Getting any of them wrong produces a spec that looks fine and diffs wrong:
+
+1. **Inject the extractor by fetching it from the spec server and evaluating it:**
+   `(0, eval)(await (await fetch('http://localhost:8973/extract-dom-spec.js')).text())`.
+   Verified working from an https production origin — Chrome exempts localhost from
+   mixed-content blocking and the server sends permissive CORS. If a target's CSP omits
+   `unsafe-eval` that line throws; then paste the file's contents instead, which page CSP does
+   not apply to. Never add a `<script src>` tag — one created from page context *does* get
+   blocked.
+2. **`javascript_tool` has REPL semantics** — the last expression is the return value and a top-level `return` is a syntax error. Top-level `await` works.
+3. **Never combine a navigation or reload with extraction in one call.** The evaluation context
+   dies mid-call and the tool returns "Inspected target navigated or closed". Navigate, then
+   inject, then extract, as separate calls.
+4. **Parallel screens are fine, including the responsive pass.** Every tool takes a `tabId` and
+   `responsive()` never touches the shared window, so per-screen agents don't collide anywhere.
+5. **Screenshots are the one focus-bound operation.** Extraction is all JS and needs no focus. If evidence screenshots are wanted, take them serially at the end rather than mid-fan-out.
 
 Ask about auth once, up front: does the target URL require login? If yes, tell the user they need to be signed in already in that Chrome profile — browser automation must not attempt credentials.
 
 For mode `L`, confirm the server is running: `[R]` already running / `[S]` give me the start command / `[U]` I'll start it, wait for me. Halt until the URL actually loads.
 
+### Pin the capture conditions — the two that have already gone wrong
+
+A route is not a screen, and a screen is not a screen at an arbitrary viewport. Settle both here.
+
+**App view state.** Apps persist a table/card toggle, a density step, a collapsed sidebar, a
+saved filter — in `localStorage`, surviving reloads and new tabs. For each mapped screen, read
+the toggles (`[role=radio]` / `[role=tab]` / `aria-checked` / `aria-selected`, plus any
+view-shaped `localStorage` key), state which state the mockup depicts, and set the app to it
+through its own controls. Record the asserted state; it goes into every spec's meta and gets
+re-asserted inside each responsive iframe.
+
+This is the difference between a report and a fiction: a table-view mockup diffed against a route
+sitting in card view produces a screen-sized wall of phantom gaps, and nothing in the output says
+that's what happened.
+
+**Baseline viewport.** Both sides get captured through an iframe at the same fixed width (1440
+unless the mockup says otherwise), so the viewport is identical by construction rather than by
+luck. Any user-adjustable density or font-size step is set to the product default first — a
+capture taken at step 2/5 turned a 1px typography difference into 2px.
+
 ### Confirm and route
 
-Echo mode, screen map, tab ids created, and where specs will be written (`{spec_dir}`). Then load and follow `{nextStepFile}`.
+Echo mode, screen map, tab ids created, spec-server port, asserted view state per screen, baseline viewport, and where specs will be written (`{spec_dir}`). Then load and follow `{nextStepFile}`.
