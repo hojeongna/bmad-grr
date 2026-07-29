@@ -82,13 +82,27 @@ An anchor is the screen's repeating unit of identity. It is not always a row:
 anchor types — header row, data row, add row, empty-state row, summary row — and if the screen
 has more than one table (a project table and a routine table), each is its own set.
 
+**A rendering variant is its own type.** Two things that share a tag and a role are still two
+types whenever the screen draws them differently — an expanded project row and a collapsed one, a
+row carrying a warning chip and one without, a selected nav item and an unselected one, a card in
+its loading skeleton and the same card filled. Folding them together means only the variant that
+happened to be picked gets compared, and the other one is never looked at while the report reads
+as if the type was covered.
+
 This matters because an element that was never extracted cannot appear in a diff. One run dumped
 the header, the parent row, and the first To-Do row. The `＋ 하위 To-Do 추가` row was clipped on
 its left edge and its `Shift+Enter` hint was broken onto vertical lines — and neither showed up as
 a difference, because that row was not in the dump. The empty-state row, the routine table and the
 review table were absent for the same reason.
 
-List the types, then pick **at least one instance of each**, on both sides.
+List the types, then pick **at least one instance of each**, on both sides. There is deliberately
+no target count: the screen decides how many there are. Any number fixed in advance is a number
+the next screen exceeds, and the run that dumped "three rows" is what this rule exists to prevent.
+
+A variant the live side has and the mockup never drew is not a missing anchor — record it as
+`[ADDED]` and carry it to step-03l rather than hunting for a mockup counterpart that does not
+exist. The reverse (mockup draws it, the build has no such variant) is an F0/F1 finding, and the
+anchor is recorded with its live side marked `없음`.
 
 ### The fingerprint gate — mandatory, before any extraction
 
@@ -114,6 +128,12 @@ For every paired anchor, print a value a person can read, from both sides, next 
 [3] 추가 행
     목업  "＋ 하위 To-Do 추가"
     구현  "＋ 하위 To-Do 추가"
+[4] 데이터 행 — 펼침 변형
+    목업  "2  API 스펙 확정  ▼  하위 3건 …"
+    구현  "2  투두2  ▼  하위 3건 …"
+[5] 데이터 행 — 경고 칩 변형
+    목업  "3  배포 준비  목표 미입력 …"
+    구현  "3  투두3  목표 미입력 …"
 ...
 
 이 짝들이 서로 같은 것입니까?
@@ -133,8 +153,13 @@ it to the report as an uncompared screen — never as a clean one.
 Per screen, per anchor type:
 
 ```
-{ type, mockupSelector, liveSelector, fingerprintMockup, fingerprintLive, confirmedAt }
+{ type, variant, mockupSelector, liveSelector, fingerprintMockup, fingerprintLive, confirmedAt }
 ```
+
+`variant` is what distinguishes two anchors of the same type — `펼침` / `접힘`, `경고칩` / `없음`,
+`선택됨` / `기본`. It is part of the identity, not a note: a map with one `데이터 행` entry and a
+map with three variants of it describe different amounts of coverage, and the report should be
+able to tell them apart.
 
 Save it to `{specDir}/{slug}.anchors.json`. Step-03l reads it, and a later run can re-verify the
 same pairing instead of re-deriving it.
@@ -166,8 +191,10 @@ one. Record it in `mockup_defects`, and offer:
 🔗 앵커 맵 완료
 
 {slug} — 자동 키 매칭 {n}%  →  {자동 사용 | 수동 앵커}
-         앵커 타입 {n}종 확정: {list}
+         앵커 {n}개 = 타입 {n}종 × 변형 {n}개: {list}
          지문 확인: 사용자 승인 {date}
+         ➕ 목업에 없는 변형 {n}개 → step-03l [ADDED]
+         ❌ 구현에 없는 변형 {n}개 → step-03l F0/F1
 {slug} — ⚠️ 앵커 확정 실패 → 이 화면 대조 제외
 ```
 
