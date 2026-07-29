@@ -105,7 +105,9 @@ Capturing a running app is not the same job as capturing a static file — it hy
 The comparison target depends on where the story is:
 
 - **Mode P (pre-dev)** — the story document exists, nothing runs yet. The mockup spec is compared against the story's AC / Tasks / Dev Notes, and every mockup element or interaction the story doesn't cover is promoted into concrete AC and Tasks so `dev-story` can actually build it.
-- **Mode L (post-dev)** — the screen is running. The live DOM is extracted through the same schema and diffed 1:1 against the mockup spec, including what happens when things are clicked. Findings are classified by the fidelity rubric, then small drifts get fixed on the spot and structural gaps get routed to `quick-story`.
+- **Mode L (post-dev)** — the screen is running. The two sides are paired first (step-03a), then the live DOM is extracted through the same schema and diffed 1:1 against the mockup spec, including what happens when things are clicked. Findings are classified by the fidelity rubric, then small drifts get fixed on the spot and structural gaps get routed to `quick-story`.
+
+**Nothing is compared until a human has confirmed the two sides are the same thing.** Step-03a enumerates every repeating identity unit the mockup contains — table row, card, form field, nav item, modal section, dashboard widget — pairs each with its counterpart, and prints a readable fingerprint from both sides for confirmation. A run that skipped this produced 4,319 drifts across 378 combinations from two rows that were never the same row, and every one of them looked exactly like a result. Get the anchor right and hundreds of descendants pair themselves; get it wrong and all of them are fiction. Automatic key matching handles the easy cases and is measured, not assumed — one real mockup shared 22 keys out of 375, because it carried no table roles at all.
 
 ## Your Role
 

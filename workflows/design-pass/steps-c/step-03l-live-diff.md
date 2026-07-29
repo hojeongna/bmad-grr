@@ -52,7 +52,7 @@ Per screen, in its own tab:
 ```
 navigate → assert view state → inject extractor → __grrSpec.ready() → check the report
 → __grrSpec.sweep() → __grrSpec.extract({ noiseSelectors, collapseRepeats: true })
-→ upload {slug}.live.tsv and .json
+→ upload('http://localhost:{port}', '{slug}.live.tsv', __grrSpec.tsv(spec))   ← server, name, body
 → S5 traces (reload + re-inject between each)
 → S6 state capture (fetch/XHR patch per protocol §6 — restore the patch after each)
 → __grrSpec.responsive([375,768,1440], { prepare: re-assert view state })
@@ -64,18 +64,27 @@ the offending widget to `noiseSelectors`, or when `health.collapsed` is true on 
 spec captured over a moving, mis-rendered, or structureless target is worse than a missing one,
 because it looks usable.
 
-### Gate on the match rate before diffing
+### The anchor map is already settled — use it
 
-A diff of two files whose keys don't correspond is not a diff, it is two file dumps. Compute, per
-screen:
+Step-03a paired the two sides and a person confirmed the pairing by reading fingerprints. Read
+`{specDir}/{slug}.anchors.json` and key everything under each confirmed anchor by its relative
+path (`{anchor}/c02/00.button`).
 
-- **Tier A** — how many `node.mkey` values (`role|accessible name`) appear on both sides
-- **Tier B** — of the rest, how many pair by normalized own text
-- **Tier C** — of the rest, how many pair by `node.path` ordinal under an already-matched parent
+Do not re-derive the pairing here, and do not silently widen it. A screen recorded as
+`앵커 확정 실패` in step-03a is **not compared** — it is carried to the report as uncompared. It is
+never quietly diffed anyway on the theory that some findings are better than none; findings from
+an unpaired screen are indistinguishable from real ones and there were 4,319 of them last time.
 
-**Tier A below 70% is a halt for that screen.** Report the rate and the likely cause — wrong
-route, wrong view state, a collapsed mockup — and skip it. Do not produce findings from an
-unmatched pair; that is the failure that fills a report with fiction while looking thorough.
+Where step-03a recorded ≥70% automatic key matching, the extractor's own keys are the map and the
+tiers below describe what actually paired:
+
+- **Tier A** — `node.mkey` (`role|accessible name`) present on both sides
+- **Tier B** — of the rest, paired by normalized own text
+- **Tier C** — of the rest, paired by `node.path` ordinal under an already-matched parent
+
+Report all three rates per screen. They belong in the output whether the map came from automatic
+matching or from confirmed manual anchors, because they say how much of the screen the diff
+actually covered.
 
 ### Diff — mechanically
 
@@ -101,8 +110,17 @@ Read it in this order and stop when a tier explains the rest:
 3. `node.*` — elements present on one side only. Structure before appearance.
 4. `align.*`, `box.*`, `css.*` — the causes.
 5. `meas.*` — clipping, wrapping, escaping a parent. Real defects regardless of the mockup.
-6. `geom.*` — **last, and usually not a finding of its own.** Geometry is the symptom of 4.
-   Filing "this moved 24px" without its cause is unactionable.
+   Overflow needs all three readings, not just the first: `meas.overflowX` catches content
+   spilling right, `meas.escapesParent` is the only one that catches a cell clipped on its
+   **left**, and `meas.lines` / `meas.tallerThanOneLine` catch a hint that broke onto vertical
+   lines. A run that checked only `scrollWidth > clientWidth` reported all three as clean.
+6. `geom.gapInParent` — **read this before `geom.dx`/`dy`.** It is the four gaps from the parent's
+   content box, so left ≈ right means centred and `0 40 0 18` means jammed into the corner. A run
+   measured absolute column x-coordinates, found 0px difference, and passed the screen — while the
+   content inside those columns sat top-left on one side and centred on the other. An absolute
+   coordinate says where the cell is and nothing about where anything sits inside it.
+7. `geom.w/h/dx/dy` — **last, and usually not a finding of its own.** Geometry is the symptom of
+   4 and 6. Filing "this moved 24px" without its cause is unactionable.
 
 Then, before any judgment:
 

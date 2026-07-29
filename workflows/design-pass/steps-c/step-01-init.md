@@ -30,6 +30,36 @@ If no mockup exists anywhere and the user doesn't have one, this workflow has no
 
 Read every mockup file that will be used. Confirm it's real markup and not a bundled/exported wrapper; if it's packaged (a `manifest`/`template` script-tag pair, minified loader code), note where the real markup lives — extraction still renders the file, but the fix targets in later steps need the editable source.
 
+### Check the mockup can be compared at all
+
+`design-handoff` output is not guaranteed to expose the structure this workflow pairs on. One
+measured mockup had **zero `<table>` elements, zero `role=columnheader`, and no `main` landmark**,
+and the extractor's key matching found **22 common keys out of 375** against the implementation.
+The comparison was not weak; it was invalid.
+
+Render each mockup and count, before deciding anything else:
+
+| Signal | Why it matters |
+|---|---|
+| landmarks (`main`, `nav`, `header`, `section[aria-label]`) | anchors are scoped to them |
+| semantic containers for the screen's repeating unit (`table`/`ul`/`[role=list]`) | the anchor type itself |
+| `role` attributes and accessible names on controls | Tier-A key matching runs on these |
+| `health.collapsed` from a quick `extract()` | structure found at all |
+
+If a screen has none of them, present the branch rather than proceeding:
+
+```
+⚠️ 목업에 대조 가능한 구조가 없습니다 — {slug}
+   랜드마크 {n} · 시맨틱 컨테이너 {n} · role 부여 요소 {n} · health ratio {n}
+
+[A] 수동 앵커로 계속 (step-03a 에서 사람이 짝짓기 확인)
+[H] design-handoff 로 되돌려 구조부터 고침
+[S] 이 화면 제외
+```
+
+`[H]` loads `{designHandoffCommand}`. Record the choice; it goes in the report, because a screen
+compared through manual anchors carries different confidence than one that matched automatically.
+
 ### Decide the mode
 
 Ask once, in `{communication_language}`:
@@ -107,6 +137,12 @@ Operating facts this workflow depends on. Getting any of them wrong produces a s
 4. **Parallel screens are fine, including the responsive pass.** Every tool takes a `tabId` and
    `responsive()` never touches the shared window, so per-screen agents don't collide anywhere.
 5. **Screenshots are the one focus-bound operation.** Extraction is all JS and needs no focus. If evidence screenshots are wanted, take them serially at the end rather than mid-fan-out.
+6. **Tab ids die mid-run.** The whole MCP tab group disappears when the user closes the window or
+   Chrome restarts, and every in-flight agent then fails with `Couldn't determine which page this
+   action targets`. **Pass this recovery rule into every dispatched agent's prompt:** on that
+   error, call `tabs_context_mcp` again, find the tab whose URL matches the target (or
+   `tabs_create_mcp` and navigate), re-inject the extractor, and resume from the last completed
+   step. Agents that carry this instruction recover; agents that don't, die.
 
 Ask about auth once, up front: does the target URL require login? If yes, tell the user they need to be signed in already in that Chrome profile — browser automation must not attempt credentials.
 

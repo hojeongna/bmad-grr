@@ -18,7 +18,7 @@ Every element, interaction, state, and copy string in the mockup spec has been c
 
 Read the story file named by `story_ref` in full — frontmatter, Mini PRD, Mini Architecture, Acceptance Criteria, Tasks/Subtasks, Dev Notes, everything. If it's a story key, resolve it to `{implementation_artifacts}/{story_ref}.md`. Halt if it doesn't exist.
 
-Read every `{specDir}/{slug}.mockup.md` produced by step-02. Read `project-context.md` (per `{project_context}`) if present — a convention already established project-wide doesn't need to be restated as a new AC.
+Read every `{specDir}/{slug}.mockup.json` produced by step-02 — the structured axes, not the TSV, which exists for machine diffing and has no second side in this mode. Read `project-context.md` (per `{project_context}`) if present — a convention already established project-wide doesn't need to be restated as a new AC.
 
 ### Walk the spec, not the story
 

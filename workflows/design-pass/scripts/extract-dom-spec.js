@@ -997,6 +997,18 @@
     const par = el.parentElement;
     if (par && par.nodeType === 1 && !isNoise(par) && s.position !== 'fixed' && s.position !== 'absolute') {
       const pr = par.getBoundingClientRect();
+      const pp = cs(par);
+      /* Where the element sits INSIDE its parent, as the four gaps from the parent's content
+       * box. An absolute coordinate says where the cell is and nothing at all about where the
+       * content sits within it: a column can align to 0px on both sides while one side's content
+       * is centred and the other's is jammed into the top-left corner, and no x-coordinate check
+       * will ever say so. Left ≈ right means horizontally centred; top ≈ bottom, vertically. */
+      put('geom.gapInParent', [
+        Math.round(r.left - (pr.left + px(pp.borderLeftWidth) + px(pp.paddingLeft))),
+        Math.round((pr.right - px(pp.borderRightWidth) - px(pp.paddingRight)) - r.right),
+        Math.round(r.top - (pr.top + px(pp.borderTopWidth) + px(pp.paddingTop))),
+        Math.round((pr.bottom - px(pp.borderBottomWidth) - px(pp.paddingBottom)) - r.bottom),
+      ].join(' '));
       const esc = [];
       if (pr.left - r.left > 1) esc.push('left ' + Math.round(pr.left - r.left));
       if (r.right - pr.right > 1) esc.push('right ' + Math.round(r.right - pr.right));

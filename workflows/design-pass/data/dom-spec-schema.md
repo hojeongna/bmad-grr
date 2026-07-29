@@ -79,7 +79,7 @@ cannot tell which one moved.
 | Prefix | What it answers |
 |---|---|
 | `node.*` | identity — tag, role, name, depth, DOM path, repeat count, visual-order mismatch |
-| `geom.*` | measured box — `w`, `h`, and `dx`/`dy` **relative to the enclosing landmark** |
+| `geom.*` | measured box — `w`, `h`, `dx`/`dy` **relative to the enclosing landmark**, and `gapInParent` |
 | `box.*` | declared sizing — display, width/height, min/max, box-sizing, aspect-ratio |
 | `align.*` | the *cause* of a geometry difference — text/vertical align, justify/align, order, flex grow/shrink/basis, grid column/row/template |
 | `type.*` | family, size, weight, line-height, letter-spacing, style, transform, decoration, numeric variant, white-space, text-overflow, line-clamp |
@@ -144,6 +144,17 @@ default."** The defaults that are suppressed:
 | `color.shadow` / `textShadow` / `outline` | `none` |
 | `space.padding` / `margin` | `0 0 0 0` · `gap` `0` · `radius` `0 0 0 0` |
 | `vis.*` | each property's own initial (`none`, `1`, `static`, `visible`, `auto`, `normal`) |
+
+### `geom.gapInParent` — where the element sits *inside* its parent
+
+Four numbers, `left right top bottom`, measured from the parent's content box to this element's
+border box. Left ≈ right means horizontally centred; `0 40 0 18` means jammed into the corner.
+
+Absolute coordinates cannot answer this and reading them as if they could has already passed a
+broken screen: a run measured column x-positions, found a 0px difference, and reported the
+alignment as correct — while the content inside those columns was centred on one side and pinned
+top-left on the other. An absolute coordinate says where the cell is. It says nothing about where
+anything sits within it.
 
 ### Overflow takes three checks, not one
 

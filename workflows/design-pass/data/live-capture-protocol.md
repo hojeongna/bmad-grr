@@ -37,6 +37,35 @@ Lazy images, `IntersectionObserver` reveals, infinite scroll, and virtualized li
 
 Virtualized lists are the one case sweep can't fully solve — rows are destroyed as they leave the viewport, so no single snapshot holds them all. Extract the row *template* and the total count from the app's own indicator, and record `virtualized: true` in meta. Don't report the count difference as a finding.
 
+## 2.1 Never write your own probe
+
+The extractor is the only thing that produces a spec. Do not write a `javascript_tool` snippet
+that reads "the fields that matter" and compare those. This is the single most tempting shortcut
+on this path, because a tool result truncates around 1.4 KB and a full spec is a thousand times
+that — so the obvious move is to select a few properties and return them inline.
+
+That shortcut has already cost a run three defects the user then found by eye:
+
+- `display`, `justify-content`, `align-items`, `padding`, `background`, `radius`, `font-size` were
+  chosen. `flex-direction` was not, so a wrapper that stacked two buttons vertically instead of
+  side by side was invisible — the property that decided the layout was the property not on the
+  list. `gap`, `margin`, `flex-wrap`, `white-space` and `text-overflow` were absent too.
+- Only `children.length === 0` elements and form controls were dumped. The wrapper is not a leaf,
+  so the element that determines placement was excluded by construction.
+- Descendants were cut with `slice(0, 3)`.
+
+**Three rules, no exceptions:**
+
+1. **Do not select fields.** The extractor sweeps all 479 computed properties. When the same
+   run was redone with everything, ~90% of shared keys matched and `diff` discarded them for
+   free; the remaining 10% was the entire signal. The moment size feels like a reason to trim is
+   exactly the moment the trimming becomes the bug.
+2. **Do not select elements.** Every visible element under an anchor, to full depth. No leaf
+   filter, no `slice`. Containers decide layout, so excluding containers means the cause of a
+   layout difference can never be found — only its symptom.
+3. **Do not route the spec through the tool result.** `upload()` POSTs it to disk (§9.1). Size
+   stops being a constraint the moment nothing has to fit in a return value.
+
 ## 3. Exclude noise, don't classify it
 
 Things that exist in a running app and never in a mockup, and are not findings at any severity:
@@ -96,6 +125,33 @@ Before the first extraction, for each screen:
    `prepare` callback, since each iframe is a fresh app instance reading the same storage.
 4. If the state can't be reached (the toggle needs data that isn't there), **halt that screen**
    and say so. A diff of two different views is not a partial result; it is a wrong one.
+
+## 5.2 When the screen will not render without a session
+
+Some routes return nothing without an authenticated session — an app that resolves
+`actor = sessionPerson` renders an empty shell to anyone else. **Entering credentials is
+prohibited and forging a session is not an option.** Work down this order and stop at the first
+step that produces the real screen:
+
+1. **The app's own simulator switch.** Many codebases already have one for local development —
+   an env flag like `NEXT_PUBLIC_REPO=memory`, a seeded fixture mode, a `?preview=` parameter.
+   Grep for it before building anything; one run found exactly this and needed nothing further.
+2. **A throwaway account the user signs into themselves**, in their own Chrome profile. Browser
+   automation never handles the credentials.
+3. **A temporary preview route** that mounts the target component with seeded data. This still
+   satisfies "render, never read" — it is the real component and the real CSS modules, resolved
+   by the real cascade.
+
+Two rules if you reach step 3:
+
+- **Mount it inside the app shell wrapper** (`.root`, the theme provider, whatever carries the
+  inherited styles). A component mounted bare inherits different fonts and line heights, and the
+  diff then reports drifts that do not exist anywhere in the product.
+- **Delete it after the comparison. Never commit it.** Say in the report that a preview route was
+  used and that it was removed.
+
+Record which of the three paths was taken in spec meta. A spec captured through a preview route is
+not the same evidence as one captured from the running app, and the report should not imply it is.
 
 ## 6. Reaching states (S6)
 

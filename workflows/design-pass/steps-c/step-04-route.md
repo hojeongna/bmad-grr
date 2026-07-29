@@ -54,7 +54,30 @@ After each screen's edits are done, re-extract that screen's live spec and re-di
 - The targeted findings must be gone.
 - Nothing new may appear. A token change made to fix one card can silently move every other component using that token — catching that now, while the change is fresh, is far cheaper than finding it later.
 
-Write the re-extracted spec over `{specDir}/{slug}.live.md` so the artifacts on disk reflect current reality. If a fix didn't take, or introduced a new finding, say so and either fix it or move the original finding to quick-story. Don't record it as fixed.
+Write the re-extracted spec over `{specDir}/{slug}.live.tsv` and `.json` so the artifacts on disk reflect current reality. If a fix didn't take, or introduced a new finding, say so and either fix it or move the original finding to quick-story. Don't record it as fixed.
+
+### Carry every closed field into a test assertion
+
+**For each finding this session closed, add an assertion on the exact field the diff named.**
+`align.textAlign` → assert `text-align`. `css.flex-direction` → assert `flex-direction`.
+`type.lineHeight` → assert `line-height`. Same property, same element, same expected value.
+
+This is not optional polish. Five commits once passed a gate of 1,446 tests plus `tsc`, `lint` and
+`build` while the screen looked nothing like the mockup — because **not one test asserted
+`display`, `align-items`, `line-height` or `flex-direction`.** The suite checked structure
+(`aria-colcount`, column order, coordinates) and never checked presentation, so every drift this
+workflow exists to catch was invisible to the thing meant to prevent regressions. A drift fixed
+without an assertion is a drift that comes back silently.
+
+Put the assertion where the project already tests that component, in its existing style. Name the
+finding in the test name so a future failure explains itself (`weekly-b 하위 To-Do 이동 버튼은 가로
+배치를 유지한다 (design-pass 2026-07-29)`).
+
+Findings routed to `quick-story` carry the same requirement — put the field and its expected value
+in the story's AC so the assertion gets written when the fix does.
+
+Report the assertions added alongside the fixes. A fix-now count without a matching assertion count
+should read as incomplete, because it is.
 
 ### Hand off structural gaps
 
@@ -77,6 +100,7 @@ Render `{gapReportTemplate}` to `{gapReportPath}` in `{document_output_language}
 대상: {app URL} — 화면 {n}개
 Findings: F0 {n} · F1 {n} · F2 {n} · F3 {n} · F4 {n}
 즉시 수정: {n}건 ({n}개 파일) — 재검증 통과 {n} / 실패 {n}
+테스트 단언 이관: {n}건 → {test files}
 quick-story 이관: {n}건 → {story keys}
 보고만: [ADDED] {n} · 목업 문제 {n} · 미확정 {n}
 리포트: {gap_report_path}

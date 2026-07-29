@@ -83,6 +83,23 @@ Different mechanics, because there is no implementation to compare against — o
 - **F2/F3 equivalent** — the mockup fixes a concrete value (a color token, an exact string, a breakpoint) that the story leaves open → add it to Dev Notes, not to AC. Locking an exact hex into an acceptance criterion makes the story brittle for no gain.
 - **F4 / `[ADDED]` / `mockup_defects`** — report only. A pre-dev story has nothing to have added yet.
 
+## An AC passing is not visual fidelity
+
+**The axis an acceptance criterion measures and the axis a user sees are different axes. AC is a
+minimum condition, not a completion condition.** Never let a passing AC close a finding, and never
+let it narrow what gets compared.
+
+This has already happened. A story's AC read *"하위 행의 첨부 열 좌측 x좌표가 부모 행과 ±1px 이내로
+일치한다"*. The measurement came back 0px, the run reported "AC3 충족" — and the inside of those
+cells looked nothing like the mockup. The AC measured column alignment; it was read as meaning the
+row matched. It never said that.
+
+Two consequences for classification:
+
+- A finding whose AC passes is still a finding. Classify it on the diff, not on the AC.
+- Do not scope the diff to what the AC mentions. The AC is one assertion someone wrote in advance;
+  the mockup is the spec.
+
 ## When the rubric doesn't fit
 
 Say so explicitly in the report rather than forcing a severity. Two cases come up in practice: a difference that is technically F2 but obviously intentional (the implementation uses the real design system where the mockup used a placeholder), and a difference that is technically F4 but visibly wrong (four separate sub-tolerance drifts stacking into one clearly misaligned row). Reclassify both, name the override, and give the reason.

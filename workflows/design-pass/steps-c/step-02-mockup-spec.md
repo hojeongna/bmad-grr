@@ -2,7 +2,7 @@
 name: step-02-mockup-spec
 description: 'Render every mockup screen in a real browser and extract it into a normalized spec, TSV plus JSON, uploaded straight to disk; parallel one agent per screen; route to mode P or L'
 nextStepFileP: './step-03p-doc-diff.md'
-nextStepFileL: './step-03l-live-diff.md'
+nextStepFileL: './step-03a-anchor-map.md'
 extractor: '~/.claude/workflows/design-pass/scripts/extract-dom-spec.js'
 specServer: '~/.claude/workflows/design-pass/scripts/spec-server.py'
 domSpecSchema: '{dom_spec_schema}'
@@ -41,6 +41,21 @@ Inject by fetching from the spec server and evaluating:
 
 Fall back to pasting the file's contents only if that throws on CSP. Re-inject after every
 navigation and every reload, and never put a navigation and an extraction in the same call.
+
+**The upload signature is `upload(server, name, body)` — in that order.**
+
+```js
+await window.__grrSpec.upload('http://localhost:8973', 'weekly-b.mockup.tsv', window.__grrSpec.tsv(spec))
+```
+
+Swapping the arguments does not throw. It builds
+`…/weekly-b.mockup.tsv/__spec/%40components%09button.count…` — the whole spec becomes the URL —
+and the request dies with **HTTP 414**, which reads like a server problem and is not one.
+
+**Never assemble the spec yourself.** Do not read fields out of a returned object and rebuild a
+smaller dump because the tool result truncates. That truncation is what `upload()` exists to
+route around; selecting fields to fit a return value is the failure mode
+`live-capture-protocol.md` §2.1 documents in full.
 
 **The responsive pass runs inside the fan-out now.** `__grrSpec.responsive()` loads each width
 into a same-origin iframe and leaves the parent window alone, so there is nothing shared to
@@ -112,6 +127,8 @@ whose artifact is structurally incomplete rather than diffing against it.
 ## Next
 
 Mode `P` → load and follow `{nextStepFileP}`.
-Mode `L` → load and follow `{nextStepFileL}`.
+Mode `L` → load and follow `{nextStepFileL}` — the anchor map and fingerprint gate, which runs
+before the live capture. Do not jump straight to step-03l; pairing the two sides is what makes
+its diff mean anything.
 
 Route to exactly one. Never load both.
