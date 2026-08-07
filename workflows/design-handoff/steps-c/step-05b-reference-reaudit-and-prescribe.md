@@ -5,6 +5,8 @@ nextStepFile: './step-06-compose-prompt.md'
 redesignSpecTemplate: '{redesign_spec_template}'
 redesignSpecPath: '{redesign_spec_path}'
 uxGuidePath: '{ux_guide_path}'
+referenceImagesDir: '{reference_images_dir}'
+referenceImagesAsideDir: '{reference_images_aside_dir}'
 ---
 
 # Step 5b — Reference Re-Audit & Prescriptive Rewrite
@@ -53,7 +55,7 @@ For each finding, in this exact shape:
 
 - **Current pattern** — what's actually there right now, specific enough that someone unfamiliar with the screen could find it (an element, a location, an observed behavior — not "the filter is confusing").
 - **Recommended pattern** — a *name* for what it should become (e.g. "요약 리스트 로우 + 우측 상세 드로어", "상태 멀티셀렉 드롭다운", "확인 모달 + 사후 undo 토스트"), not a description of the problem restated positively.
-- **Reference** — the actual Mobbin screen backing this specific recommendation, found via `search_screens` and looked at (not guessed at from the app's reputation). Cite its `mobbin_url`.
+- **Reference** — the actual Mobbin screen backing this specific recommendation, found via `search_screens` and looked at (not guessed at from the app's reputation). Cite its `mobbin_url` *and* its `local_path`. References confirmed in step-05 already have a downloaded file; any reference discovered here for the first time (the layout-paradigm searches in Phase 2 routinely surface new ones) gets downloaded the same way step-05 describes, into `{referenceImagesAsideDir}`, before it's written into the spec. A prescription whose reference exists only as a URL is one a stakeholder report can't illustrate later.
 - **Concrete spec** — layout, fields, triggers, states, and interactions detailed enough to build without a follow-up question. If the recommendation implies a component (a modal, a drawer, a multiselect), spec its structure, not just its existence.
 
 ### Fold in the user's own findings at equal weight
@@ -66,7 +68,19 @@ Where a user's finding surfaces a genuine open decision the workflow can't resol
 
 Once every screen's prescriptions exist, scan for the same recommended pattern recurring on 3+ screens (a shared "how to add an item" pattern, a shared "how confirmation dialogs work" pattern, a shared empty-state treatment). Write each of these **once**, fully specified, in a dedicated section, and have every screen section reference it by name instead of repeating the full spec — this keeps the document navigable instead of turning into a wall of near-duplicate text, and it's usually where the actual product-wide direction (not just per-screen polish) lives.
 
-### Render the redesign spec
+### Promote the load-bearing references out of `_do-not-attach`
+
+Every reference image so far sits in `{referenceImagesAsideDir}`. Now that prescriptions exist, it's finally knowable which of them a builder needs to *see* rather than read about — that's the only question this sort answers.
+
+Move a reference up into `{referenceImagesDir}` when the prose genuinely can't stand in for it:
+
+- it backs a **layout-paradigm verdict** (this screen becomes a list + detail drawer) — the shape is the point, and describing a shape is exactly where written specs lose fidelity;
+- it backs a **cross-cutting pattern** that several screens inherit, so one image does work across the whole spec;
+- its prescription says *make it resemble this*, not *this app also does this*.
+
+Leave it where it is when it corroborates a finding rather than defining a target, when it's a near-duplicate of one already promoted (two references demonstrating the same pattern is one reference and one distraction), or when the concrete spec already pins the thing down in words — a promoted image that adds nothing still costs attention.
+
+Expect this to be a small number. Three or four promoted out of a dozen is a healthy sort; promoting most of them means the sort didn't happen. Record which side each reference landed on, so step-06 can name the attachment set without re-deciding it.
 
 Fill `{redesignSpecPath}` from `{redesignSpecTemplate}`: global direction (including the layout-paradigm verdicts, summarized), cross-cutting patterns, then per-screen sections (layout paradigm call + prescriptions high-to-low priority), then the open-questions list. Tell the user where it landed.
 

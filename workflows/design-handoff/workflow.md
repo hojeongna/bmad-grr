@@ -33,6 +33,8 @@ handoff_output_path: "{output_folder}/design-handoff"
 ux_guide_path: "{handoff_output_path}/ux-ui-guide-{date}.md"
 redesign_spec_path: "{handoff_output_path}/redesign-spec-{date}.md"
 converted_screens_dir: "{handoff_output_path}/converted"
+reference_images_dir: "{handoff_output_path}/references"
+reference_images_aside_dir: "{handoff_output_path}/references/_do-not-attach"
 
 # Workflow chaining
 quick_story_command: "{project-root}/bmad-grr/commands/bmad-grr-quick-story.md"

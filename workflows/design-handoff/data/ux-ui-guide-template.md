@@ -98,6 +98,7 @@ SEED norm mode was off for this run.
 
 {{#each mobbin_references}}
 - **{{screen}}** — {{pattern_description}} (ref: {{source}}). Why: {{why}}
+  - [Mobbin]({{mobbin_url}}){{#if local_path}} · 로컬 이미지: `{{local_path}}`{{else}} · 로컬 이미지 없음 (다운로드 실패 — Mobbin 링크로 확인){{/if}}
 {{/each}}
 {{#unless mobbin_references}}
 None selected for this run.

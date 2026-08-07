@@ -10,6 +10,8 @@ redesignSpecPath: '{redesign_spec_path}'
 uxGuidePath: '{ux_guide_path}'
 handoffOutputPath: '{handoff_output_path}'
 convertedScreensDir: '{converted_screens_dir}'
+referenceImagesDir: '{reference_images_dir}'
+referenceImagesAsideDir: '{reference_images_aside_dir}'
 ---
 
 # Step 6 — Compose the Handoff Prompt
@@ -34,6 +36,8 @@ Show the fully composed prompt as one fenced block so it's a single copy action.
 
 - Paste it into the claude.ai/design chat for `{claude_design_project.name}` (if one was confirmed/created in step-03) — this keeps the design system it produces attached to that project.
 - If `converted_html_path`/`reference_image_path` (single screen) or per-screen files under `{convertedScreensDir}` (multi-screen) exist, attach the relevant file(s) alongside the pasted prompt.
+- Attach everything sitting directly in `{referenceImagesDir}` — step-05b already sorted for this, promoting only the references a builder needs to see. **Never attach anything under `{referenceImagesAsideDir}`.** That folder is background material; its contents are cited in the spec and shown in a stakeholder report, and pasting them here is precisely the dilution the sort exists to prevent.
+- If step-05b never ran (this run went straight from step-05), the parent folder is empty and everything is still in `_do-not-attach`. Don't attach the folder wholesale to compensate — pick at most two or three that the prompt's own prescriptions lean on hardest, name why each one is going in, and leave the rest.
 - If no Claude Design project was set up, paste it into a fresh claude.ai/design chat anyway — section 0 of the prompt handles that case.
 
 Save the prompt to `{handoffOutputPath}/prompt-{date}.md` so it survives a session break. Mention the source document too (`{redesignSpecPath}` or `{uxGuidePath}`) — it's the editable, durable version of everything the prompt just summarized.

@@ -47,7 +47,7 @@ No pattern recurred across enough screens to warrant its own entry — every pre
 **Prescriptions (high → low priority):**
 
 {{#each prescriptions}}
-- **{{element}}** — current: *{{current}}* → recommended: **{{recommended_pattern}}** (ref: {{reference_url}})
+- **{{element}}** — current: *{{current}}* → recommended: **{{recommended_pattern}}** (ref: {{reference_url}}{{#if reference_local_path}}, 이미지: `{{reference_local_path}}`{{/if}})
   - Spec: {{concrete_spec}}
 {{#if from_user_report}}
   - _(from the user's own hands-on use, not a walkthrough finding)_

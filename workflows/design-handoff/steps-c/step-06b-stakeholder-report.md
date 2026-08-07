@@ -4,6 +4,8 @@ description: 'On-demand, plain-language HTML report for a non-technical stakehol
 redesignSpecPath: '{redesign_spec_path}'
 uxGuidePath: '{ux_guide_path}'
 handoffOutputPath: '{handoff_output_path}'
+referenceImagesDir: '{reference_images_dir}'
+referenceImagesAsideDir: '{reference_images_aside_dir}'
 ---
 
 # Step 6b — Stakeholder Report (on demand)
@@ -28,8 +30,9 @@ For every screen, one row per prescription: 대상 (element) | 지금 (current, 
 
 For every reference cited, resolve it to an actual image and inline it:
 
-1. Search Mobbin (`search_screens`) for the pattern if the redesign spec only carries a `mobbin_url` without an image, and take the result's `image_url`.
-2. Download the image and base64-encode it directly into the HTML (`data:image/...;base64,...`) — a report the reader has to click out of repeatedly to see what's being proposed reads as unfinished, and an offline-first document is worth more to a stakeholder who might read it on a plane or forward it around than one with live external links.
+1. Use the `local_path` the reference already carries — step-05/05b downloaded these when they were confirmed. Read the file from disk. Only fall back to a fresh `search_screens` when a reference has no `local_path` (its download failed, or the spec predates this behavior); Mobbin's `image_url` redirects to a signed CDN link, so re-fetching an old one is the case most likely to come back empty.
+   **Read from both `{referenceImagesDir}` and `{referenceImagesAsideDir}`.** The `_do-not-attach` split exists to keep a generator's prompt from being diluted; it says nothing about this document. A stakeholder report illustrates every prescription it lists, and a row whose reference image was withheld because of a rule about prompt attachments is just a row with a hole in it.
+2. Base64-encode the file directly into the HTML (`data:image/webp;base64,...`) — a report the reader has to click out of repeatedly to see what's being proposed reads as unfinished, and an offline-first document is worth more to a stakeholder who might read it on a plane or forward it around than one with live external links.
 3. Add a click-to-enlarge lightbox for these images (a fixed-position overlay toggled by a small inline `<script>`, no external libraries) — a page full of tiny thumbnails is not actually more scannable than one clean central image, and a stakeholder document is exactly the place where polish on the deliverable itself matters.
 
 ### Lead with the direction, not the detail
