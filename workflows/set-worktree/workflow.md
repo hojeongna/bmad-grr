@@ -1,6 +1,6 @@
 ---
 name: set-worktree
-description: 'Set up a monorepo-style workspace by cloning multiple GitHub repositories into independent subfolders, creating feature branches, and generating a mapping document. Use when the user says "set worktree" or "setup repos" or "init workspace"'
+description: 'Set up a monorepo-style workspace by cloning multiple GitHub repositories into independent subfolders, creating feature branches — optionally named from a Linear issue created up front, so branch and PR link back to it — and generating a mapping document. Subfolders are named after the repo alone by default. Use when the user says "set worktree" or "setup repos" or "init workspace"'
 web_bundle: true
 
 # Critical variables from config
@@ -20,6 +20,14 @@ project_context: "**/project-context.md"
 
 # Required external skill (superpowers — bundled with bmad-grr)
 parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
+
+# External tool dependencies:
+# - Linear MCP is needed only when the user picks issue-based branch naming in step-01.
+#   Resolve its tools via ToolSearch at first use. Absent, step-01b falls back to date-based
+#   naming rather than blocking — the issue improves traceability, it isn't required to clone.
+#   Note that Linear's "move to started on git branch copy" automation fires on the copy action
+#   in Linear's own UI, so a branch created here won't trigger it; step-01b moves the issue
+#   explicitly instead.
 ---
 
 # Set Worktree

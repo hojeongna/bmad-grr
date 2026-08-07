@@ -1,7 +1,8 @@
 ---
 name: step-01-init
-description: 'Gather workspace context — workspace root (must not be a git repo), problem description, repo links, branch base/name/folder per repo'
+description: 'Gather workspace context — workspace root (must not be a git repo), problem description, repo links, branch base/name/folder per repo; route to Linear issue creation when the branch should come from an issue'
 nextStepFile: './step-02-execute.md'
+nextStepLinear: './step-01b-linear-issue.md'
 parallel_agents_skill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
 ---
 
@@ -39,18 +40,40 @@ Ask for repo URLs (one per line or comma-separated). Parse each: extract the rep
 
 Default each repo's base to `main`. Let the user override per repo (e.g., "2: develop, 3: staging").
 
-### Branch type and name
+### Branch name — from a Linear issue, or from the date
 
-Offer four types: `[F]` feature, `[X]` fix, `[R]` refactor, `[C]` chore. Generate a branch name with the pattern `{type}/{YYMMDD}-{description}` where `{description}` is derived from the problem context (kebab-case, in `{communication_language}` if appropriate). Let the user accept the same name for all repos or override per repo.
+Ask which, in `{communication_language}`:
 
-### Subfolder names
+```
+브랜치 이름을 어떻게 정할까요?
 
-Generate `{repo-name}-{branch-type}-{YYMMDD}-{description}` per repo. The user can override.
+[L] 리니어 이슈 먼저 만들고 그 이름으로   (이슈 ↔ 브랜치 ↔ PR 자동 연결)
+[D] 날짜 기반으로 그냥 만들기            (feature/260807-...)
+```
+
+Halt for input. On `[L]`, skip the naming below entirely — `step-01b-linear-issue.md` owns it, and it runs after the rest of this step's inputs are gathered.
+
+On `[D]`, offer four types: `[F]` feature, `[X]` fix, `[R]` refactor, `[C]` chore. Generate `{type}/{YYMMDD}-{description}` where `{description}` comes from the problem context (kebab-case, in `{communication_language}` if appropriate). Let the user accept the same name for all repos or override per repo.
+
+### Subfolder names — short by default
+
+Default each subfolder to the **repo name alone**: `moonjelly`, not `moonjelly-feature-260807-seed-mcp`. This is the path every later command types, and the branch already records what the work is — repeating it in the folder name buys nothing and costs it on every `cd`.
+
+Lengthen only when the short name doesn't work:
+
+1. **Collision** — a folder of that name already exists in the workspace root. Append the shortest thing that distinguishes it: the Linear issue key when there is one (`moonjelly-eng-123`), otherwise `-2`.
+2. **The user asks for more.** Offer it; don't impose it.
+
+Never derive the folder name from a Linear branch name. Those carry the issue title, which is often Korean and long, and it ends up in every path on disk.
 
 ### Present the full plan and confirm
 
 Show a single table with all per-repo details (repo, GitHub URL, base, branch, subfolder) plus the workspace root. Present `[Y]` Proceed / `[E]` Edit. Halt for input. On `E`, ask what to change, update, and re-display.
 
+Skip this confirmation when the branch is coming from Linear — there's no branch to show yet. Step-01b presents the completed table instead, once the issue exists.
+
 ## Next
 
-Once the plan is confirmed, load `{parallel_agents_skill}` (used in step-02), then load and follow `{nextStepFile}`.
+If the user chose `[L]` → load and follow `{nextStepLinear}`; it names the branch, confirms the plan, and routes onward to step-02 itself.
+
+Otherwise, once the plan is confirmed, load `{parallel_agents_skill}` (used in step-02), then load and follow `{nextStepFile}`.

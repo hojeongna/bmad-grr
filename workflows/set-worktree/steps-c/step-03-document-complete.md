@@ -27,6 +27,7 @@ created: {date}
 project_root: {workspace_root}
 problem_description: {problem_description}
 repo_count: {success_count}
+linear_issue: {linear_issue.key}   # omit the key entirely when there's no issue
 ---
 
 # Worktree Workspace Map
@@ -35,6 +36,8 @@ repo_count: {success_count}
 - Problem: {problem_description}
 - Date: {date}
 - Workspace Root: `{workspace_root}` (non-git, monorepo-style)
+- Linear: [{linear_issue.key}]({linear_issue.url}) — {linear_issue.title}   <!-- drop this line when the branch was date-named -->
+
 
 ## Repositories
 
