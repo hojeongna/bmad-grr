@@ -42,6 +42,38 @@ Use these tokens/patterns as the visual system — don't invent a parallel one:
 No existing project design system was found. Establish one consistent with: {{fallback_aesthetic_guidance}}. State the choices you made (palette, type scale, spacing unit, corner radius) explicitly in your response.
 {{/if}}
 
+{{#if seed_design_mode}}
+### 3a. Norms for everything section 3 doesn't state
+
+The system above names components and colors. It doesn't say how far apart two buttons sit, how long a sheet takes to open, at what loading duration a spinner should become a skeleton, or what error copy is allowed to say. Those rules follow, taken from SEED (daangn's design system).
+
+**Read these as rules, not as a component library.** Keep using the components from section 3 — these norms govern their dimensions, timing, states, and copy. Never substitute a SEED component for one named above.
+
+**Precedence, in order:** section 3's local design system → the norms below → your own judgment. Where a conflict is listed, the local value is the one to build.
+
+{{#each seed_norms}}
+#### {{area}}
+
+{{rules_verbatim}}
+{{/each}}
+
+{{#if seed_conflicts}}
+**Conflicts — build the "Use" column:**
+
+| Rule | Local | SEED | Use |
+| --- | --- | --- | --- |
+{{#each seed_conflicts}}
+| {{rule}} | {{local}} | {{seed}} | {{local}} |
+{{/each}}
+{{/if}}
+
+Apply these to every screen in section 2, not just the ones where a violation was already flagged. Where a norm gives a token name and a value (`$dimension.x2` / 8px), use the value — this output isn't consuming SEED's token package.
+
+{{#if writing_language_is_korean}}
+The UX-writing rules above are Korean-language rules and apply to Korean copy. If any screen ships non-Korean copy, carry the intent (plain words, no honorific inflation, positive and active phrasing, actionable error messages) rather than the literal examples.
+{{/if}}
+{{/if}}
+
 ## 4. Reference patterns (Mobbin)
 
 {{#each mobbin_references}}

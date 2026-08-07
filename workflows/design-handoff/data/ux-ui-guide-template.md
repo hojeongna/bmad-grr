@@ -60,6 +60,40 @@ No PRD for this run (improvement-only mode) — this section is N/A; see section
 
 **Claude Design project:** {{claude_design_project_summary}}
 
+### 4a. SEED norms (tacit-gap layer)
+
+{{#if seed_design_mode}}
+Harvested from SEED (daangn) via the seed-docs MCP in step-03b. These are **rules, not component choices** — the project keeps its own components. Precedence when anything disagrees: **local design system > SEED norms > model judgment.**
+
+{{#each seed_norms}}
+#### {{area}}
+
+{{rules_verbatim}}
+
+Reconciliation: {{reconciliation}} <!-- fills-gap / agrees with local / conflicts (local wins) -->
+{{/each}}
+
+{{#if seed_conflicts}}
+**Conflicts with the local design system — local wins in every row below.** Recorded so a downstream builder sees the disagreement instead of silently picking one.
+
+| Rule | Local | SEED | Use |
+| --- | --- | --- | --- |
+{{#each seed_conflicts}}
+| {{rule}} | {{local}} | {{seed}} | {{local}} |
+{{/each}}
+{{/if}}
+
+{{#if seed_misses}}
+**Not harvested** — these documents 404'd during step-03b, so the areas below carry no SEED norms and fall through to model judgment. Not "SEED has no rule here."
+
+{{#each seed_misses}}
+- `{{path}}` ({{area}})
+{{/each}}
+{{/if}}
+{{else}}
+SEED norm mode was off for this run.
+{{/if}}
+
 ## 5. Mobbin References
 
 {{#each mobbin_references}}

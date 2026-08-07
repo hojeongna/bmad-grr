@@ -56,7 +56,9 @@ No pattern recurred across enough screens to warrant its own entry — every pre
 
 {{/each}}
 
-## 4. Design system (Claude Design path only — drop for direct implementation or stakeholder report)
+## 4. Design system
+
+<!-- The design-system statement below is needed on the Claude Design path AND the direct-implementation path — a builder editing an existing scaffold needs the same spacing/motion/copy rules as one generating from scratch. Only the stakeholder report drops it. -->
 
 {{#if local_design_system}}
 Use these tokens/patterns as the visual system — don't invent a parallel one:
@@ -64,6 +66,28 @@ Use these tokens/patterns as the visual system — don't invent a parallel one:
 {{local_design_system_summary}}
 {{else}}
 No existing project design system was found. Establish one consistent with: {{fallback_aesthetic_guidance}}. State the choices made (palette, type scale, spacing unit, corner radius) explicitly.
+{{/if}}
+
+{{#if seed_design_mode}}
+### 4a. Norms for everything section 4 doesn't state
+
+Rules, not component choices — the components stay as named above. **Precedence: local design system → these norms → own judgment.** Where a conflict is listed, build the local value.
+
+{{#each seed_norms}}
+#### {{area}}
+
+{{rules_verbatim}}
+{{/each}}
+
+{{#if seed_conflicts}}
+| Rule | Local | SEED | Use |
+| --- | --- | --- | --- |
+{{#each seed_conflicts}}
+| {{rule}} | {{local}} | {{seed}} | {{local}} |
+{{/each}}
+{{/if}}
+
+These apply to every screen in section 3, not only where a prescription already cites one. Where a norm gives a token name and a value, use the value.
 {{/if}}
 
 ## 5. Existing screen(s) (revising, not starting fresh)

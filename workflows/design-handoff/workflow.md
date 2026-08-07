@@ -1,6 +1,6 @@
 ---
 name: design-handoff
-description: 'PRD (or brownfield live site) → UX/UI improvement, via Mobbin MCP reference research, a prescriptive redesign spec, and one of three delivery paths: a Claude Design (claude.ai/design) paste-ready prompt, direct implementation against a user-supplied code scaffold, or a plain-language stakeholder report. Gap-scans the PRD for UX/UI completeness (explicit [ASSUMPTION] tags, never blocking), checks both the local project design system and the Claude Design design-system project, walks a single screen or an entire multi-screen site live, converts brownfield screen captures (mhtml/html), re-verifies every finding against its reference standard before prescribing a concrete fix, and verifies whatever comes back (an external draft or an in-repo edit) against the guide via fresh sub-agent dispatch.'
+description: 'PRD (or brownfield live site) → UX/UI improvement, via Mobbin MCP reference research, a prescriptive redesign spec, and one of three delivery paths: a Claude Design (claude.ai/design) paste-ready prompt, direct implementation against a user-supplied code scaffold, or a plain-language stakeholder report. Gap-scans the PRD for UX/UI completeness (explicit [ASSUMPTION] tags, never blocking), checks the local project design system and the Claude Design design-system project, optionally harvests SEED (daangn) norms via the seed-docs MCP to fill whatever the local system leaves tacit (spacing/motion/loading thresholds, UX-writing Do/Don''t), walks a single screen or an entire multi-screen site live, converts brownfield screen captures (mhtml/html), re-verifies every finding against its reference standard before prescribing a concrete fix, and verifies whatever comes back (an external draft or an in-repo edit) against the guide via fresh sub-agent dispatch.'
 
 # Critical variables from config
 config_source: "{project-root}/_bmad/bmm/config.yaml"
@@ -43,6 +43,12 @@ design_pass_command: "{project-root}/bmad-grr/commands/bmad-grr-design-pass.md"
 # - Mobbin MCP must be available in the environment for step-05/05b. Its exact tool/method names
 #   were not verified against a live connection when this workflow was authored — resolve them
 #   via ToolSearch at first run rather than assuming a specific tool name.
+# - The seed-docs MCP (`claude mcp add seed-docs -- npx -y @seed-design/docs-mcp`) is required only
+#   when the user turns on SEED norm mode in step-03. Public docs, no auth. Step-03b halts rather
+#   than falling back to WebFetch or recollection if it's missing — a remembered design system is
+#   the exact failure mode this workflow exists to avoid. Note that its `section` enum
+#   (react/docs/breeze/ai-integration/lynx) lags the live site, which moved the norms to
+#   foundations/components/patterns; step-03b documents the relative-path workaround.
 # - The native DesignSync tool (claude.ai/design design-system projects) is required for step-03
 #   and the optional push in step-08. It ships with Claude Code; no separate MCP install needed.
 # - Multi-screen walkthroughs (step-04b), reference re-audits (step-05b), and direct-implementation

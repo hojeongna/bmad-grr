@@ -26,6 +26,8 @@ Check whether `{redesignSpecPath}` exists. If it does, read it in full and rende
 
 Load `{promptTemplate}` (or, when rendering from the redesign spec, follow that document's own section structure directly — it's already shaped as a paste-ready spec) and fill every slot. Drop any section whose slot is empty rather than leaving a hollow heading. Be concrete, not a re-paste of the source verbatim — summarize product context in the tool's voice, but keep the screen-by-screen prescriptions and the open-questions list exact.
 
+The SEED norms section (3a / 4a) is the one exception to "summarize in the tool's voice": carry it through at the detail step-03b harvested, tables intact. A rule compressed to a bullet is a rule a downstream builder skips, and the whole point of that section is that it supplies the numbers nobody wrote down. Keep the precedence line and the conflict table with it — without them the norms read as a competing design system rather than a fallback layer.
+
 ### Present and save
 
 Show the fully composed prompt as one fenced block so it's a single copy action. Tell the user, in `{communication_language}`:
