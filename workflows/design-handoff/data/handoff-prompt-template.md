@@ -6,7 +6,7 @@ Fill every `{{slot}}` from the UX/UI Guide document (`{ux_guide_path}`) — that
 
 ## 0. Before you generate anything
 
-Check whether this Claude Design project already has an established design system (components, tokens, styles, prior screens). If it does, **use it** and tell me which parts you're reusing. If it doesn't, propose one consistent with the guidance in section 3 below, show it to me, and wait for my confirmation before generating full screens.
+Check whether this Claude Design project already has an established design system (components, tokens, styles, prior screens). If it does, **use it** and tell me which parts you're reusing — this brief deliberately doesn't restate it, because you can read it and I'd only be summarizing. If it doesn't, propose one, show it to me, and wait for my confirmation before generating full screens.
 
 {{#if claude_design_project}}
 This should be project `{{claude_design_project.name}}` (`{{claude_design_project.projectId}}`) — if what you find there conflicts with anything below, point out the conflict rather than silently picking one.
@@ -32,40 +32,20 @@ Core goal of this screen set: {{core_goal}}
 
 Navigation model: {{ia_summary}}
 
-## 3. Design system
-
-{{#if local_design_system}}
-Use these tokens/patterns as the visual system — don't invent a parallel one:
-
-{{local_design_system_summary}}
-{{else}}
-No existing project design system was found. Establish one consistent with: {{fallback_aesthetic_guidance}}. State the choices you made (palette, type scale, spacing unit, corner radius) explicitly in your response.
-{{/if}}
-
 {{#if seed_design_mode}}
-### 3a. Norms for everything section 3 doesn't state
+## 3. Norms for what your design system doesn't state
 
-The system above names components and colors. It doesn't say how far apart two buttons sit, how long a sheet takes to open, at what loading duration a spinner should become a skeleton, or what error copy is allowed to say. Those rules follow, taken from SEED (daangn's design system).
+Section 0 told you to use your project's own design system. It names components and colors; it probably doesn't say how far apart two buttons sit, how long a sheet takes to open, at what loading duration a spinner should become a skeleton, or what error copy is allowed to say. Those rules follow, taken from SEED (daangn's design system).
 
-**Read these as rules, not as a component library.** Keep using the components from section 3 — these norms govern their dimensions, timing, states, and copy. Never substitute a SEED component for one named above.
+**Read these as rules, not as a component library.** Keep using your project's components — these norms govern their dimensions, timing, states, and copy. Never substitute a SEED component for one of yours.
 
-**Precedence, in order:** section 3's local design system → the norms below → your own judgment. Where a conflict is listed, the local value is the one to build.
+**Precedence, in order:** your project's design system → the norms below → your own judgment. Where one of these norms contradicts something your design system already fixes, follow your design system and say which norm you overrode and why — don't silently pick one.
 
 {{#each seed_norms}}
-#### {{area}}
+### {{area}}
 
 {{rules_verbatim}}
 {{/each}}
-
-{{#if seed_conflicts}}
-**Conflicts — build the "Use" column:**
-
-| Rule | Local | SEED | Use |
-| --- | --- | --- | --- |
-{{#each seed_conflicts}}
-| {{rule}} | {{local}} | {{seed}} | {{local}} |
-{{/each}}
-{{/if}}
 
 Apply these to every screen in section 2, not just the ones where a violation was already flagged. Where a norm gives a token name and a value (`$dimension.x2` / 8px), use the value — this output isn't consuming SEED's token package.
 
@@ -80,7 +60,7 @@ The UX-writing rules above are Korean-language rules and apply to Korean copy. I
 - **{{screen}}** — {{pattern_description}} (ref: {{source}}). Why: {{why}}
 {{/each}}
 {{#unless mobbin_references}}
-No specific reference patterns were selected for this handoff — use your own judgment, anchored to section 3.
+No specific reference patterns were selected for this handoff — use your own judgment, anchored to your project's design system.
 {{/unless}}
 
 ## 5. Existing screen (if revising, not starting fresh)

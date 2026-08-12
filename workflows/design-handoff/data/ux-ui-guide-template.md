@@ -54,34 +54,22 @@ The PRD didn't resolve everything below. Each is an explicit assumption, not a s
 No PRD for this run (improvement-only mode) — this section is N/A; see section 1/2 for what's known from the existing screen instead.
 {{/unless}}
 
-## 4. Design System
-
-**Local project:** {{local_design_system_summary}}
+## 4. Target Project
 
 **Claude Design project:** {{claude_design_project_summary}}
+
+The design system itself isn't recorded here. This workflow doesn't read it — the handoff prompt tells Claude Design to read and use whatever its own project holds, which it knows better than any summary written from outside.
 
 ### 4a. SEED norms (tacit-gap layer)
 
 {{#if seed_design_mode}}
-Harvested from SEED (daangn) via the seed-docs MCP in step-03b. These are **rules, not component choices** — the project keeps its own components. Precedence when anything disagrees: **local design system > SEED norms > model judgment.**
+Harvested from SEED (daangn) via the seed-docs MCP in step-03b. These are **rules, not component choices** — the project keeps its own components. Precedence when anything disagrees: **the project's own design system > SEED norms > model judgment.**
 
 {{#each seed_norms}}
 #### {{area}}
 
 {{rules_verbatim}}
-
-Reconciliation: {{reconciliation}} <!-- fills-gap / agrees with local / conflicts (local wins) -->
 {{/each}}
-
-{{#if seed_conflicts}}
-**Conflicts with the local design system — local wins in every row below.** Recorded so a downstream builder sees the disagreement instead of silently picking one.
-
-| Rule | Local | SEED | Use |
-| --- | --- | --- | --- |
-{{#each seed_conflicts}}
-| {{rule}} | {{local}} | {{seed}} | {{local}} |
-{{/each}}
-{{/if}}
 
 {{#if seed_misses}}
 **Not harvested** — these documents 404'd during step-03b, so the areas below carry no SEED norms and fall through to model judgment. Not "SEED has no rule here."

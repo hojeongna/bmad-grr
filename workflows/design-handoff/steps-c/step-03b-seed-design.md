@@ -1,6 +1,6 @@
 ---
 name: step-03b-seed-design
-description: 'Harvest SEED (daangn) design norms via the seed-docs MCP — measurable rules only, never component selection — and write them into the UX/UI Guide as the layer that fills whatever the local design system leaves tacit'
+description: 'Harvest SEED (daangn) design norms via the seed-docs MCP — measurable rules only, never component selection — and write them into the UX/UI Guide as the layer that fills whatever a design system leaves tacit'
 nextStepBrownfield: './step-04-brownfield-prep.md'
 nextStepMobbin: './step-05-mobbin-research.md'
 uxGuidePath: '{ux_guide_path}'
@@ -10,11 +10,13 @@ uxGuidePath: '{ux_guide_path}'
 
 ## Outcome
 
-`seed_norms` is resolved: a detailed, near-verbatim set of SEED's measurable design rules — spacing scales, radius scales, grid/gutter/max-width numbers, motion durations and easing curves, state definitions, loading-duration thresholds, and the Korean UX-writing Do/Don't tables — written into Section 4 of `{uxGuidePath}` as a subsection under the local design system, not in place of it.
+`seed_norms` is resolved: a detailed, near-verbatim set of SEED's measurable design rules — spacing scales, radius scales, grid/gutter/max-width numbers, motion durations and easing curves, state definitions, loading-duration thresholds, and the Korean UX-writing Do/Don't tables — written into Section 4a of `{uxGuidePath}`. These sit under whatever design system governs the output, never in place of it.
 
 ## Why this step exists
 
-A local design system says what components exist and what the palette is. It almost never says *how far apart two buttons sit*, *how long a sheet takes to open*, *at what loading duration a spinner should become a skeleton*, or *whether error copy is allowed to say "불가능합니다"*. Those rules exist in every team's head and nowhere in their docs — that's the tacit gap. SEED has written them all down, with numbers. This step borrows that layer.
+A design system says what components exist and what the palette is. It almost never says *how far apart two buttons sit*, *how long a sheet takes to open*, *at what loading duration a spinner should become a skeleton*, or *whether error copy is allowed to say "불가능합니다"*. Those rules exist in every team's head and nowhere in their docs — that's the tacit gap. SEED has written them all down, with numbers. This step borrows that layer.
+
+This is also why SEED survived the removal of the old "describe your local design system" interview: that step was restating something Claude Design can read for itself, whereas this one supplies what neither side has written down.
 
 **Scope discipline — the thing that makes or breaks this step:** harvest *rules*, not *component choices*. "버튼과 버튼 사이는 `$dimension.x2` (8px)" is in scope. "액션에는 Action Button 컴포넌트를 쓰세요" is out of scope — the project has its own components and this workflow must not smuggle in a component library swap. When a SEED component doc is worth reading at all, take only its measurable parts (dimensions, state coverage, ordering, copy constraints) and leave its component identity behind.
 
@@ -100,15 +102,15 @@ Preserve the Do/Don't tables as tables. They are the highest-value artifact in t
 
 Do not summarize aggressively. This is deliberately the most verbose section the workflow produces; the user asked for the rules to arrive nearly whole, and a compressed rule is a rule that gets skipped.
 
-### Reconcile against the local design system
+### Don't reconcile — hand the reconciliation downstream
 
-`local_design_system` was resolved in step-03. Walk the harvested norms against it and tag each one:
+There is nothing here to compare against. Step-03 resolves which Claude Design project the work targets; it never reads that project's design system, and neither does this step. Whatever design system ends up governing the output is visible only to the tool that reads it.
 
-- **`fills-gap`** — local DS is silent here. This is what the step is for; carry it through at full detail.
-- **`agrees`** — local DS says the same thing. Keep it, note the agreement, don't restate the number twice.
-- **`conflicts`** — local DS states something different. **The local design system wins.** Record the conflict explicitly so the prompt can say "local says 12px, SEED says 8px, use 12px" instead of leaving a downstream builder to pick.
+So don't tag norms as agreeing or conflicting with something you can't see, and don't build a conflict table out of guesses. State the precedence instead and let the reader — Claude Design, or whoever edits the scaffold — resolve it against the system actually in front of them:
 
-Precedence is fixed and must be stated wherever these norms are rendered: **local design system > SEED norms > model judgment.**
+**The project's own design system > SEED norms > model judgment.** Where a norm contradicts something the design system already fixes, the design system wins and the override gets named rather than silently applied.
+
+That instruction is carried wherever these norms render, and it's the whole reconciliation. A rule that turns out to be redundant with the project's system costs a line; a conflict invented here from an unread system costs a wrong build.
 
 ### Present and confirm
 
@@ -116,15 +118,13 @@ Precedence is fixed and must be stated wherever these norms are rendered: **loca
 🌱 SEED 규범 수집 완료
 
 파운데이션: {n}/{total}개 문서 · 라이팅 규칙: {n}개 표 · 토큰: rootage v{version}
-로컬 디자인 시스템과 대조: 빈칸 채움 {n} · 일치 {n} · 충돌 {n}
 
 못 가져온 문서:
 - {path} — 문서가 옮겨졌거나 없어졌어요. 이 영역 규범은 비어 있어요.
 - ...
 
-충돌 항목:
-- {rule} — 로컬: {local}, SEED: {seed} → 로컬 우선
-- ...
+프로젝트 디자인 시스템과 겹치는 부분은 그쪽이 우선이에요 — 실제 대조는
+클로드 디자인(또는 스캐폴드를 고치는 쪽)이 자기 시스템을 보면서 합니다.
 
 [Y] 이대로 진행   [M] 일부 빼거나 더 담기   [V] 수집된 규범 전문 보기
 ```
@@ -135,7 +135,7 @@ Drop the "못 가져온 문서" block entirely when nothing missed — but never
 
 ### Write into the UX/UI Guide document
 
-Fill the SEED subsection of Section 4 in `{uxGuidePath}` with the harvested norms at full detail, the conflict list, and the precedence statement. Set `seed_design_mode: true` and `updated: {date}` in the frontmatter.
+Fill the SEED subsection of Section 4 in `{uxGuidePath}` with the harvested norms at full detail, any named misses, and the precedence statement. Set `seed_design_mode: true` and `updated: {date}` in the frontmatter.
 
 ## Next
 

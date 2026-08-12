@@ -46,7 +46,7 @@ Append one entry to `{uxGuidePath}` section 6 (Handoff Log): date, verification 
 PRD/스토리: {prd_or_story_path or "없음 (개선 전용)"}
 갭 스캔: {n}개 [ASSUMPTION]
 Mobbin 레퍼런스: {n}개
-디자인 시스템: 로컬 {summary} / 클로드 디자인 {project name or "미연동"}
+클로드 디자인 프로젝트: {project name or "미연동"} · SEED 규범: {적용 / 미적용}
 검증 결과: {n}개 이슈 → 수정 프롬프트 {n}개 생성 / Design Sync: {저장함 / 안 함}
 UX/UI 가이드: {ux_guide_path}
 프롬프트 파일: {handoff_output_path}/prompt-{date}.md
