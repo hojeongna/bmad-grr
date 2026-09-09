@@ -25,7 +25,7 @@ Read `{stateFile}`. Confirm `{planning_artifacts}/prd.md` and `{planning_artifac
 
 Load and follow `{epicsSkill}` in full, then wait for it to return control before continuing this step. It reads `prd.md` and `architecture.md` itself — grr-loop does not pass artifacts by hand or restate its internal steps here.
 
-Note: this native workflow's own `grr-spec-validate` customization (installed via `bmad-grr-customize`, presence checked in step-01) already dispatches one validator sub-agent **per story** as part of its `on_complete`. That per-story gate is not a substitute for the whole-document check below — it never evaluates `epics.md` itself for cross-epic ambiguity or structural coherence, only the individual story files it produces.
+Note: this native workflow's own `grr-spec-validate` customization (installed via `bmad-grr-customize`, presence checked in step-01) already dispatches one validator sub-agent **per (story × rubric) pair** as part of its `on_complete`. That per-story gate is not a substitute for the whole-document check below — it never evaluates `epics.md` itself for cross-epic ambiguity or structural coherence, only the individual story files it produces.
 
 ### Verify exit condition
 
@@ -33,13 +33,13 @@ Check the filesystem directly: does `{planning_artifacts}/epics.md` exist? Do no
 
 ### Explicit whole-document grr-spec-validate dispatch
 
-Dispatch a fresh sub-agent per `{specValidateSkill}` — do not inline its rubrics here, just reference the skill and its documented dispatch payload (see that skill's own `invocation-template.md`):
+Dispatch three fresh sub-agents per `{specValidateSkill}` — one per rubric, all in a single message so they run concurrently. Do not inline the rubrics here; reference the skill and its documented dispatch payload (see that skill's own `invocation-template.md`, Step 2). Each agent gets:
 
 - `artifact_path`: `{planning_artifacts}/epics.md`
-- `rubrics`: `ambiguity, ac-measurability, three-stage`
+- `rubrics`: exactly one of `ambiguity` / `ac-measurability` / `three-stage`
 - `reference_paths`: `{planning_artifacts}/prd.md`, `{planning_artifacts}/architecture.md`
 
-Parse the returned JSON block. Present the verdict and, if `REVISE`, every `revision_pointer` to the user verbatim.
+Merge the three returned blocks — worst verdict wins, `revision_pointers` union; a rubric whose agent returns nothing parseable is a `REVISE` for that rubric, not a pass. Present the verdict and, if `REVISE`, every `revision_pointer` to the user verbatim.
 
 ### Handle REVISE
 

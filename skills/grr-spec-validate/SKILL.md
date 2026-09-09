@@ -1,6 +1,6 @@
 ---
 name: grr-spec-validate
-description: Use when validating a story document or spec artifact in a fresh sub-agent context — checks ambiguity (score), AC measurability (Gherkin convertibility), three-stage coherence (concept/structure/detail), and codebase-convention violations against a user-supplied checklist. Always dispatched from the main session; never inherits its context.
+description: Use when validating a story document or spec artifact in a fresh sub-agent context — checks ambiguity (score), AC measurability (Gherkin convertibility), three-stage coherence (concept/structure/detail), and codebase-convention violations against a user-supplied checklist. Always dispatched from the main session, one sub-agent per rubric; never inherits its context.
 ---
 
 # grr-spec-validate
@@ -21,7 +21,7 @@ the next step (proceed / revise / re-dispatch).
 **Core principle:** the sub-agent sees ONLY:
 
 1. The artifact file to evaluate.
-2. The rubric files in this skill.
+2. The one rubric file it was assigned.
 3. (Optional) a user-supplied checklist file path.
 4. (Optional) reference files such as a PRD.
 5. (Brownfield-grounding rubric ONLY) the project's real source code, read
@@ -60,32 +60,45 @@ Do NOT use when:
 
 ## Dispatching this skill
 
-The main session calls Task / Agent with a prompt that loads this skill
-and supplies inputs. See `invocation-template.md` in this folder for the
-copy-paste prompt.
+The main session calls Task / Agent once per rubric, each with a prompt
+that loads this skill and supplies inputs. See `invocation-template.md`
+in this folder for the copy-paste prompt.
 
-The minimum dispatch payload:
+The dispatch payload for one sub-agent:
 
 | Key | Required | Notes |
 |---|---|---|
 | `artifact_path` | yes | Absolute path to the spec / story file under evaluation |
-| `rubrics` | yes | Comma-separated subset of {`ambiguity`, `ac-measurability`, `three-stage`, `checklist`, `brownfield-grounding`}. Default: the first four (NOT brownfield-grounding — that one is opt-in for brownfield specs). |
+| `rubrics` | yes | **Exactly one** of {`ambiguity`, `ac-measurability`, `three-stage`, `checklist`, `brownfield-grounding`} — one rubric per sub-agent, see below. |
 | `checklist_path` | conditional | Required if `rubrics` includes `checklist`. Main session **must ask the user** for this path — do not infer. |
 | `project_root` | conditional | Required if `rubrics` includes `brownfield-grounding` — the directory the validator reads source from. |
 | `brownfield_areas` | optional | Glob/Grep seeds for `brownfield-grounding` (file paths, folders, feature names the spec targets). Narrows the verification scope. |
 | `reference_paths` | optional | Additional context files (e.g. PRD path when validating a story, or a prior code-analysis artifact — used as a hint, never as ground truth) |
 
-**Parallel invocation is the norm.** Two patterns:
+## One rubric, one sub-agent
 
-1. **One sub-agent, multiple rubrics.** The dispatched agent runs all
-   requested rubrics in sequence and returns one combined block. Use this
-   when the rubrics share context.
-2. **Multiple sub-agents in parallel.** One sub-agent per rubric (or per
-   artifact in batch validation). They share no state and complete
-   concurrently. Use this when validating an epic of N stories or when
-   running independent rubrics against the same artifact for speed.
+Each dispatch carries **exactly one** rubric. The main session dispatches
+every applicable rubric at once, concurrently, and merges what comes back.
+Never hand several rubrics to a single sub-agent — they share no state,
+score against independent thresholds, and write disjoint output fields, so
+batching buys nothing and costs the honest scoring this skill exists for:
+a validator holding four rubrics skims the later ones and returns a clean
+verdict for a rubric it never really ran.
 
-The main session aggregates the results and presents them to the user.
+The default set for a spec artifact is the four artifact-only rubrics —
+`ambiguity`, `ac-measurability`, `three-stage`, `checklist` — so a normal
+gate is four concurrent sub-agents, five when the spec is brownfield. Drop
+`checklist` when the user supplied no checklist path, and
+`ac-measurability` for artifacts that have no ACs (architecture docs).
+
+Validating N artifacts — an epic of stories — crosses both axes: one
+sub-agent per (artifact × rubric) pair. Past roughly a dozen pairs,
+dispatch through the Workflow tool instead of by hand, so concurrency is
+capped and every pair is accounted for in the run.
+
+The main session merges the returned blocks: `verdict` is the worst across
+sub-agents (any `REVISE` → overall `REVISE`), per-rubric fields
+concatenate, `revision_pointers` union.
 
 ## The rubrics
 
@@ -103,7 +116,7 @@ existing code, and is requested only for brownfield specs (it needs
 `project_root`).
 
 Each rubric file contains: scoring procedure, heuristics, and worked
-examples. **Load only the rubric files the dispatch payload requests** —
+examples. **Load only the one rubric file the dispatch payload names** —
 do not load the others.
 
 ## Output schema
@@ -160,16 +173,17 @@ The sub-agent **must** return a single fenced JSON block (no prose around it):
 }
 ```
 
-Fields are **omitted** when the corresponding rubric was not requested
-(e.g. `ambiguity_score` is absent when `rubrics` does not include
-`ambiguity`). `revision_pointers` is always present when
-`verdict == "REVISE"`. `verdict` must be exactly `"PROCEED"` or
-`"REVISE"`. Array fields use `[]` when the rubric ran but found nothing
-to report.
+The block above is the **full field catalogue** — the merged shape the
+main session builds. A single sub-agent returns only `verdict`,
+`artifact`, the fields belonging to its own rubric, and
+`revision_pointers`; every other field is absent. `verdict` is derived
+from that one rubric alone and must be exactly `"PROCEED"` or `"REVISE"`.
+`revision_pointers` is always present when `"REVISE"`. Array fields use
+`[]` when the rubric ran but found nothing to report.
 
-The main session parses this block to decide the next step. If
-`verdict == "PROCEED"`, the downstream workflow continues. If
-`"REVISE"`, the main session shows `revision_pointers` and either
+The main session merges the blocks to decide the next step. If the merged
+`verdict` is `PROCEED`, the downstream workflow continues. If `REVISE`,
+the main session shows the union of `revision_pointers` and either
 re-prompts the user or routes to `refine-story`.
 
 ## Common mistakes
@@ -185,6 +199,10 @@ The whole point of fresh-context validation is honest scoring.
 **❌ Inventing rubrics.** Use only the rubrics in this skill. If a
 new dimension is needed, the main session must add a rubric file
 explicitly — not the sub-agent inline.
+
+**❌ Running a rubric you were not assigned.** One dispatch, one rubric.
+Sibling sub-agents hold the others; scoring them here duplicates their
+work and produces a verdict the main session cannot attribute.
 
 **❌ Modifying the artifact OR any source file.** This skill is read-only —
 including the brownfield-grounding rubric, which reads source only to
@@ -216,10 +234,10 @@ Before returning, the sub-agent must:
 
 1. Confirm the artifact was actually read — cite at least one line range
    from the artifact in the output (in `notes` or `revision_pointers`).
-2. Confirm each requested rubric produced a score.
+2. Confirm the assigned rubric produced a score.
 3. Confirm the output is a single fenced JSON block matching the schema.
-4. Confirm the verdict is consistent with the scores (no `PROCEED` when
-   any score fails its threshold).
+4. Confirm the verdict is consistent with that rubric's score (no
+   `PROCEED` when the score fails its threshold).
 
 If the artifact path does not exist or cannot be read, return a single
 block with `verdict: REVISE` and `revision_pointers: ["artifact_path

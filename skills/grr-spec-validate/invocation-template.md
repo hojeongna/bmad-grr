@@ -4,9 +4,9 @@ This is the prompt the **main session** uses when dispatching
 grr-spec-validate to a sub-agent. The main session is responsible for:
 
 1. Gathering inputs (especially asking the user for `checklist_path`).
-2. Deciding which rubric(s) to run and whether to parallelize.
-3. Calling Task / Agent with the prompt below.
-4. Parsing the returned JSON block and deciding the next step.
+2. Deciding which rubrics apply to this artifact.
+3. Calling Task / Agent once per rubric, all in one message.
+4. Merging the returned JSON blocks and deciding the next step.
 
 The sub-agent NEVER inherits the main session's chat history.
 
@@ -42,28 +42,40 @@ against).
 
 ---
 
-## Step 2 — Dispatch prompt (single sub-agent, all rubrics)
+## Step 2 — Dispatch: one sub-agent per rubric
 
-Use this prompt verbatim, substituting the placeholders. This is the
-default mode — fastest to author, sub-agent runs the four rubrics
-sequentially.
+Settle the rubric set, then dispatch **all of it at once** — one Task /
+Agent call per rubric, in a single message so they run concurrently.
+Never fold several rubrics into one call: they share no state, score
+against independent thresholds, and a sub-agent carrying four rubrics
+skims the later ones and reports a clean verdict for a rubric it never
+really ran.
+
+For a story or PRD the set is the four artifact-only rubrics —
+`ambiguity`, `ac-measurability`, `three-stage`, `checklist` — minus
+`checklist` when the user said `skip`, plus `brownfield-grounding` when
+the spec is brownfield. Architecture docs drop `ac-measurability` (no
+ACs).
+
+Use this prompt verbatim for each sub-agent, substituting the
+placeholders:
 
 ```text
-Load and follow the grr-spec-validate skill.
+Load and follow the grr-spec-validate skill — rubric: <RUBRIC_NAME>.
 
 Inputs:
 - artifact_path: <ABSOLUTE_PATH_TO_ARTIFACT>
-- rubrics: ambiguity, ac-measurability, three-stage, checklist
-           # brownfield specs: also add `brownfield-grounding`
-- checklist_path: <ABSOLUTE_PATH or omit if user said 'skip'>
-- project_root: <ABSOLUTE_PROJECT_ROOT — required only if brownfield-grounding is in rubrics>
+- rubrics: <RUBRIC_NAME>   # exactly one of: ambiguity, ac-measurability, three-stage, checklist, brownfield-grounding
+- checklist_path: <ABSOLUTE_PATH — only when RUBRIC_NAME is checklist>
+- project_root: <ABSOLUTE_PROJECT_ROOT — only when RUBRIC_NAME is brownfield-grounding>
 - brownfield_areas: <comma-separated paths/folders/feature names — optional scope hint for brownfield-grounding>
 - reference_paths: <comma-separated absolute paths or omit>
 
 Constraints:
-- For the artifact-only rubrics you see ONLY the artifact, the rubric
-  files in this skill, the checklist (if provided), and reference files
-  (if provided).
+- Run ONLY the rubric named above, and load only that rubric file.
+  Sibling sub-agents hold the others.
+- For the artifact-only rubrics you see ONLY the artifact, your rubric
+  file, the checklist (if provided), and reference files (if provided).
 - For the brownfield-grounding rubric ONLY, you may additionally
   Read/Glob/Grep the project source under project_root — to VERIFY the
   spec's claims about existing code, never to edit.
@@ -71,67 +83,49 @@ Constraints:
   artifact.
 - You do NOT modify the artifact or any source file. Return validation
   output only.
-- If a rubric cannot be applied (missing input, malformed artifact),
-  add a revision_pointer noting the issue and continue with remaining
-  rubrics.
+- If your rubric cannot be applied (missing input, malformed artifact),
+  return verdict REVISE with a revision_pointer naming the issue — do
+  not return PROCEED for a rubric you could not run.
 
-Return: a single fenced JSON block matching the schema in SKILL.md.
-No preamble, no markdown prose around the block.
+Return: a single fenced JSON block carrying `verdict`, `artifact`, this
+rubric's own fields per the SKILL.md schema, and `revision_pointers`.
+Derive `verdict` from this rubric alone. No preamble, no prose.
 ```
 
----
+### Merge the results
 
-## Step 3 — Parallel dispatch (one sub-agent per rubric)
+When every sub-agent has returned:
 
-Use when speed matters and the artifact is large. Dispatch N sub-agents
-concurrently, each running a single rubric:
-
-```text
-Load and follow the grr-spec-validate skill — rubric: <RUBRIC_NAME>.
-
-Inputs:
-- artifact_path: <ABSOLUTE_PATH>
-- rubrics: <RUBRIC_NAME>          # one of: ambiguity, ac-measurability, three-stage, checklist, brownfield-grounding
-- checklist_path: <PATH>          # required if RUBRIC_NAME == checklist
-- project_root: <PATH>            # required if RUBRIC_NAME == brownfield-grounding
-- reference_paths: <PATHS>        # optional
-
-Return only the JSON fields for the requested rubric, with `verdict`
-derived from that one rubric alone. The main session aggregates.
-```
-
-After all N sub-agents return, the main session merges:
 - `verdict` = worst across sub-agents (any `REVISE` → overall `REVISE`)
-- Concatenate per-rubric fields
+- Concatenate the per-rubric fields into one block matching the SKILL.md
+  schema
 - Union `revision_pointers`
 
----
-
-## Step 4 — Batch dispatch (multiple artifacts in parallel)
-
-Use when validating an epic of N stories. Dispatch N sub-agents, each
-with the full rubric set on one story:
-
-```text
-Load and follow the grr-spec-validate skill.
-
-Inputs:
-- artifact_path: <STORY_N_PATH>
-- rubrics: <as decided, default all four>
-- checklist_path: <SHARED_PATH>
-- reference_paths: <SHARED_PRD_PATH>
-
-Return the single JSON block per the SKILL.md schema.
-```
-
-The main session collects N results and presents a per-story summary
-to the user, sorted by verdict (REVISE first).
+A sub-agent that returns nothing parseable counts as `REVISE` for its
+rubric, never as a silent pass — name the rubric that failed to report
+when presenting the verdict.
 
 ---
 
-## Step 5 — Process the result
+## Step 3 — Batch dispatch (N artifacts × M rubrics)
 
-The main session parses the JSON. Branch on `verdict`:
+Use when validating an epic of N stories. The two axes cross: one
+sub-agent per (artifact × rubric) pair — N stories against four rubrics
+is 4N sub-agents, not N.
+
+Past roughly a dozen pairs, dispatch through the **Workflow** tool rather
+than by hand: write a script with one `agent()` per pair (never batch
+pairs into one agent), using the Step-2 prompt as each agent's prompt.
+The tool caps concurrency and accounts for every pair.
+
+Merge per artifact first (worst verdict across that artifact's rubrics),
+then present a per-story summary sorted by verdict (REVISE first).
+
+---
+
+## Step 4 — Process the result
+
+The main session branches on the merged `verdict`:
 
 ### `"PROCEED"`
 Continue the calling workflow. Example: `quick-story` step-05 routes
@@ -149,7 +143,7 @@ Show the `revision_pointers` to the user verbatim. Offer:
 ```
 
 After the user picks `R` or `E` and the artifact is updated, the main
-session **re-dispatches the validator** (each dispatch is a fresh
+session **re-dispatches the full rubric set** (every dispatch is a fresh
 sub-agent — idempotent and side-effect-free).
 
 For `O`, log the override decision in the artifact's metadata or
@@ -166,11 +160,13 @@ Inside `quick-story` step-04 (after composing the story file):
    this project, or 'skip'."
 2. Save the response as $CHECKLIST_PATH.
 3. Look for a PRD under _bmad-output/. If found, save as $PRD_PATH.
-4. Dispatch the validator (Step 2 prompt above) with:
-     artifact_path = <new story path>
-     rubrics = ambiguity, ac-measurability, three-stage, checklist
-     checklist_path = $CHECKLIST_PATH (omit if 'skip')
+4. Dispatch four sub-agents in one message — Step 2's prompt each, one
+   per rubric: ambiguity | ac-measurability | three-stage | checklist.
+   All four get:
+     artifact_path  = <new story path>
      reference_paths = $PRD_PATH (omit if none)
-5. Parse the returned JSON.
-6. Branch on verdict (Step 5 above).
+   The checklist agent also gets checklist_path = $CHECKLIST_PATH; drop
+   that agent entirely if the user said 'skip' (three agents then).
+5. Merge the returned blocks per Step 2's "Merge the results".
+6. Branch on the merged verdict (Step 4 above).
 ```

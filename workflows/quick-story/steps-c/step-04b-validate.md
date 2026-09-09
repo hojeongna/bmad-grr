@@ -15,7 +15,7 @@ The composed story has passed an independent quality gate before routing — che
 
 ## Why a separate step
 
-The story drafted in step-04 was authored in this session's context. Asking the same context to validate it would mask sycophancy and anchoring. The `grr-spec-validate` skill is read-only and **dispatched via Agent / Task** so the validator only sees the artifact, the rubrics, the checklist (user-provided), and the upstream PRD (if found in step-02). Nothing else.
+The story drafted in step-04 was authored in this session's context. Asking the same context to validate it would mask sycophancy and anchoring. The `grr-spec-validate` skill is read-only and **dispatched via Agent / Task — one sub-agent per rubric** so each validator only sees the artifact, its own rubric, the checklist (user-provided), and the upstream PRD (if found in step-02). Nothing else.
 
 ## Approach
 
@@ -32,31 +32,41 @@ Halt for input. Save as `checklist_path` (or `null` if `skip`).
 
 If the path was given but the file does not exist or is empty, tell the user briefly and re-ask once. After one retry, default to `skip`.
 
-### 2. Dispatch grr-spec-validate (single sub-agent, all rubrics)
+### 2. Dispatch grr-spec-validate — one sub-agent per rubric
 
-Load `{validatorInvocation}` for the canonical dispatch prompt. Then invoke `Task` / `Agent` with:
+Load `{validatorInvocation}` for the canonical dispatch prompt (its Step 2). Dispatch every rubric **in a single message so they run concurrently** — one `Task` / `Agent` call each, never several rubrics folded into one call:
+
+- `ambiguity`
+- `ac-measurability`
+- `three-stage`
+- `checklist` — drop this agent entirely if the user said `skip` in section 1
+
+Each call:
 
 ```text
-Load and follow the grr-spec-validate skill.
+Load and follow the grr-spec-validate skill — rubric: <RUBRIC_NAME>.
 
 Inputs:
 - artifact_path: <absolute path to {story_path} composed in step-04>
-- rubrics: ambiguity, ac-measurability, three-stage, checklist
-- checklist_path: <checklist_path, OR omit this line entirely if 'skip'>
+- rubrics: <RUBRIC_NAME>
+- checklist_path: <checklist_path — only on the checklist agent>
 - reference_paths: <prd_path from step-02, OR omit if null>
 
 Constraints:
-- You see ONLY the artifact, the rubric files in this skill, the
-  checklist (if provided), and the reference PRD (if provided).
+- Run ONLY the rubric named above, and load only that rubric file.
+  Sibling sub-agents hold the others.
+- You see ONLY the artifact, your rubric file, the checklist (if
+  provided), and the reference PRD (if provided).
 - You do NOT have access to the main conversation that produced this
   artifact.
 - You do NOT modify the artifact. Return validation output only.
 
-Return: a single fenced JSON block matching the schema in SKILL.md.
-No preamble, no markdown prose around the block.
+Return: a single fenced JSON block carrying `verdict`, `artifact`, this
+rubric's own fields per the SKILL.md schema, and `revision_pointers`.
+Derive `verdict` from this rubric alone. No preamble, no prose.
 ```
 
-The sub-agent returns one fenced JSON block per `{validatorSkill}` schema. Parse it.
+Each sub-agent returns one fenced JSON block per `{validatorSkill}` schema. Merge them: `verdict` is the worst across the agents (any `REVISE` → `REVISE`), per-rubric fields concatenate, `revision_pointers` union. A rubric whose agent returns nothing parseable is a `REVISE` for that rubric — name it in the verdict rather than counting it as a pass.
 
 ### 3. Present the verdict to the user
 
@@ -94,7 +104,7 @@ Show only requested rubrics. For `ambiguity_offenders`, list each with location.
 
 - **`R`** — Load `{recomposeStepFile}` with the revision pointers attached as additional context. The user's previous Mini PRD answers can be reused; only the sections covered by the pointers need re-thinking. After re-compose, step-04 routes back here (idempotent).
 
-- **`E`** — Tell the user the story file path. They edit directly with their editor (or via the main session's Edit tool on small fixes). When they confirm "done", **re-dispatch step 2 above** — fresh sub-agent each time, no shared state across dispatches.
+- **`E`** — Tell the user the story file path. They edit directly with their editor (or via the main session's Edit tool on small fixes). When they confirm "done", **re-dispatch the full rubric set from step 2 above** — fresh sub-agents each time, no shared state across dispatches.
 
 - **`O`** — Append to the story file's Dev Notes:
 
@@ -110,10 +120,6 @@ Show only requested rubrics. For `ambiguity_offenders`, list each with location.
   ```
 
   Also append `validator_overridden: true` to the story's entry in `{sprint_status}`. Then advance to step-05.
-
-### 5. (Optional) Parallel-rubric mode
-
-For a long story (> 500 lines) or when iteration speed matters, the main session may dispatch four sub-agents in parallel — one per rubric — using the Step-3 prompt template in `{validatorInvocation}`. The verdict is the worst across the four; `revision_pointers` are the union. This is a performance optimization; behavior is identical.
 
 ## Next
 

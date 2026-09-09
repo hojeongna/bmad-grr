@@ -234,10 +234,10 @@ In **brownfield mode** (extending existing code), each `create-*` workflow asks 
 
 | Workflow | Pre-flight | Mid-workflow guidance | Post-flight (on_complete) |
 | --- | --- | --- | --- |
-| `/bmad-create-prd` | skill check + ask for checklist path | block vague answers / non-measurable ACs | dispatch validator (4 rubrics) |
-| `/bmad-create-architecture` | skill check | block soft NFRs, require trade-off rationale | dispatch validator (3 rubrics; AC skipped) |
-| `/bmad-create-epics-and-stories` | skill check | per-story anti-vagueness + scope-overlap check | parallel dispatch — one sub-agent per story |
-| `/bmad-create-story` | skill check + checklist | per-AC measurability + task atomicity + edge cases | dispatch validator (4 rubrics) |
+| `/bmad-create-prd` | skill check + ask for checklist path | block vague answers / non-measurable ACs | one sub-agent per rubric (4 rubrics) |
+| `/bmad-create-architecture` | skill check | block soft NFRs, require trade-off rationale | one sub-agent per rubric (3 rubrics; AC skipped) |
+| `/bmad-create-epics-and-stories` | skill check | per-story anti-vagueness + scope-overlap check | parallel dispatch — one sub-agent per (story × rubric) pair |
+| `/bmad-create-story` | skill check + checklist | per-AC measurability + task atomicity + edge cases | one sub-agent per rubric (4 rubrics) |
 
 These are **per-project** because BMAD's `resolve_customization.py` only merges from `<project-root>/_bmad/custom/`.
 

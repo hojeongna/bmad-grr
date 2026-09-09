@@ -133,32 +133,41 @@ on_complete = """
 ### Post-flight: Dispatch grr-spec-validate on the completed PRD
 
 Get the final PRD path produced by this workflow (typically under
-{implementation_artifacts}/prd*.md). Then dispatch a fresh sub-agent (Task /
-Agent tool) using the invocation pattern at
-~/.claude/skills/grr-spec-validate/invocation-template.md:
+{implementation_artifacts}/prd*.md). Then dispatch one fresh sub-agent
+(Task / Agent tool) PER RUBRIC, all in a single message so they run
+concurrently — never fold several rubrics into one agent. The rubrics are
+ambiguity, ac-measurability, three-stage and checklist (drop that one when
+$CHECKLIST_PATH is unset), plus brownfield-grounding when $PRD_MODE == "B".
+Dispatch pattern: Step 2 of
+~/.claude/skills/grr-spec-validate/invocation-template.md.
 
-  Task prompt:
-    Load and follow the grr-spec-validate skill.
+  Task prompt (one per rubric):
+    Load and follow the grr-spec-validate skill — rubric: <RUBRIC_NAME>.
 
     Inputs:
     - artifact_path: <absolute PRD path>
-    - rubrics: ambiguity, ac-measurability, three-stage, checklist
-               # if $PRD_MODE == "B", ALSO add: brownfield-grounding
-    - checklist_path: <$CHECKLIST_PATH if set, otherwise omit this line>
-    - project_root: <absolute project root — include ONLY if $PRD_MODE == "B">
-    - brownfield_areas: <$BROWNFIELD_AREAS — include ONLY if $PRD_MODE == "B">
+    - rubrics: <RUBRIC_NAME>
+    - checklist_path: <$CHECKLIST_PATH — only on the checklist agent>
+    - project_root: <absolute project root — only on the brownfield-grounding agent>
+    - brownfield_areas: <$BROWNFIELD_AREAS — only on the brownfield-grounding agent>
     - reference_paths: <$SURVEY_ARTIFACT if it was written, otherwise omit>
 
     Constraints:
-    - For the artifact-only rubrics you see ONLY the artifact, the rubric
-      files, and the checklist (if provided). For brownfield-grounding you
-      may additionally Read/Glob/Grep project_root to verify current-state
+    - Run ONLY the rubric named above, and load only that rubric file.
+      Sibling sub-agents hold the others.
+    - The artifact-only rubrics see ONLY the artifact, that rubric file,
+      and the checklist (if provided). brownfield-grounding may
+      additionally Read/Glob/Grep project_root to verify current-state
       claims. You do NOT have access to the main conversation.
     - Do NOT modify the artifact or any source file. Return JSON only.
 
-    Return: a single fenced JSON block matching the schema in SKILL.md.
+    Return: a single fenced JSON block per the SKILL.md schema, carrying
+    this rubric's own fields and a verdict derived from this rubric alone.
 
-Parse the JSON. Branch on `verdict`:
+Merge the returned blocks: verdict = worst across agents (any REVISE →
+REVISE), per-rubric fields concatenate, revision_pointers union. An agent
+that returns nothing parseable is a REVISE for its rubric — name it rather
+than counting it as a pass. Branch on the merged `verdict`:
 
 - "PROCEED": tell the user "PRD 검증 통과. 다운스트림(Architecture / Epics)으로 진행 가능."
   End the workflow normally.
