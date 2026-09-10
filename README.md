@@ -40,6 +40,7 @@ Strict checklist-based code review — no subjective judgment.
 - **3 review sources** — story, git diff, manual file list.
 - **Priority × Scope** — every finding gets HIGH/MEDIUM/LOW × SMALL/LARGE.
 - **Fix scope choice** — `[F]` Full / `[S]` Small / `[H]` High / `[X]` Skip.
+- **Auto mode** — `auto` argument drops the scope menu and loops fix → re-collect → re-review until a review comes back clean; max 5 rounds, stops early on a recurring finding, a technical blocker, or red tests.
 - **No-deferral fix policy** — items in selected scope get fixed; "too complex" needs a concrete technical blocker.
 - **Auto test detection** — `tsc --noEmit`, build, project test runner; auto-retry up to 3 rounds.
 - **Pushback discipline** — `receiving-code-review` is loaded when the user pushes back on findings.
@@ -353,7 +354,7 @@ If you see *"No LSP server available"* after install: [issue #14803](https://git
 │   └── bmad-grr-customize.md              # applies grr-spec-validate gate to a BMAD project
 ├── workflows/                             # 11 workflows
 │   ├── dev-story/        (5 step files + checklist)
-│   ├── code-review/      (6 step files)
+│   ├── code-review/      (7 step files including step-04a-auto-loop)
 │   ├── review-checklist/ (5 + 3 + 2 step files across modes)
 │   ├── bug-hunt/         (7 step files + bug-report template)
 │   ├── set-worktree/     (3 step files)
@@ -485,9 +486,14 @@ step-02-collect               Collect files + per-file diffs
 step-03-review                Parallel sub-agent per file vs full checklist
    ↓
 step-04-report                Priority × Scope · Receiving-code-review on pushback
-   │ [F]ull / [S]mall / [H]igh / [X]Skip
+   │ [F]ull / [S]mall / [H]igh / [X]Skip     (interactive)
+   │ auto mode → step-04a
+   ↓
+step-04a-auto-loop            Round gate: budget 5 · recurrence / blocker / red tests → stop
+   │ otherwise fixScope = ALL
    ↓
 step-05-fix (parallel)        Per-file fix agents · Auto test runs + retry
+   │ auto mode → back to step-02 (git diff {base_sha}, working tree included)
    ↓
 step-06-complete (END)        Story-status update · Reflect changes back to story doc
 ```

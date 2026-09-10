@@ -19,6 +19,10 @@ If `review_source == "story"` (the story path is already known), load the story 
 
 If the review was diff- or manual-based, ask the user once: is there a related story document? Wait for the answer; don't assume. If yes, take the path and run the same update; if no, skip status updates.
 
+Auto mode does not ask — it skips straight past the status update and says so in the summary. A story path it was never given is not one it should go looking for while running unattended.
+
+**A stopped auto loop leaves the status alone even when the story path is known.** Stopping means findings survived; `done` would be a claim the last review contradicts.
+
 ### Reflect review changes into the story
 
 For each known story document, after the status update:
@@ -38,6 +42,8 @@ Tight summary in `{communication_language}`:
 - Story status (if updated)
 - Suggested next steps: review and test the modified code; update the checklist if new patterns emerged.
 
+In auto mode add the loop's history — one line per round with findings found and fixed — and how it ended: cleared on round N, or stopped by which condition with what is still unfixed. The user was not asked anything after the first report, so this summary is the whole record of what ran on their behalf; a stop condition buried under a fix tally is the one thing it must not do.
+
 ### Offer routing
 
 If the review touched UI **and** a mockup exists (look for `{handoffOutputPath}/auto-draft/*.html` or `converted/*.html`), halt for input:
@@ -46,5 +52,7 @@ If the review touched UI **and** a mockup exists (look for `{handoffOutputPath}/
 - `[S]` Stop.
 
 On `U`, load and follow `{designPassCommand}` with the mockup path, the app URL, and the story path (when known). Don't show this menu at all when the review was non-UI or no mockup exists — there's nothing to compare against, and offering it anyway trains the user to skip the prompt.
+
+Auto mode does not halt here either: when the same conditions hold, name `design-pass` Mode L as the suggested next step in the summary and end. Auto mode loops a review, it does not take the user into a second workflow unasked.
 
 End the workflow.

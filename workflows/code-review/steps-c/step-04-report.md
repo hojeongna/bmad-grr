@@ -2,6 +2,7 @@
 name: step-04-report
 description: 'Aggregate findings, assign priority and scope, present the report, route to fix or completion'
 fixStepFile: '~/.claude/workflows/code-review/steps-c/step-05-fix.md'
+autoLoopStepFile: '~/.claude/workflows/code-review/steps-c/step-04a-auto-loop.md'
 completeStepFile: '~/.claude/workflows/code-review/steps-c/step-06-complete.md'
 receivingCodeReviewSkill: '~/.claude/skills/receiving-code-review/SKILL.md'
 ---
@@ -10,7 +11,7 @@ receivingCodeReviewSkill: '~/.claude/skills/receiving-code-review/SKILL.md'
 
 ## Outcome
 
-The user sees a clear, file-grouped report with priority and scope assigned to every finding, then chooses the fix scope (or skips fixes). Findings always cite a specific checklist item — no subjective entries.
+The user sees a clear, file-grouped report with priority and scope assigned to every finding, then chooses the fix scope (or skips fixes). In auto mode the report is still presented — the user watches the loop, they just aren't asked anything. Findings always cite a specific checklist item — no subjective entries.
 
 ## Approach
 
@@ -31,7 +32,7 @@ For every finding:
 
 ### Present the report
 
-Short, file-grouped, with totals at the top:
+Short, file-grouped, with totals at the top. In auto mode, prefix the header with the round — `Code Review Report — round 2/5`:
 
 ```
 Code Review Report
@@ -48,11 +49,13 @@ Scope: 🔧 Small {s}, 🏗️ Large {l}
 
 ### Handle the no-violations case
 
-If zero violations were found, congratulate briefly and route directly to `{completeStepFile}` (no fix step needed).
+If zero violations were found, congratulate briefly and route directly to `{completeStepFile}` (no fix step needed). In auto mode this is the loop's normal exit — the review it was repeating for finally came back clean — so say which round cleared it.
 
 ### Ask about fixes
 
-When violations exist, halt and present:
+**Auto mode skips this entirely**: the scope is Full by definition, so there is nothing to ask. Route straight to `{autoLoopStepFile}`, which decides whether another round is worth spending before any fixing happens.
+
+Interactive mode halts and presents:
 
 - `[F]` Full — fix every finding regardless of priority/scope
 - `[S]` Small — fix only SMALL-scope items (any priority)

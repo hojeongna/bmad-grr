@@ -2,6 +2,7 @@
 name: step-05-fix
 description: 'Apply checklist-based fixes via parallel per-file agents, run available tests, auto-retry failures'
 nextStepFile: '~/.claude/workflows/code-review/steps-c/step-06-complete.md'
+recollectStepFile: '~/.claude/workflows/code-review/steps-c/step-02-collect.md'
 parallelAgentsSkill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
 ---
 
@@ -40,6 +41,8 @@ Each agent receives:
 
 Aggregate results. Confirm every assigned finding was addressed. If any agent deferred without a concrete technical reason, surface that to the user — that's a real failure, not just a partial result.
 
+In auto mode, record two things for the round gate: which findings were actually applied (keyed by file + checklist item, not by line number — the lines just moved), and any finding that came back with a technical blocker. Both are stop conditions there, so a fix that quietly went missing from the record reads as a fix that worked.
+
 ### Run available tests
 
 Detect what the project actually exposes:
@@ -56,4 +59,6 @@ Brief summary: fixed count, any unfixed items with reasons, and test results.
 
 ## Next
 
-Load and follow `{nextStepFile}`.
+Interactive mode → load and follow `{nextStepFile}`.
+
+Auto mode → load and follow `{recollectStepFile}` to re-collect the diff against the pinned base and review again. The round gate already cleared this round before the fixes ran; it sees the results of them on the next pass.

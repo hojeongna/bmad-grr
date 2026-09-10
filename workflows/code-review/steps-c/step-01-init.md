@@ -1,6 +1,6 @@
 ---
 name: step-01-init
-description: 'Load the mandatory checklist; select the review source (story / git diff / manual file list)'
+description: 'Settle the mode; load the mandatory checklist; select the review source (story / git diff / manual file list)'
 nextStepFile: '~/.claude/workflows/code-review/steps-c/step-02-collect.md'
 ---
 
@@ -8,9 +8,15 @@ nextStepFile: '~/.claude/workflows/code-review/steps-c/step-02-collect.md'
 
 ## Outcome
 
-A checklist is loaded into context (categories and items parsed and ready for downstream agents), and the review source is selected — story file, git diff range, or a manual file list. The workflow halts here if no checklist is provided.
+The mode is settled, a checklist is loaded into context (categories and items parsed and ready for downstream agents), and the review source is selected — story file, git diff range, or a manual file list. The workflow halts here if no checklist is provided.
 
 ## Approach
+
+### Mode
+
+Interactive or auto, per the workflow's activation. Say which one is running before anything else. In auto mode add one line on what that means here: no fix-scope menu, every finding gets fixed, and the review repeats until it comes back clean or the loop stops itself.
+
+Auto mode does not change this step's two questions. The checklist path and the review source are asked for either way — a review with no checklist is not a review, and neither can be guessed.
 
 ### Require a checklist (non-negotiable)
 
