@@ -9,7 +9,7 @@ parallel_agents_skill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
 
 ## Outcome
 
-For each PR currently at status `PLANNED`, the correct files are staged (only this PR's files when the repo has a multi-PR split; all changes when it's a single PR), a meaningful commit is created with the user's approval, and the branch is pushed to `origin`. The state file moves matching PRs to status `PUSHED`. No PRs are created in this step.
+For each PR currently at status `PLANNED`, the correct files are staged (only this PR's files when the repo has a multi-PR split; all changes when it's a single PR), a meaningful commit is created (with the user's approval in interactive mode), and the branch is pushed to `origin`. The state file moves matching PRs to status `PUSHED`. No PRs are created in this step.
 
 ## Approach
 
@@ -39,7 +39,7 @@ Lines: +{added} -{removed}
 [Y] Commit   [E] Edit message
 ```
 
-Halt for input. On `E`, accept the user's revised message.
+Halt for input. On `E`, accept the user's revised message. Auto mode shows the same preview and commits its own message without halting.
 
 After confirmation:
 

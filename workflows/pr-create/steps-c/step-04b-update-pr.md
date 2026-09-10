@@ -2,6 +2,7 @@
 name: step-04b-update-pr
 description: 'Push additional changes to an existing OPEN PR — run CI/local tests, fix failures, commit (amend or new), push to the same branch. No new PR is created.'
 nextStepFile: './step-05-merge-loop.md'
+autoNextStepFile: './step-05a-auto-review-merge.md'
 ---
 
 # Step 4b — Update Open PR
@@ -14,8 +15,10 @@ The current PR (status `OPEN`) on its existing branch receives the additional ch
 
 Two entry paths:
 
-1. **Auto-routed from step-01 (resume)** — the resume check found PRs at status `OPEN` AND the matching repo's working tree has uncommitted changes or unpushed commits ahead of the remote branch.
+1. **Routed from step-01 (resume)** — the resume check found PRs at status `OPEN` AND the matching repo's working tree has uncommitted changes or unpushed commits ahead of the remote branch. Both modes reach here this way; an auto session that was interrupted and resumed is the common case.
 2. **Manually selected from step-05** — the user chose `[U]` Update PR in the merge-loop menu because they came back from another workflow with extra work.
+
+Auto mode does not stop anywhere in this step: it takes every OPEN PR that shows local divergence, commits with its own message, fixes its own test failures, and pushes. The rules are the same ones step-04 uses — three consecutive failures on the same fix stop the run rather than thrashing at it.
 
 ## Approach
 
@@ -30,7 +33,7 @@ Open PRs with local changes:
 Which PR are we updating? (1 / 2 / A=all)
 ```
 
-If only one is detected, confirm it briefly before proceeding.
+If only one is detected, confirm it briefly before proceeding. Auto mode skips the question and takes every OPEN PR with local divergence.
 
 ### Show what changed
 
@@ -59,6 +62,8 @@ If the repo has CI defined and a CI test command can be inferred from the workfl
 
 Ask the user to fix the failure (or fix it inline if scope is small and it's clearly within this step's domain). After the fix, re-run the tests. Repeat until passing.
 
+**Auto mode** — do not ask. Fix the failure, choose amend or new commit on the same "does it belong to the previous commit" judgment, and re-run. Three consecutive failures on the same fix stop the run and hand the failure to the user.
+
 ### Stage and commit any pending changes (if not already committed)
 
 If there are uncommitted edits at this point (the user may have left them after the other workflow), present a commit preview:
@@ -70,7 +75,7 @@ Suggested commit message: …
 [Y] Commit   [E] Edit message   [A] Amend the previous commit instead
 ```
 
-Halt for input. Use `git commit -m "{message}"` or `git commit --amend --no-edit` per the user's choice.
+Halt for input. Use `git commit -m "{message}"` or `git commit --amend --no-edit` per the user's choice. Auto mode shows the same preview and commits its own message without halting.
 
 ### Push
 
@@ -93,4 +98,4 @@ Update the state file: append a `pushed_update` event entry to the PR's record (
 
 ## Next
 
-Load and follow `{nextStepFile}` so merge tracking continues with the updated PR.
+Load and follow `{nextStepFile}` so merge tracking continues with the updated PR — or `{autoNextStepFile}` in auto mode, where the push just made starts a fresh review round rather than a wait for somebody else to merge.

@@ -1,6 +1,6 @@
 ---
 name: step-05-merge-loop
-description: 'Poll PR statuses; on merge of a sequential predecessor, rebase and route the next PR back to test/create; offer manual re-push for OPEN PRs that received extra edits; loop until all merged'
+description: 'Interactive mode — poll PR statuses for a merge somebody else performs; on merge of a sequential predecessor, rebase and route the next PR back to test/create; offer manual re-push for OPEN PRs that received extra edits; loop until all merged'
 nextStepFile: './step-06-complete.md'
 testCreateFile: './step-04-test-create.md'
 updatePrFile: './step-04b-update-pr.md'
@@ -11,6 +11,10 @@ updatePrFile: './step-04b-update-pr.md'
 ## Outcome
 
 Every OPEN PR's GitHub status is checked via `gh`. Newly merged PRs are recorded. When a PR in a multi-PR repo merges and a successor PR is queued, the successor's branch is rebased onto the updated base, force-pushed with lease, and routed back to step-04 for its own test/create cycle. The workflow loops until every planned PR is `MERGED`, at which point it advances to step-06. The user can exit and resume later — state survives between sessions.
+
+## When this step runs
+
+Interactive mode, and as the fallback for a PR that auto mode could not get clean. **This step never merges anything** — it waits for a merge performed on GitHub by someone else. Auto mode merges in `step-05a-auto-review-merge.md` instead; if the state file says `mode: auto` and every OPEN PR still has rounds left, that is where to be.
 
 ## Approach
 

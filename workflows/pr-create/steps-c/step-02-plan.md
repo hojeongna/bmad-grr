@@ -17,7 +17,7 @@ Each repo has either a single-PR plan (small change) or a responsibility-based m
 For each repo, look at the change-volume row from step-01:
 
 - **<1000 lines total** → single PR. Tell the user briefly: "{repo}: {N} lines — single PR is fine."
-- **≥1000 lines total** → recommend a split and ask `[A]` AI-proposed split or `[M]` manual split.
+- **≥1000 lines total** → recommend a split and ask `[A]` AI-proposed split or `[M]` manual split. Auto mode takes `[A]` without asking.
 
 ### AI-proposed split
 
@@ -32,7 +32,7 @@ PR # | Role/Responsibility | Files | Est. Lines
 Merge order: PR1 → PR2 → PR3 (each subsequent PR rebases on the previous merge)
 ```
 
-Halt for `[Y]` Accept / `[E]` Edit. On `E`, take the user's adjustment and re-present.
+Halt for `[Y]` Accept / `[E]` Edit. On `E`, take the user's adjustment and re-present. Auto mode accepts its own proposal and moves on — the plan still gets shown, so the user reading along can interrupt.
 
 ### Manual split
 
@@ -52,7 +52,7 @@ Write the full PR plan to the state file's `prPlan` array. Each PR has: `repo`, 
 
 ### Menu
 
-Offer `[C]` Continue. Halt for input. On `C`, advance.
+Offer `[C]` Continue. Halt for input. On `C`, advance. Auto mode skips the menu.
 
 ## Next
 

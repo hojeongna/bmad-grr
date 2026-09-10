@@ -10,6 +10,7 @@ nextStepOptions:
   step-04-test-create: './step-04-test-create.md'
   step-04b-update-pr: './step-04b-update-pr.md'
   step-05-merge-loop: './step-05-merge-loop.md'
+  step-05a-auto-review-merge: './step-05a-auto-review-merge.md'
   step-06-complete: './step-06-complete.md'
 ---
 
@@ -17,9 +18,17 @@ nextStepOptions:
 
 ## Outcome
 
-A PR session is set up (or resumed): the worktree map is loaded, per-repo change volume is computed, and the state file is created with the planned-but-not-yet-pushed PR queue. If a previous session is in progress, it's restored and the workflow routes directly to the right next step based on the recorded `lastStep` and per-PR statuses.
+A PR session is set up (or resumed): the mode is settled, the worktree map is loaded, per-repo change volume is computed, and the state file is created with the planned-but-not-yet-pushed PR queue. If a previous session is in progress, it's restored and the workflow routes directly to the right next step based on the recorded `lastStep` and per-PR statuses.
 
 ## Approach
+
+### Mode
+
+Read `$ARGUMENTS`. `auto` selects auto mode; anything else, including no argument, is interactive. Only an argument the user passed to this workflow counts — when another workflow (grr-loop's step-09, say) loads pr-create as one of its own steps, its argument string is not pr-create's, and a stray `auto` in it selects nothing.
+
+On resume, the mode recorded in the state file wins — a session that started unattended does not silently become interactive halfway through, and vice versa. A state file with no `mode` field predates the split: treat it as interactive, which is what it was actually running.
+
+Say which mode is running before doing anything else. In auto mode add one line on what that means here: no confirmation stops, and this workflow will merge the PRs itself once they are clean.
 
 ### Resume detection (merged from old step-01b)
 
@@ -36,7 +45,7 @@ Before routing, **detect post-PR local changes** for each repo with at least one
 - `git status --short` — any uncommitted edits?
 - `git log {remote_tracking}..HEAD --oneline` — any local commits not yet on the remote branch?
 
-If either is non-empty for a repo whose PR status is `OPEN`, the user has come back from another workflow (typically `refine-story`, `dev-story`, or manual edits) with extra work. Route to `step-04b-update-pr` so those changes go through tests and reach the existing PR via a follow-up push.
+If either is non-empty for a repo whose PR status is `OPEN`, there is extra work to land — the user came back from another workflow (typically `refine-story`, `dev-story`, or manual edits), or an auto session was interrupted mid-round. Route to `step-04b-update-pr` in both modes so those changes go through tests and reach the existing PR via a follow-up push; it returns to the right merge path for the mode on its own.
 
 Update `lastContinued` in the state file. Route to the appropriate file in `{nextStepOptions}`:
 
@@ -44,7 +53,7 @@ Update `lastContinued` in the state file. Route to the appropriate file in `{nex
 - PRs PLANNED but not pushed → `step-03-commit-push`
 - PRs PUSHED but not opened → `step-04-test-create`
 - **PRs OPEN AND repo has uncommitted edits or unpushed commits → `step-04b-update-pr`**
-- PRs OPEN with clean working tree → `step-05-merge-loop`
+- PRs OPEN with clean working tree → `step-05-merge-loop`, or `step-05a-auto-review-merge` in auto mode
 - All PRs MERGED → `step-06-complete`
 
 Skip the rest of this step.
@@ -56,7 +65,7 @@ Search for `worktree-map.md` in:
 1. `_bmad-output/worktree-map.md`
 2. `docs/worktree-map.md`
 
-If found, parse the repo list (folder, branch, GitHub URL, base branch). If not found, ask the user for the location or for repo details manually.
+If found, parse the repo list (folder, branch, GitHub URL, base branch). If not found, ask the user for the location or for repo details manually — except in auto mode, which has nobody to ask: stop there and report the missing map. Auto mode runs unattended, it does not guess at a repo list.
 
 Show the loaded repo list briefly.
 
@@ -80,6 +89,7 @@ Choose the output location (prefer `_bmad-output/`, fall back to `docs/`). Write
 stepsCompleted: ['step-01-init']
 lastStep: 'step-01-init'
 lastContinued: ''
+mode: interactive        # or auto
 status: IN_PROGRESS
 date: '{date}'
 worktreeMap: '{map_path}'
