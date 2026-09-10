@@ -68,6 +68,7 @@ Quick-story uses the dedicated `q-` prefix so quick stories stay visually distin
 Read `{storyTemplate}` and substitute:
 
 - `{{story_key}}`, `{{title}}` (5–8 word title from intent), `{{date}}`, `{{user_name}}`.
+- `{{change_type}}` — the value settled in step-01, verbatim. It rides in the frontmatter because `dev-story` reads it to pick its acceptance track: `ui` means the story is verified by the project's own tests rather than by Gherkin scenarios under a BDD runner.
 - `{{complexity}}` — `S` / `M` / `L` judgment call weighing touchpoint count, blast radius, risk level, test work. No formula.
 - **Mini PRD fields** — the user's four answers (or auto-filled defaults), incorporating any Premise Challenge subtext.
 - **Mini Architecture** — five fields from step-03.

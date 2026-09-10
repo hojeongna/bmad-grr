@@ -2,6 +2,7 @@
 story_key: {{story_key}}
 Status: ready-for-dev
 type: quick-story
+change_type: {{change_type}}
 created: {{date}}
 author: {{user_name}}
 complexity: {{complexity}}

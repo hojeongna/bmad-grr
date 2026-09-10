@@ -6,7 +6,7 @@ Workflow collection for BMAD — adds BDD-based ATDD for story implementation, c
 - **Outcome-driven**, slim workflow files (Claude Opus 4.7 prompting guidance applied)
 - **gstack-free** — no external `gstack/*` skill dependencies
 - **11 superpowers skills bundled** (sourced from [obra/superpowers](https://github.com/obra/superpowers) v5.1.0) **+ `grr-spec-validate`** (grr-original spec-quality validator, sub-agent-dispatched)
-- **dev-story is BDD-based ATDD** — Gherkin scenarios drive a TDD inner loop
+- **dev-story is ATDD** — Gherkin scenarios drive a TDD inner loop, except on UI stories, which the project's own tests carry instead
 - **set-worktree enforces monorepo style** — workspace root never becomes a git repo
 - **pr-create has a re-push branch** — post-edit CI test → fix → push to existing PR
 - **grr-spec-validate gate for upstream BMAD `create-*`** — optional per-project customizations gate `/bmad-create-prd`, `/bmad-create-architecture`, `/bmad-create-epics-and-stories`, and `/bmad-create-story` via `grr-spec-validate` (sub-agent-dispatched, four-rubric validator). No external plugin required. Apply with `/bmad-grr-customize`.
@@ -17,18 +17,19 @@ For PRD / Architecture / Epics / Story creation, use **upstream BMAD** workflows
 
 ## Included Workflows (11)
 
-### 1. `dev-story` — BDD-based ATDD + TDD
+### 1. `dev-story` — ATDD + TDD
 
-Story implementation with a **BDD-based ATDD outer loop** + a **TDD inner loop**.
+Story implementation with an **acceptance outer loop** + a **TDD inner loop**.
 
-- **Universal stack** — auto-detects the project's BDD runner (`@cucumber/cucumber`, `playwright-bdd`, `pytest-bdd`, `behave`, `cucumber-jvm`, `godog`, `Reqnroll`, `cucumber-rs`); on no-detection, asks once and persists the choice.
-- **ATDD outer loop** — every Acceptance Criterion becomes a Gherkin scenario; the scenario stays red until the implementation makes it green.
+- **Two acceptance tracks** — step-01 reads `change_type` from the story's frontmatter. Anything but `ui` takes the **scenario track** (Gherkin under a BDD runner). `change_type: ui` takes the **UI track**: no scenarios, no `.feature` files, no runner — each AC names the component / unit / integration test that proves it, or is marked for inspection. The TDD inner loop is identical on both.
+- **Universal stack** — on the scenario track, auto-detects the project's BDD runner (`@cucumber/cucumber`, `playwright-bdd`, `pytest-bdd`, `behave`, `cucumber-jvm`, `godog`, `Reqnroll`, `cucumber-rs`); on no-detection, asks once and persists the choice.
+- **ATDD outer loop** — on the scenario track, every Acceptance Criterion becomes a Gherkin scenario; the scenario stays red until the implementation makes it green.
 - **TDD inner loop** — driven by the bundled `test-driven-development` superpower (RED → GREEN → REFACTOR; Iron Law: no production code without a failing test first).
 - **Optional context-isolated TDD** — load `subagent-driven-development` for non-trivial implementations: a test-writer sub-agent writes the tests; an implementer sub-agent writes the production code without ever reading the test source. Prevents test-fitting.
 - **Verification gates** — every "tests pass" / "scenario green" claim runs the actual command via `verification-before-completion`.
 - **Branch hygiene** — on completion, applies `finishing-a-development-branch` to clean up debug logs, temp files, dead helpers before review.
 - **Resume in step-01** — in-progress story detection routes back to the right stage automatically.
-- **Dry-run fallback** — if no BDD runner is available, scenarios are still authored; verification falls back to reasoning + unit tests.
+- **Dry-run fallback** — on the scenario track, if no BDD runner is available, scenarios are still authored; verification falls back to reasoning + unit tests. Distinct from the UI track, where there are no scenarios to author in the first place.
 
 ### 2. `code-review` — Checklist-driven, parallel per-file
 
@@ -445,23 +446,28 @@ For PRD / Architecture / Epics / Story creation use upstream BMAD:
 
 ```
 step-01-init (also handles resume)
-    │ Find/resume story · Detect BDD runner · Load TDD skill · Mark in-progress
+    │ Find/resume story · Settle track from change_type · Detect BDD runner
+    │ (scenario track only) · Load TDD skill · Mark in-progress
     ↓
 step-02-analyze
-    │ Convert ACs → Gherkin scenarios · Group by independence
+    │ Scenario track: convert ACs → Gherkin scenarios
+    │ UI track:       map each AC → named test (or inspection)
+    │ Group by independence
     ↓
 step-03-atdd-tdd-loop ← ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
-    │ For each scenario:                       │
-    │   • Author .feature + step definitions   │
-    │   • RED (BDD runner fails)               │
+    │ For each scenario (or AC on UI track):   │
+    │   • Scenario track: .feature + step defs │
+    │     UI track:       test named in step-02│
+    │   • RED (runner fails)                   │
     │   • Drill down: TDD inner loop           │
     │     (optional: subagent-driven-          │
     │      development for context isolation)  │
-    │   • GREEN (BDD runner passes)            │
+    │   • GREEN (runner passes)                │
     │ Verification-before-completion enforced  │
-    ↓                                          │ (loop until all scenarios green)
+    ↓                                          │ (loop until all green)
 step-04-validate
-    │ All scenarios green · Full regression · Inline health check (types/lint)
+    │ Acceptance green (scenarios, or named tests on the UI track)
+    │ Full regression · Inline health check (types/lint)
     ↓
 step-05-complete (END)
     │ Verification-before-completion on every DoD item

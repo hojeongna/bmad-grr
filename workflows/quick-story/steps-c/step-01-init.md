@@ -43,7 +43,7 @@ From the response (or `$ARGUMENTS`), extract:
 - `existing_story_ref` — explicit story key or path, if mentioned.
 - `change_type` — infer one of `feature | fix | refactor | chore | ui | devex` from wording and touchpoints. Be precise: a UI-touching feature is `ui`, not `feature`. If genuinely ambiguous, ask once.
 
-The `change_type` is consumed in step-03 to decide whether the systematic-debugging superpower is loaded (when `change_type == 'fix'`).
+The `change_type` is consumed in step-03 to decide whether the systematic-debugging superpower is loaded (when `change_type == 'fix'`), and it is written into the story's frontmatter in step-04 because `dev-story` reads it to pick its acceptance track (`ui` skips Gherkin scenarios and the BDD runner). Getting `ui` right therefore matters beyond this workflow.
 
 ### Detect existing stories
 

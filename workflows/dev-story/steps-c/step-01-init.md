@@ -1,6 +1,6 @@
 ---
 name: step-01-init
-description: 'Find or resume story, load context, detect BDD runner, load TDD skill, mark in-progress'
+description: 'Find or resume story, load context, settle the story track, detect BDD runner, load TDD skill, mark in-progress'
 nextStepFile: '~/.claude/workflows/dev-story/steps-c/step-02-analyze.md'
 tddSkill: '~/.claude/skills/test-driven-development/SKILL.md'
 ---
@@ -9,13 +9,13 @@ tddSkill: '~/.claude/skills/test-driven-development/SKILL.md'
 
 ## Outcome
 
-A story is selected (or resumed), its full context is loaded, the project's BDD runner is known, the TDD skill is loaded into context, and the story is marked in-progress in sprint tracking.
+A story is selected (or resumed), its full context is loaded, its track is settled, the project's BDD runner is known when the track needs one, the TDD skill is loaded into context, and the story is marked in-progress in sprint tracking.
 
 ## Approach
 
 ### Story selection
 
-Check for an in-progress story first. If `{implementation_artifacts}` contains a story file with status `in-progress`, resume that one. Read it completely, count completed vs incomplete scenarios/tasks, and route to whichever stage matches the story's actual state — typically step-02 if scenarios aren't drafted yet, step-03 if scenarios are drafted but not all green, step-04 if all green but not yet validated.
+Check for an in-progress story first. If `{implementation_artifacts}` contains a story file with status `in-progress`, resume that one. Read it completely and settle its track (below) before routing — what counts as "step-02 done" depends on which track it is on. Then count what is finished against what is not, and route to whichever stage matches the story's actual state: step-02 if the ACs still have no verification path (Gherkin scenarios on the scenario track, named tests on the UI track), step-03 if they have one but not all of it is green, step-04 if all of it is green but not yet validated.
 
 If no in-progress story exists:
 
@@ -31,7 +31,20 @@ Read the entire story file. Parse: Story, Acceptance Criteria, Tasks/Subtasks, D
 
 If the story file is inaccessible, HALT — implementation cannot proceed without it.
 
+### Story track
+
+Read `change_type` from the story file's frontmatter. It decides how acceptance is verified for the rest of the workflow:
+
+- `ui` — **UI track.** Acceptance rides on the project's own component / unit / integration tests. No Gherkin scenarios, no `.feature` files, no BDD runner.
+- anything else (`feature`, `fix`, `refactor`, `chore`, `devex`) — **scenario track.** Acceptance rides on Gherkin scenarios under the project's BDD runner.
+
+If the frontmatter has no `change_type` — the story came from `bmad-create-story`, `refine-story`, or a hand-written file rather than `quick-story` — ask the user once whether this story is UI work. Save the answer into the story file's frontmatter as `change_type` before going further, using `quick-story`'s vocabulary (`feature | fix | refactor | chore | ui | devex`): `ui` when the answer is yes, otherwise whichever of the rest fits, defaulting to `feature`. Writing it now is what keeps a resumed run from asking again. When the answer is ambiguous, take the scenario track — a backend story that gets scenarios costs less than a UI story that quietly skips acceptance.
+
+The TDD inner loop is unaffected either way. Both tracks watch every unit test fail before writing the code that passes it.
+
 ### BDD runner detection
+
+**Scenario track only** — on the UI track skip this section entirely; there is no runner to detect and nothing to persist.
 
 Inspect the project to identify the BDD runner. Order of preference: explicit project config > package manifest signals > one-time user choice persisted to config.
 
@@ -58,7 +71,7 @@ If `{sprint_status}` exists and the selected story's status is `ready-for-dev`, 
 
 ## Communicate
 
-Briefly tell the user, in `{communication_language}`: which story was loaded, total ACs, BDD runner detected (or chosen / dry-run), and that the TDD skill is loaded. One short paragraph.
+Briefly tell the user, in `{communication_language}`: which story was loaded, total ACs, which track it is on (and, on the scenario track, the BDD runner detected / chosen / dry-run), and that the TDD skill is loaded. One short paragraph.
 
 ## Next
 

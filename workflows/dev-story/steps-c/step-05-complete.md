@@ -25,15 +25,16 @@ The DoD checklist is the final gate. To break the writer-judges-own-work loop, t
 
 Before dispatching, the main session runs the verification commands itself (following `{verificationBeforeCompletion}`) and captures actual outputs. The evidence packet contains, at minimum:
 
-- BDD runner command + last N lines of output (exit code, scenario count, pass/fail tally)
+- Acceptance command + last N lines of output (exit code, count, pass/fail tally) — the BDD runner on the scenario track, the tests step-02 named on the UI track
 - Unit/integration test command + last N lines of output
 - Typecheck command + output (`tsc --noEmit` or equivalent)
 - Lint command + output
 - File list (added / modified / removed paths from the story's Dev Notes)
 - Story file absolute path
 - DoD checklist absolute path (`{checklistFile}`)
+- The story's `change_type` — it decides which half of the checklist's Acceptance section applies
 
-The commands are run in **this** session — that's the execution side. If any command fails, do NOT proceed to dispatch; route back to whichever earlier step owns the failure (step-03 for failing scenarios, step-04 for regressions).
+The commands are run in **this** session — that's the execution side. If any command fails, do NOT proceed to dispatch; route back to whichever earlier step owns the failure (step-03 for failing scenarios or named tests, step-04 for regressions).
 
 #### Step 5.2 — Dispatch the DoD verifier sub-agent
 
@@ -46,8 +47,9 @@ fresh context — you did NOT write any of this code.
 Inputs:
 - story_path: <absolute path>
 - dod_checklist_path: <absolute path>
+- change_type: <the story's change_type, or "absent">
 - evidence_packet:
-    bdd: { command: "<cmd>", exit_code: <n>, output_tail: "<last N lines>" }
+    acceptance: { command: "<cmd>", exit_code: <n>, output_tail: "<last N lines>" }
     tests: { command: "<cmd>", exit_code: <n>, output_tail: "<last N lines>" }
     typecheck: { command: "<cmd>", exit_code: <n>, output: "<output>" }
     lint: { command: "<cmd>", exit_code: <n>, output: "<output>" }
@@ -56,6 +58,10 @@ Inputs:
 Constraints:
 - You see ONLY the story file, the checklist, the evidence packet, and
   the changed files (you may read them for spot-check verification).
+- The checklist's Acceptance section has two sets, one per track. Judge
+  only the set that change_type selects. Mark the other set's items
+  "n/a" — a UI story has no Gherkin scenarios by design, and their
+  absence is not a FAIL.
 - You do NOT have access to the main conversation that produced this work.
 - You do NOT modify any file.
 - For each DoD item, your verdict is one of:
@@ -74,7 +80,7 @@ Output: a single fenced JSON block, no prose around it:
   "items": [
     {
       "item": "<verbatim DoD item text>",
-      "status": "PASS" | "FAIL" | "INSUFFICIENT_EVIDENCE",
+      "status": "PASS" | "FAIL" | "INSUFFICIENT_EVIDENCE" | "n/a",
       "evidence": "<cited line / output excerpt / file:line reference>"
     }
   ],
@@ -83,7 +89,7 @@ Output: a single fenced JSON block, no prose around it:
 
 Overall verdict is the worst per-item status: any FAIL → FAIL,
 any INSUFFICIENT_EVIDENCE (and no FAIL) → INSUFFICIENT_EVIDENCE,
-all PASS → PASS.
+otherwise PASS. "n/a" items do not affect the verdict.
 ```
 
 Parse the returned JSON.
@@ -108,7 +114,7 @@ Add a Completion Notes section summarizing:
 
 - What was built (1–3 sentences)
 - Key technical decisions and why
-- Test counts: unit, scenario, integration
+- Test counts: unit, integration, and acceptance — scenarios on the scenario track, named tests on the UI track
 - Files touched (point at the File List)
 - Any surprises or carryover items the next agent should know about
 - **DoD verifier verdict** — overall `PASS` (or the per-item JSON if any was overridden by the user)
@@ -119,7 +125,7 @@ Tell the user, in `{communication_language}`:
 
 - Story key and title
 - Status now `review`
-- BDD scenarios authored and passing (count)
+- Acceptance passing (count) — BDD scenarios on the scenario track, named tests on the UI track. When every AC on a UI story was marked for inspection there is no count to give; say so and name what was inspected instead.
 - Files changed (count + summary)
 
 Tailor explanation depth to `{user_skill_level}`. Offer to walk through anything that needs explaining.

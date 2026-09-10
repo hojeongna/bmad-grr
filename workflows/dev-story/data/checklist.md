@@ -6,9 +6,19 @@ title: 'Dev Story — Definition of Done'
 
 ## Acceptance
 
+Which set applies depends on `change_type` in the story file's frontmatter. Read it first, then judge only that set — the other set's items are `n/a`, not `FAIL`.
+
+**Scenario track** — `change_type` is anything but `ui` (or is absent):
+
 - [ ] Every AC has a Gherkin scenario (or is explicitly marked non-executable with a verification note)
 - [ ] All scenarios green under the project's BDD runner
 - [ ] Non-executable ACs verified by inspection, with note in Dev Agent Record
+
+**UI track** — `change_type: ui`. There are no Gherkin scenarios and no BDD runner by design; their absence is not a defect:
+
+- [ ] Every AC names the test that proves it, or is explicitly marked for inspection
+- [ ] All named tests green under the project's own runner
+- [ ] Inspection-marked ACs verified by inspection, with note in Dev Agent Record
 
 ## TDD discipline (from loaded skill)
 
