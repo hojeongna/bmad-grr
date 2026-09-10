@@ -36,7 +36,7 @@ Story implementation with an **acceptance outer loop** + a **TDD inner loop**.
 Strict checklist-based code review — no subjective judgment.
 
 - **Checklist supremacy** — must provide a checklist `.md` file; halts otherwise.
-- **One file = one sub-agent** for parallel review. Every finding cites a specific checklist item.
+- **One file = one sub-agent** for parallel review; at 10+ files it asks how many agents to use and splits by changed-line count. Every finding cites a specific checklist item.
 - **3 review sources** — story, git diff, manual file list.
 - **Priority × Scope** — every finding gets HIGH/MEDIUM/LOW × SMALL/LARGE.
 - **Fix scope choice** — `[F]` Full / `[S]` Small / `[H]` High / `[X]` Skip.
@@ -484,6 +484,7 @@ step-01-init                  Load checklist (HALT if none) · Pick source [S/D/
 step-02-collect               Collect files + per-file diffs
    ↓
 step-03-review                Parallel sub-agent per file vs full checklist
+   │ 10+ files → ask agent count (default: one per file)
    ↓
 step-04-report                Priority × Scope · Receiving-code-review on pushback
    │ [F]ull / [S]mall / [H]igh / [X]Skip     (interactive)
