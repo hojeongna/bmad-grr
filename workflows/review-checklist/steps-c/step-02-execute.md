@@ -15,9 +15,9 @@ Each selected automatic mode has its own dedicated sub-agent that returns a stru
 
 ## Approach
 
-### Analyze via the Workflow tool
+### Analyze
 
-Load `{analysisCategories}` for category guidance. Call the **Workflow** tool for this: write a script with one `agent()` per selected mode (never batch multiple modes into one agent); let each mode-agent's judgment drive which categories it surfaces from the actual code, and pipeline a re-scan when a first pass reveals a new convention or risk area, repeating until no new category surfaces (cap at 3 rounds).
+Load `{analysisCategories}` for category guidance. Give each selected mode its own agent — through the **Workflow** tool when 3 or more modes are selected (or parallel `Agent` calls where the Workflow tool isn't available), plain `Agent` calls otherwise. Never batch multiple modes into one agent; let each mode-agent's judgment drive which categories it surfaces from the actual code, and pipeline a re-scan when a first pass reveals a new convention or risk area, repeating until no new category surfaces (cap at 3 rounds).
 
 ### Prepare per-agent prompts
 

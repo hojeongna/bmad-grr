@@ -22,16 +22,16 @@ Read `{stateFile}` for the current story index, path, and app URL. Read the curr
 
 ### Read the implementation
 
-The story describes intent; the code reveals what's actually testable. Call the **Workflow** tool with a script whose `agent()` reads the affected pages/components and returns a compact JSON summary (route definitions, interactive elements, form validation rules, API endpoints called, shared state affected). This keeps the parent context lean.
+The story describes intent; the code reveals what's actually testable. With 3 or more affected pages/components, call the **Workflow** tool (or parallel `Agent` calls where the Workflow tool isn't available) with one `agent()` per page/component that reads it and returns a compact JSON summary (route definitions, interactive elements, form validation rules, API endpoints called, shared state affected). This keeps the parent context lean. With fewer, read them inline.
 
 ### Map the blast radius
 
 - **Direct impact** — pages/routes added or modified, components changed, API endpoints called.
 - **Indirect impact** — other pages using the same components, features sharing the same data/state, navigation paths through affected pages, shared layouts/headers/sidebars.
 
-### Verify and expand the blast radius via the Workflow tool
+### Verify and expand the blast radius
 
-Call the **Workflow** tool for this — every plan, regardless of surface size — so the indirect-impact list is neither padded nor missing consumers. Write a script that fans out one `agent()` per claimed edge to check it against the code (e.g. "is component Y actually imported by page X?", drop refuted edges), then pipelines a fresh round per confirmed shared component or state to find its *other* consumers (consumers-of-consumers) and verify those; repeat until a round adds nothing new (cap at 3 rounds).
+Verify the indirect-impact list so it is neither padded nor missing consumers. With 3 or more claimed edges, use the **Workflow** tool (or parallel `Agent` calls where the Workflow tool isn't available); with fewer, one fresh `Agent` checks them all. The script fans out one `agent()` per claimed edge to check it against the code (e.g. "is component Y actually imported by page X?", drop refuted edges), then pipelines a fresh round per confirmed shared component or state to find its *other* consumers (consumers-of-consumers) and verify those; repeat until a round adds nothing new (cap at 3 rounds).
 
 Fold the confirmed indirect surface into the Regression (REG-NN) cases below — an escaped consumer is an escaped bug.
 
