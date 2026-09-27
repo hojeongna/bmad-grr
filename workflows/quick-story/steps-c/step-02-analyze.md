@@ -14,11 +14,7 @@ Enough context exists to draft a 5-field mini architecture in step-03: project c
 
 ### Discover upstream PRD (if present)
 
-Before scanning code, look for an upstream PRD that may inform the Mini PRD draft in step-04 and the validation gate in step-04b. Glob the BMAD output area:
-
-- `_bmad-output/**/prd.md`
-- `_bmad-output/**/PRD.md`
-- `_bmad-output/**/product-*.md`
+Before scanning code, look for an upstream PRD that may inform the Mini PRD draft in step-04 and the validation gate in step-04b. Glob `{planning_artifacts}/**/prd.md` (case-insensitive), then `{planning_artifacts}/**/product-*.md`.
 
 If a PRD file exists:
 

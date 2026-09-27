@@ -3,7 +3,6 @@ name: step-04-compose
 description: 'Collect 4-question Mini PRD inline; run a lightweight inline Premise Challenge; compose the unified story; register in sprint-status'
 nextStepFile: './step-04b-validate.md'
 storyTemplate: '~/.claude/workflows/quick-story/data/story-template.md'
-tddSkill: '~/.claude/skills/test-driven-development/SKILL.md'
 ---
 
 # Step 4 — Compose Story
@@ -80,7 +79,7 @@ Read `{storyTemplate}` and substitute:
 - **Dev Notes**:
   - `refs_project_context` — relevant sections from step-02
   - `refs_related` — related story keys from step-03 Cross-Story Impact
-  - `testing_unit` / `testing_integration` — load `{tddSkill}` in full and reference its RED-GREEN-REFACTOR discipline + testing-anti-patterns guide. If the skill isn't installed, derive testing standards from project patterns alone.
+  - `testing_unit` / `testing_integration` — what to test at each level, from the touchpoints and the project's existing test patterns (step-02). Don't load the TDD skill here: dev-story loads it and enforces RED-GREEN-REFACTOR, and the template's `TDD:` line already says so.
   - `premise_notes` — concerns from the Premise Challenge if `A` was selected.
 
 ### Approve and write
