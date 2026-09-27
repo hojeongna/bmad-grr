@@ -43,7 +43,7 @@ Read `{qaTestSpecTemplate}` for structure. Save the spec at `{implementation_art
 - **Navigation (NAV-NN)** — back button / refresh / direct URL / breadcrumbs / new tab / forward button, at every distinct state.
 - **Regression (REG-NN)** — for every existing feature in the affected area, confirm it still works.
 - **Accessibility (A11Y-NN)** — keyboard reach, focus management, ARIA, color contrast, screen reader (alt text, form labels).
-- **Responsive (RSP-NN)** — emulate mobile (375px), tablet (768px), desktop (1280px); overflow with long content.
+- **Responsive (RSP-NN)** — mobile (375px), tablet (768px), desktop (1280px); overflow with long content. Chrome DevTools MCP can emulate the viewport. claude-in-chrome can't: `resize_window` reports success and changes nothing on a maximized window, so load the page in a same-origin iframe at each width (as design-pass does) or record the RSP case as `not measured`.
 - **UI/Visual (UI-NN)** — layout integrity, loading states, empty states, console clean, network clean, performance reasonable.
 
 Every test case must specify exact steps (clicks, inputs, expected outcomes) — no "check if it works" wording. If a tester reads it and still wonders "but what if…?", a case is missing.

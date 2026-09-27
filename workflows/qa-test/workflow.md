@@ -26,7 +26,8 @@ parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
 refine_story_command: "~/.claude/commands/bmad-grr-refine-story.md"
 dev_story_command: "~/.claude/commands/bmad-grr-dev-story.md"
 
-# External tool dependencies — Chrome DevTools MCP must be available in the environment
+# Browser: Chrome DevTools MCP preferred. claude-in-chrome (tools via ToolSearch) is the fallback;
+# with neither connected, step-03 halts.
 ---
 
 # QA Test

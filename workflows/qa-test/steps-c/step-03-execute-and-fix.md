@@ -23,7 +23,7 @@ Load `{verification_skill}` (full file) — it governs how each test result is v
 
 ### Connect to the browser
 
-Use Chrome DevTools MCP to navigate to the app URL from state, take an initial screenshot, and check console for pre-existing errors. If Chrome DevTools MCP is unavailable, halt and tell the user — silent fallback is not appropriate for browser-first verification.
+Use Chrome DevTools MCP to navigate to the app URL from state, take an initial screenshot, and check console for pre-existing errors. If it isn't connected, use claude-in-chrome (load its tools via ToolSearch) and tell the user which browser tool the run is on. If neither is available, halt and tell the user — silent fallback to non-browser verification is not appropriate for browser-first QA.
 
 ### Execute the test loop
 
@@ -76,7 +76,7 @@ When all test cases are complete, set storyStatus to `tested` and append the fin
 
 ### Watch for context pressure (epic mode)
 
-In epic mode with many stories, context can grow. If responses slow or compaction signals appear, save current progress to the state file and tell the user to resume with `qa test` in a fresh session.
+In epic mode, keep the state file current after every story so the run can be resumed with `qa test` in a fresh session if it gets long.
 
 ## Next
 
