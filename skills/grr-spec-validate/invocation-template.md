@@ -5,7 +5,7 @@ grr-spec-validate to a sub-agent. The main session is responsible for:
 
 1. Gathering inputs (especially asking the user for `checklist_path`).
 2. Deciding which rubrics apply to this artifact.
-3. Calling Task / Agent once per rubric, all in one message.
+3. Calling `Agent` once per rubric, all in one message.
 4. Merging the returned JSON blocks and deciding the next step.
 
 The sub-agent NEVER inherits the main session's chat history.
@@ -44,8 +44,8 @@ against).
 
 ## Step 2 — Dispatch: one sub-agent per rubric
 
-Settle the rubric set, then dispatch **all of it at once** — one Task /
-Agent call per rubric, in a single message so they run concurrently.
+Settle the rubric set, then dispatch **all of it at once** — one `Agent`
+call per rubric, in a single message so they run concurrently.
 Never fold several rubrics into one call: they share no state, score
 against independent thresholds, and a sub-agent carrying four rubrics
 skims the later ones and reports a clean verdict for a rubric it never
@@ -56,6 +56,17 @@ For a story or PRD the set is the four artifact-only rubrics —
 `checklist` when the user said `skip`, plus `brownfield-grounding` when
 the spec is brownfield. Architecture docs drop `ac-measurability` (no
 ACs).
+
+The dispatch payload for one sub-agent:
+
+| Key | Required | Notes |
+|---|---|---|
+| `artifact_path` | yes | Absolute path to the spec / story file under evaluation |
+| `rubrics` | yes | **Exactly one** of {`ambiguity`, `ac-measurability`, `three-stage`, `checklist`, `brownfield-grounding`} — one rubric per sub-agent. |
+| `checklist_path` | conditional | Required if `rubrics` includes `checklist`. Main session **must ask the user** for this path — do not infer. |
+| `project_root` | conditional | Required if `rubrics` includes `brownfield-grounding` — the directory the validator reads source from. |
+| `brownfield_areas` | optional | Glob/Grep seeds for `brownfield-grounding` (file paths, folders, feature names the spec targets). Narrows the verification scope. |
+| `reference_paths` | optional | Additional context files (e.g. PRD path when validating a story, or a prior code-analysis artifact — used as a hint, never as ground truth) |
 
 Use this prompt verbatim for each sub-agent, substituting the
 placeholders:
@@ -135,7 +146,8 @@ to dev-story; `bmad-create-story` proceeds to the next AC.
 Show the `revision_pointers` to the user verbatim. Offer:
 
 ```
-[R] Run refine-story to update the artifact (recommended — keeps revision in fresh-context shape)
+[R] Revise through the calling workflow's own revise path — quick-story
+    re-composes in its step-04; everywhere else, run refine-story
 [E] Edit the artifact directly in this session
     (acknowledges that same-context revision is weaker than fresh — use only for small fixes)
 [O] Override and proceed anyway
@@ -148,25 +160,3 @@ sub-agent — idempotent and side-effect-free).
 
 For `O`, log the override decision in the artifact's metadata or
 sprint-status for traceability, then proceed.
-
----
-
-## Example — full quick-story integration
-
-Inside `quick-story` step-04 (after composing the story file):
-
-```text
-1. Ask the user: "Provide the codebase-convention checklist path for
-   this project, or 'skip'."
-2. Save the response as $CHECKLIST_PATH.
-3. Look for a PRD under _bmad-output/. If found, save as $PRD_PATH.
-4. Dispatch four sub-agents in one message — Step 2's prompt each, one
-   per rubric: ambiguity | ac-measurability | three-stage | checklist.
-   All four get:
-     artifact_path  = <new story path>
-     reference_paths = $PRD_PATH (omit if none)
-   The checklist agent also gets checklist_path = $CHECKLIST_PATH; drop
-   that agent entirely if the user said 'skip' (three agents then).
-5. Merge the returned blocks per Step 2's "Merge the results".
-6. Branch on the merged verdict (Step 4 above).
-```

@@ -43,8 +43,6 @@ Use when:
   implementation (`quick-story`, `bmad-create-story`).
 - A PRD or epic list needs verification before downstream workflows
   consume it (`bmad-create-prd`, `bmad-create-epics-and-stories`).
-- A DoD checklist needs evaluation against actual completion state
-  (`dev-story` step-05).
 - A planned implementation needs convention-conformance check against a
   project checklist before coding starts.
 
@@ -55,50 +53,22 @@ Do NOT use when:
   evidence, this one is for spec quality).
 - The artifact has not been written yet (this skill validates, it does
   not draft).
-- The work is purely about code style / naming conformance on existing
-  code (use `code-review` for post-implementation review).
+- You'd be running it inline in the context that wrote the artifact —
+  same context, no value. Sub-agent dispatch only.
+- The work is code review on existing code (use the `code-review`
+  workflow) or generating a checklist (use `review-checklist`).
 
 ## Dispatching this skill
 
-The main session calls Task / Agent once per rubric, each with a prompt
-that loads this skill and supplies inputs. See `invocation-template.md`
-in this folder for the copy-paste prompt.
+The main session dispatches one sub-agent per rubric, concurrently, and
+merges what comes back. The payload, prompt, and merge rules live in
+`invocation-template.md` in this folder — dispatchers read that, not this
+section.
 
-The dispatch payload for one sub-agent:
-
-| Key | Required | Notes |
-|---|---|---|
-| `artifact_path` | yes | Absolute path to the spec / story file under evaluation |
-| `rubrics` | yes | **Exactly one** of {`ambiguity`, `ac-measurability`, `three-stage`, `checklist`, `brownfield-grounding`} — one rubric per sub-agent, see below. |
-| `checklist_path` | conditional | Required if `rubrics` includes `checklist`. Main session **must ask the user** for this path — do not infer. |
-| `project_root` | conditional | Required if `rubrics` includes `brownfield-grounding` — the directory the validator reads source from. |
-| `brownfield_areas` | optional | Glob/Grep seeds for `brownfield-grounding` (file paths, folders, feature names the spec targets). Narrows the verification scope. |
-| `reference_paths` | optional | Additional context files (e.g. PRD path when validating a story, or a prior code-analysis artifact — used as a hint, never as ground truth) |
-
-## One rubric, one sub-agent
-
-Each dispatch carries **exactly one** rubric. The main session dispatches
-every applicable rubric at once, concurrently, and merges what comes back.
-Never hand several rubrics to a single sub-agent — they share no state,
-score against independent thresholds, and write disjoint output fields, so
-batching buys nothing and costs the honest scoring this skill exists for:
-a validator holding four rubrics skims the later ones and returns a clean
-verdict for a rubric it never really ran.
-
-The default set for a spec artifact is the four artifact-only rubrics —
-`ambiguity`, `ac-measurability`, `three-stage`, `checklist` — so a normal
-gate is four concurrent sub-agents, five when the spec is brownfield. Drop
-`checklist` when the user supplied no checklist path, and
-`ac-measurability` for artifacts that have no ACs (architecture docs).
-
-Validating N artifacts — an epic of stories — crosses both axes: one
-sub-agent per (artifact × rubric) pair. Past roughly a dozen pairs,
-dispatch through the Workflow tool instead of by hand, so concurrency is
-capped and every pair is accounted for in the run.
-
-The main session merges the returned blocks: `verdict` is the worst across
-sub-agents (any `REVISE` → overall `REVISE`), per-rubric fields
-concatenate, `revision_pointers` union.
+As the sub-agent: you run **exactly one** rubric, the one named in
+`rubrics`. Sibling sub-agents hold the others; a validator holding several
+rubrics skims the later ones and returns a clean verdict for a rubric it
+never really ran.
 
 ## The rubrics
 
@@ -181,10 +151,8 @@ from that one rubric alone and must be exactly `"PROCEED"` or `"REVISE"`.
 `revision_pointers` is always present when `"REVISE"`. Array fields use
 `[]` when the rubric ran but found nothing to report.
 
-The main session merges the blocks to decide the next step. If the merged
-`verdict` is `PROCEED`, the downstream workflow continues. If `REVISE`,
-the main session shows the union of `revision_pointers` and either
-re-prompts the user or routes to `refine-story`.
+The main session merges the blocks and handles `PROCEED` / `REVISE` as
+`invocation-template.md` Step 4 describes.
 
 ## Common mistakes
 
@@ -218,15 +186,6 @@ reading project files for those.
 non-interactive. If a rubric cannot be applied (missing input, malformed
 artifact), record that as a `revision_pointer` and return — do not block
 on input.
-
-## When NOT to use this skill
-
-- **Inline self-check after writing.** Same context = no value. Use
-  this skill via sub-agent dispatch only.
-- **Code review on existing code.** Use `code-review` workflow.
-- **Verifying that a command ran successfully.** Use
-  `verification-before-completion`.
-- **Generating a checklist.** Use `review-checklist`.
 
 ## Verification (sub-agent self-check before returning)
 
