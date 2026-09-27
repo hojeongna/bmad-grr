@@ -33,7 +33,7 @@ If no in-progress state file exists, this is a fresh start — continue below.
 
 ### Skill load
 
-Load the full content of `{systematic_debugging_skill}` into context. Internalize the Iron Law: **no fixes without root cause investigation first**. Evidence precedes hypothesis.
+Load the full content of `{systematic_debugging_skill}`.
 
 ### Bug intake
 

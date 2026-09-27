@@ -22,7 +22,9 @@ project_context: "**/project-context.md"
 systematic_debugging_skill: "~/.claude/skills/systematic-debugging/SKILL.md"
 parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
 
-# External tool dependencies — Chrome DevTools MCP must be available in the environment
+# Browser evidence (frontend bugs): Chrome DevTools MCP. If it isn't connected, use claude-in-chrome
+# (load its tools via ToolSearch); with no browser MCP at all, ask the user to reproduce the bug and
+# paste the console / network output instead.
 ---
 
 # Bug Hunt
