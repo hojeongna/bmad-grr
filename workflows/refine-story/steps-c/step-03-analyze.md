@@ -2,9 +2,9 @@
 name: step-03-analyze
 description: 'Gap analysis between story documents and current state; per-story decision (modify vs create new); user-confirmed change proposal'
 nextStepFile: './step-04-execute.md'
-advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
-partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
-brainstormingWorkflow: '{project-root}/_bmad/core/workflows/brainstorming/workflow.md'
+advancedElicitationSkill: 'bmad-advanced-elicitation'
+partyModeSkill: 'bmad-party-mode'
+brainstormingSkill: 'bmad-brainstorming'
 ---
 
 # Step 3 — Analyze
@@ -42,7 +42,7 @@ Present the full proposal in `{communication_language}`. Halt for input. If the 
 
 ### Menu
 
-After confirmation, offer `[A]` Advanced Elicitation, `[P]` Party Mode, `[B]` Brainstorming, `[C]` Continue. `A`/`P`/`B` execute their respective workflows and return to the menu. `C` advances.
+After confirmation, offer `[A]` Advanced Elicitation, `[P]` Party Mode, `[B]` Brainstorming, `[C]` Continue. `A`/`P`/`B` invoke the `{advancedElicitationSkill}` / `{partyModeSkill}` / `{brainstormingSkill}` skill and return to the menu. `C` advances.
 
 ## Next
 

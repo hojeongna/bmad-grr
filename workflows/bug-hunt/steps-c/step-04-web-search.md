@@ -5,8 +5,8 @@ nextStepFile: './step-04b-architecture.md'
 skipToFixFile: './step-05-fix.md'
 branchToStoryFile: './step-05b-branch-to-story.md'
 stateFile: '{output_folder}/bug-hunt-{date}.state.md'
-advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
-partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
+advancedElicitationSkill: 'bmad-advanced-elicitation'
+partyModeSkill: 'bmad-party-mode'
 ---
 
 # Step 4 — Web Search (Level 3)
@@ -49,4 +49,4 @@ Present a menu (halt for input):
 - **Failed and total failures ≥ 3**: `[A]` `[P]` `[C]` Proceed to Architecture Review
 - **Failed and total failures < 3**: `[A]` `[P]` `[R]` Retry this level, `[C]` Proceed to Architecture Review
 
-Menu handling: `A`/`P` as standard; `S` → `{skipToFixFile}`; `Q` (success only) → `{branchToStoryFile}` (best for multi-file or recurrence-prone bugs; otherwise `[S]` is lighter); `R` (retry) returns to the search-strategy step within this file with refined queries; `C` → `{nextStepFile}` (architecture review).
+Menu handling: `A`/`P` invoke the `{advancedElicitationSkill}` / `{partyModeSkill}` skill and redisplay; `S` → `{skipToFixFile}`; `Q` (success only) → `{branchToStoryFile}` (best for multi-file or recurrence-prone bugs; otherwise `[S]` is lighter); `R` (retry) returns to the search-strategy step within this file with refined queries; `C` → `{nextStepFile}` (architecture review).

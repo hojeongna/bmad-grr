@@ -6,8 +6,8 @@ skipToFixFile: './step-05-fix.md'
 branchToStoryFile: './step-05b-branch-to-story.md'
 stateFile: '{output_folder}/bug-hunt-{date}.state.md'
 systematic_debugging_skill: '~/.claude/skills/systematic-debugging/SKILL.md'
-advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
-partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
+advancedElicitationSkill: 'bmad-advanced-elicitation'
+partyModeSkill: 'bmad-party-mode'
 ---
 
 # Step 2 — Code Analysis (Level 1)
@@ -69,8 +69,8 @@ After the test, present a menu (halt for input):
 - **If hypothesis failed**: `[A]` Advanced Elicitation, `[P]` Party Mode, `[C]` Continue to Level 2
 
 Menu handling:
-- `A` → execute `{advancedElicitationTask}`, then redisplay
-- `P` → execute `{partyModeWorkflow}`, then redisplay
+- `A` → invoke the `{advancedElicitationSkill}` skill, then redisplay
+- `P` → invoke the `{partyModeSkill}` skill, then redisplay
 - `S` (success only) → load and follow `{skipToFixFile}`
 - `Q` (success only) → load and follow `{branchToStoryFile}`. Best for multi-file or recurrence-prone bugs; for a single-file, low-complexity fix, `[S]` is the lighter choice.
 - `C` → load and follow `{nextStepFile}`

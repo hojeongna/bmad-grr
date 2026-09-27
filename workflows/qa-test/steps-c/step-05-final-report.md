@@ -5,8 +5,8 @@ stateFile: '{output_folder}/qa-test-{date}.state.md'
 refine_story_command: '~/.claude/commands/bmad-grr-refine-story.md'
 dev_story_command: '~/.claude/commands/bmad-grr-dev-story.md'
 implementation_artifacts: '{config_source}:implementation_artifacts'
-advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
-partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
+advancedElicitationSkill: 'bmad-advanced-elicitation'
+partyModeSkill: 'bmad-party-mode'
 ---
 
 # Step 5 — Final Report
@@ -66,5 +66,5 @@ Halt for input. Show context-appropriate options:
 - `R` → state status `COMPLETED-REFINE`, then load and follow `{refine_story_command}` with the deferred-issues story path. (For epic mode with multiple deferring stories, process them in order.)
 - `D` → state status `COMPLETED-DEV`, then load and follow `{dev_story_command}` with the deferred-issues story path.
 - `S` → state status `COMPLETED`. Tell the user "QA session complete" and where the report lives.
-- `A` → execute `{advancedElicitationTask}` and re-display the menu.
-- `P` → execute `{partyModeWorkflow}` and re-display the menu.
+- `A` → invoke the `{advancedElicitationSkill}` skill and re-display the menu.
+- `P` → invoke the `{partyModeSkill}` skill and re-display the menu.

@@ -4,8 +4,8 @@ description: 'Merge results from every executed mode into a single unified check
 nextStepFile: './step-05-finalize.md'
 outputFile: '{output_folder}/checklist-{project_name}.md'
 analysisCategories: '../data/analysis-categories.md'
-advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
-partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
+advancedElicitationSkill: 'bmad-advanced-elicitation'
+partyModeSkill: 'bmad-party-mode'
 ---
 
 # Step 4 — Integrate
@@ -51,7 +51,7 @@ Present the integrated checklist with totals (item count, category count, source
 - `[P]` Party Mode
 - `[C]` Continue — proceed to final review
 
-`A`/`P` execute their workflows then redisplay the menu. The user may also request specific changes — apply them, re-present, redisplay the menu. On `C`, save the integrated state.
+`A`/`P` invoke the `{advancedElicitationSkill}` / `{partyModeSkill}` skill, then redisplay the menu. The user may also request specific changes — apply them, re-present, redisplay the menu. On `C`, save the integrated state.
 
 ## Next
 
