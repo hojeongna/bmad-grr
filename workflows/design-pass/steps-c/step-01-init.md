@@ -6,6 +6,7 @@ autoDraftDir: '{auto_draft_dir}'
 convertedScreensDir: '{converted_screens_dir}'
 redesignSpecGlob: '{redesign_spec_glob}'
 designHandoffCommand: '~/.claude/commands/bmad-grr-design-handoff.md'
+browserFacts: '{browser_facts}'
 ---
 
 # Step 1 — Init / Mode Decision
@@ -32,12 +33,7 @@ Read every mockup file that will be used. Confirm it's real markup and not a bun
 
 ### Check the mockup can be compared at all
 
-`design-handoff` output is not guaranteed to expose the structure this workflow pairs on. One
-measured mockup had **zero `<table>` elements, zero `role=columnheader`, and no `main` landmark**,
-and the extractor's key matching found **22 common keys out of 375** against the implementation.
-The comparison was not weak; it was invalid.
-
-Render each mockup and count, before deciding anything else:
+`design-handoff` output is not guaranteed to expose the structure this workflow pairs on. Render each mockup and count, before deciding anything else:
 
 | Signal | Why it matters |
 |---|---|
@@ -109,40 +105,7 @@ through every later step.
 
 ### Set up the browser — claude-in-chrome
 
-This workflow runs on **claude-in-chrome** for both sides. It drives the user's real Chrome, which is what makes an authenticated app reachable without anyone handling credentials. Load the tools via ToolSearch before calling anything:
-
-```
-ToolSearch "select:mcp__claude-in-chrome__tabs_context_mcp,mcp__claude-in-chrome__tabs_create_mcp,mcp__claude-in-chrome__navigate,mcp__claude-in-chrome__javascript_tool,mcp__claude-in-chrome__read_console_messages"
-```
-
-Call `tabs_context_mcp` once before anything else — the other tools need a valid tab id and the group has to exist. Then `tabs_create_mcp` per screen; never reuse a tab id from a previous session.
-
-`resize_window` is deliberately not in that list. It reports success and changes nothing when the
-window is maximized — verified twice, at 1024×800 and 700×600, with `innerWidth` staying at 1920
-both times. Viewport work goes through `__grrSpec.responsive()`, which uses same-origin iframes.
-
-Operating facts this workflow depends on. Getting any of them wrong produces a spec that looks fine and diffs wrong:
-
-1. **Inject the extractor by fetching it from the spec server and evaluating it:**
-   `(0, eval)(await (await fetch('http://localhost:8973/extract-dom-spec.js')).text())`.
-   Verified working from an https production origin — Chrome exempts localhost from
-   mixed-content blocking and the server sends permissive CORS. If a target's CSP omits
-   `unsafe-eval` that line throws; then paste the file's contents instead, which page CSP does
-   not apply to. Never add a `<script src>` tag — one created from page context *does* get
-   blocked.
-2. **`javascript_tool` has REPL semantics** — the last expression is the return value and a top-level `return` is a syntax error. Top-level `await` works.
-3. **Never combine a navigation or reload with extraction in one call.** The evaluation context
-   dies mid-call and the tool returns "Inspected target navigated or closed". Navigate, then
-   inject, then extract, as separate calls.
-4. **Parallel screens are fine, including the responsive pass.** Every tool takes a `tabId` and
-   `responsive()` never touches the shared window, so per-screen agents don't collide anywhere.
-5. **Screenshots are the one focus-bound operation.** Extraction is all JS and needs no focus. If evidence screenshots are wanted, take them serially at the end rather than mid-fan-out.
-6. **Tab ids die mid-run.** The whole MCP tab group disappears when the user closes the window or
-   Chrome restarts, and every in-flight agent then fails with `Couldn't determine which page this
-   action targets`. **Pass this recovery rule into every dispatched agent's prompt:** on that
-   error, call `tabs_context_mcp` again, find the tab whose URL matches the target (or
-   `tabs_create_mcp` and navigate), re-inject the extractor, and resume from the last completed
-   step. Agents that carry this instruction recover; agents that don't, die.
+Read `{browserFacts}` and follow it: load the claude-in-chrome tools via ToolSearch, call `tabs_context_mcp` first, then `tabs_create_mcp` per screen. Viewport work goes through `__grrSpec.responsive()` (live-capture-protocol §8), never `resize_window`. Carry its tab-recovery rule verbatim into every agent prompt later steps dispatch.
 
 Ask about auth once, up front: does the target URL require login? If yes, tell the user they need to be signed in already in that Chrome profile — browser automation must not attempt credentials.
 

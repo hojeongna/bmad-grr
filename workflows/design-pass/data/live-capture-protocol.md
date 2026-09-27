@@ -10,6 +10,10 @@ A static mockup holds still. A running app does not: it hydrates, fetches, anima
 
 These rules are what earn the right to compare the two. Apply every one; note explicitly when a rule couldn't be applied rather than skipping it silently.
 
+## 0. Browser operating facts
+
+Read `browser-operating-facts.md` in this folder first — tool loading, injection, REPL semantics, and the tab-recovery rule every dispatched agent carries.
+
 ## 1. Never extract before the page is ready
 
 A fixed sleep is wrong in both directions — it clips a slow hydration (producing phantom "element missing" findings) and wastes time on a fast one. Gate on real signals:
@@ -229,10 +233,9 @@ Live outcomes are richer than a mockup's. Record the specific one: `modal-open`,
 await window.__grrSpec.responsive([375, 768, 1440], { noiseSelectors, prepare })
 ```
 
-**Never use `resize_window` for this.** Verified: it returns `"Successfully resized window ... to
-1024x800 pixels"` and then `innerWidth` is still 1920. Asked again for 700x600, same success
-string, same 1920. A maximized window silently ignores it, and nothing in the return value says
-so — which is why S7 was reported as "미측정" on runs that believed they had measured it.
+**Never use `resize_window` for this.** It returns `"Successfully resized window ... to
+1024x800 pixels"` and `innerWidth` stays at 1920 — a maximized window silently ignores it, and
+nothing in the return value says so.
 
 `responsive()` loads the same URL into a same-origin iframe at each width. Verified on a real
 authenticated production route: `innerWidth` is exactly the requested width, media queries
@@ -242,8 +245,7 @@ untouched at 1920.
 
 Three consequences:
 
-- **S7 parallelizes now.** The old rule — fan out S1–S6, then walk S7 one screen at a time —
-  existed only because `resize_window` hit the shared window. It doesn't apply; drop it.
+- **S7 parallelizes** with everything else — nothing shared is touched.
 - **Capture both sides through iframes at the same fixed width.** Then the viewport is identical
   by construction instead of by luck, and `@doc viewport` stops appearing in every diff.
 - **The iframe inherits cookies, session and `localStorage` from the parent origin.** That is
@@ -285,8 +287,7 @@ await window.__grrSpec.upload('http://localhost:{port}', '{slug}.live.tsv', wind
 
 A real screen's record dump is on the order of half a megabyte — a production route measured
 5,145 records / 8,328 lines / 442 KB. Returning that through a tool result puts every byte into
-the agent's context, and an agent holding two of those is back to eyeballing, which is the defect
-this workflow was rewritten to remove. `spec-server.py` accepts the POST and writes the file;
+the agent's context, and an agent holding two of those is back to eyeballing. `spec-server.py` accepts the POST and writes the file;
 `diff` compares two files; only the differences are ever read.
 
 Verified from an https production origin to `http://localhost`: Chrome exempts localhost from

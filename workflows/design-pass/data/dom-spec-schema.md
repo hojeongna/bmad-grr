@@ -227,7 +227,8 @@ string on the page means one word of copy drift renames it and the sides stop ma
 `ratio` below ~0.15 sets `collapsed: true`: the extractor found almost no structure. A generated
 mockup that is inline-styled `div` soup can collapse this way, and diffing a collapsed spec
 against a semantic implementation produces hundreds of phantom findings. **Do not diff a
-collapsed spec** — say so and fix the mockup side or fall back to the named-element tiers.
+collapsed spec.** Stop that screen and take step-01's branch: manual anchors (step-03a), back to
+design-handoff to fix the mockup's structure, or skip it.
 
 ### `s3_cssVars` — declared is not applied
 
@@ -246,5 +247,6 @@ each tier**:
 3. **Tier C — `node.path` ordinal** within an already-matched parent.
 4. **Unmatched.** Reported as missing/added with a confidence marker, never as a confirmed gap.
 
-A Tier-A match rate below 70% means the two sides are not comparable at the element level. That
-is a halt, not a report.
+A Tier-A match rate below 70% means the automatic keys don't hold for this pair — not that the
+run stops. Step-03a's human-confirmed anchor map takes over, and only an anchor that can't be
+confirmed halts that screen.
