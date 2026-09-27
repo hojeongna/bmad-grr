@@ -2,7 +2,6 @@
 name: step-01b-linear-issue
 description: 'Create (or pick) a Linear issue before any branch is named, and derive the branch name from it so the branch links back to the issue'
 nextStepFile: './step-02-execute.md'
-parallel_agents_skill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
 ---
 
 # Step 1b — Linear Issue → Branch Name
@@ -78,4 +77,4 @@ Ask as part of the confirmation above, and on yes call `save_issue` with the tea
 
 ## Next
 
-Carry `branch_name`, `linear_issue.key`, and `linear_issue.url` back into the plan table from step-01 and re-display it — repo, GitHub URL, base, branch, subfolder, plus the issue key — for a final `[Y]`/`[E]`. Then load `{parallel_agents_skill}` and follow `{nextStepFile}`.
+Carry `branch_name`, `linear_issue.key`, and `linear_issue.url` back into the plan table from step-01 and re-display it — repo, GitHub URL, base, branch, subfolder, plus the issue key — for a final `[Y]`/`[E]`. Then follow `{nextStepFile}`.

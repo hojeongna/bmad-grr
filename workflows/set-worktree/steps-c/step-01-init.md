@@ -3,7 +3,6 @@ name: step-01-init
 description: 'Gather workspace context — workspace root (must not be a git repo), problem description, repo links, branch base/name/folder per repo; route to Linear issue creation when the branch should come from an issue'
 nextStepFile: './step-02-execute.md'
 nextStepLinear: './step-01b-linear-issue.md'
-parallel_agents_skill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
 ---
 
 # Step 1 — Init / Gather Context
@@ -25,8 +24,6 @@ Detect the current working directory. Show it to the user and ask whether this s
 - Offer two paths:
   1. Use a different (non-git) folder — ask for a path, create it if missing, and proceed.
   2. Continue here anyway (clones will appear as untracked entries inside the existing repo, or you'd need to add them as submodules later by hand). Only proceed if the user explicitly confirms this trade-off.
-
-Do not ever run `git init` on the workspace root. Do not "convert" the root into a git repo as part of this workflow.
 
 ### Gather problem context
 
@@ -76,4 +73,4 @@ Skip this confirmation when the branch is coming from Linear — there's no bran
 
 If the user chose `[L]` → load and follow `{nextStepLinear}`; it names the branch, confirms the plan, and routes onward to step-02 itself.
 
-Otherwise, once the plan is confirmed, load `{parallel_agents_skill}` (used in step-02), then load and follow `{nextStepFile}`.
+Otherwise, once the plan is confirmed, load and follow `{nextStepFile}`.
