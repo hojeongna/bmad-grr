@@ -1,7 +1,6 @@
 ---
 name: set-worktree
 description: 'Set up a monorepo-style workspace by cloning multiple GitHub repositories into independent subfolders, creating feature branches — optionally named from a Linear issue created up front, so branch and PR link back to it — and generating a mapping document. Subfolders are named after the repo alone by default. Use when the user says "set worktree" or "setup repos" or "init workspace"'
-web_bundle: true
 
 # Critical variables from config
 config_source: "{project-root}/_bmad/bmm/config.yaml"

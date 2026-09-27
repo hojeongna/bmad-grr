@@ -1,7 +1,6 @@
 ---
 name: review-checklist
 description: 'Generate a code review checklist for the code-review workflow. Modes (combinable): project analysis, PR review mining, interactive Q&A, universal best practices, security, structural, audit. Use when the user says "create review checklist" or "generate checklist for code review"'
-web_bundle: true
 
 # Critical variables from config
 config_source: "{project-root}/_bmad/bmm/config.yaml"
@@ -12,6 +11,7 @@ date: system-generated
 
 # Workflow components
 installed_path: "~/.claude/workflows/review-checklist"
+output_folder: "{config_source}:output_folder"
 project_context: "**/project-context.md"
 
 # Required external skill (superpowers — bundled with bmad-grr)

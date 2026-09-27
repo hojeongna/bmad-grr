@@ -1,7 +1,6 @@
 ---
 name: qa-test
 description: 'Story/Epic-based web QA testing with Chrome DevTools browser verification and immediate fix cycle. Use when the user says "qa test" or "run qa" or "test this story"'
-web_bundle: true
 
 # Critical variables from config
 config_source: "{project-root}/_bmad/bmm/config.yaml"

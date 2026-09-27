@@ -1,7 +1,6 @@
 ---
 name: bug-hunt
 description: 'Systematic debugging with escalation levels, Chrome DevTools MCP evidence collection, and story/bug-report documentation. Use when the user says "bug hunt" or "debug this" or "find the bug"'
-web_bundle: true
 
 # Critical variables from config
 config_source: "{project-root}/_bmad/bmm/config.yaml"
@@ -14,6 +13,7 @@ date: system-generated
 installed_path: "~/.claude/workflows/bug-hunt"
 
 # Story and sprint references
+output_folder: "{config_source}:output_folder"
 implementation_artifacts: "{config_source}:implementation_artifacts"
 sprint_status: "{implementation_artifacts}/sprint-status.yaml"
 project_context: "**/project-context.md"

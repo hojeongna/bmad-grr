@@ -1,7 +1,6 @@
 ---
 name: pr-create
 description: 'Manage the PR lifecycle for multi-repo workspaces — analyze changes, split when needed, commit/push/test, create PRs, track merges, rebase between sequential PRs. Runs interactively by default, or unattended through review rounds to merge with the `auto` argument. Use when the user says "pr create" or "create pr" or "submit prs"'
-web_bundle: true
 
 # Critical variables from config
 config_source: "{project-root}/_bmad/bmm/config.yaml"
