@@ -20,7 +20,6 @@ Before issuing any `git` command, verify all of:
 1. **Workspace root is not a git repo.** If `.git` exists at the workspace root path, halt and surface the constraint from workflow.md — this workflow does not run inside an existing git repo without explicit user override (and even then, the cloning happens into independent subfolders, never as part of the root tree).
 2. **Target subfolders are clean.** For each planned subfolder, check it doesn't already exist with content. If it exists and is non-empty, ask the user: skip this repo, choose a different subfolder name, or remove the existing folder.
 3. **Branch names don't collide.** For each repo, the new branch must not already exist locally or remotely on the target. If it does, ask the user: choose a different name or check out the existing branch.
-4. **No `git init` on the root.** Never. This is a structural rule; do not add any command that would create a `.git` at the workspace root.
 
 ### Load the parallel agents skill
 
@@ -37,7 +36,7 @@ git checkout {branch_base}     # only if not the default
 git checkout -b {branch_name}
 ```
 
-Never `cd ..` and run `git init`. Never `git submodule add` from the workspace root unless the user explicitly requested submodule mode in step-01 (they didn't, by default).
+Never `cd ..` and run `git init` (sub-agents don't see workflow.md, so this line travels in their prompt). Never `git submodule add` from the workspace root unless the user explicitly requested submodule mode in step-01 (they didn't, by default).
 
 Each sub-agent returns a structured result: repo, status (`SUCCESS`/`FAILURE`), folder, branch, base, and an error string when failed.
 

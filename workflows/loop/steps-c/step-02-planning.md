@@ -9,8 +9,7 @@ implementation_artifacts: '{config_source}:implementation_artifacts'
 brainstorming_skill: '{project-root}/.claude/skills/bmad-brainstorming/SKILL.md'
 product_brief_skill: '{project-root}/.claude/skills/bmad-product-brief/SKILL.md'
 create_prd_skill: '{project-root}/.claude/skills/bmad-create-prd/SKILL.md'
-validate_prd_skill: '{project-root}/.claude/skills/bmad-validate-prd/SKILL.md'
-edit_prd_skill: '{project-root}/.claude/skills/bmad-edit-prd/SKILL.md'
+prd_skill: '{project-root}/.claude/skills/bmad-prd/SKILL.md'
 max_validate_edit_cycles: 3
 ---
 
@@ -18,7 +17,7 @@ max_validate_edit_cycles: 3
 
 ## Outcome
 
-`{planning_artifacts}/prd.md` exists and has passed `bmad-validate-prd`, with the verdict recorded in `{stateFile}`. Only reached when step-01 resolved `entry_point: fresh-idea`.
+`{planning_artifacts}/prd.md` exists and has passed `bmad-prd`'s validate intent, with the verdict recorded in `{stateFile}`. Only reached when step-01 resolved `entry_point: fresh-idea`.
 
 ## Approach
 
@@ -40,16 +39,16 @@ Skip straight to PRD creation unless the supplied input is clearly just a topic 
 
 ### Create the PRD
 
-Load and follow `{create_prd_skill}` in full. Once it returns, confirm `{planning_artifacts}/prd.md` (or wherever it reports saving) exists on disk before continuing.
+Load and follow `{create_prd_skill}` in full. It is a deprecated shim that forwards to `bmad-prd` with create intent — call it by this name anyway, because the grr spec-gate customization (`_bmad/custom/bmad-create-prd.toml`) attaches to the shim's name, not to `bmad-prd`. Once it returns, confirm `{planning_artifacts}/prd.md` (or wherever it reports saving) exists on disk before continuing.
 
 ### Validate → edit loop (bounded at `{max_validate_edit_cycles}`)
 
 Repeat up to `{max_validate_edit_cycles}` times:
 
-1. Load and follow `{validate_prd_skill}` in full against the current `prd.md`.
+1. Load and follow `{prd_skill}` in full with **validate** intent against the current `prd.md`.
 2. Append its verdict and cycle number to `{stateFile}`'s `## Phase Log`.
 3. Verdict passes → stop the loop.
-4. Verdict has issues → load and follow `{edit_prd_skill}` in full to address them, then return to 1.
+4. Verdict has issues → load and follow `{prd_skill}` in full with **update** intent to address them, then return to 1.
 
 If `{max_validate_edit_cycles}` cycles pass without a clean verdict, stop looping regardless. Interactive: surface the remaining issues verbatim and ask whether to proceed to design anyway or keep iterating manually before re-running this step. Headless: proceed to design anyway, but record the unresolved verdict plainly in the `## Phase Log` entry rather than marking it clean.
 

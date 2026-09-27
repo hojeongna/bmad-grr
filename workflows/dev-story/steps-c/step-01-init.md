@@ -48,14 +48,7 @@ The TDD inner loop is unaffected either way. Both tracks watch every unit test f
 
 Inspect the project to identify the BDD runner. Order of preference: explicit project config > package manifest signals > one-time user choice persisted to config.
 
-Manifest signals to check:
-
-- `package.json` dependencies — `@cucumber/cucumber`, `playwright-bdd`, `cypress-cucumber-preprocessor`
-- `pyproject.toml` / `requirements*.txt` — `pytest-bdd`, `behave`
-- `pom.xml` — `cucumber-jvm`, `cucumber-java`
-- `go.mod` — `godog`
-- `*.csproj` / `*.sln` — `Reqnroll`, `SpecFlow`
-- `Cargo.toml` — `cucumber`
+Manifest signals: a Gherkin runner in the project's dependency manifest (e.g. `@cucumber/cucumber`, `playwright-bdd`, `pytest-bdd`, `behave`, `cucumber-jvm`, `godog`, `Reqnroll`/`SpecFlow`).
 
 If none is found, ask the user once which runner to use (or whether to install one), and persist the choice to `{config_source}` under a `bdd_runner` key. Reasonable suggestions: `playwright-bdd` for web/JS-TS projects, `pytest-bdd` for Python backends, `godog` for Go, `Reqnroll` for .NET.
 

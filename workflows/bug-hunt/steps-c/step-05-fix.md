@@ -8,8 +8,8 @@ loopBackFiles:
   level-3: './step-04-web-search.md'
 stateFile: '{output_folder}/bug-hunt-{date}.state.md'
 parallel_agents_skill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
-advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
-partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
+advancedElicitationSkill: 'bmad-advanced-elicitation'
+partyModeSkill: 'bmad-party-mode'
 ---
 
 # Step 5 — Fix
@@ -64,6 +64,6 @@ Present a menu (halt for input):
 - **Verification failed**: `[A]` `[P]` `[C]` Loop back to Level `{lastEscalationLevel}`
 
 Menu handling:
-- `A` / `P` — standard
+- `A` / `P` — invoke the `{advancedElicitationSkill}` / `{partyModeSkill}` skill, then redisplay
 - `C` (verified) → `{nextStepFile}`
 - `C` (failed) → load and follow the matching entry in `{loopBackFiles}` based on `lastEscalationLevel`

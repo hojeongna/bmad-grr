@@ -1,8 +1,8 @@
 ---
 name: step-05-complete
 description: 'Summarize results; offer to chain into dev-story or design-pass Mode P; otherwise end'
-devStoryCommand: '{project-root}/bmad-grr/commands/bmad-grr-dev-story.md'
-designPassCommand: '{project-root}/bmad-grr/commands/bmad-grr-design-pass.md'
+devStoryCommand: '~/.claude/commands/bmad-grr-dev-story.md'
+designPassCommand: '~/.claude/commands/bmad-grr-design-pass.md'
 ---
 
 # Step 5 — Complete

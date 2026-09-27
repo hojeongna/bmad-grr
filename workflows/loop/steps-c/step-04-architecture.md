@@ -22,13 +22,9 @@ Read `{stateFile}`. Confirm `{planning_artifacts}/prd.md` exists — if it doesn
 
 ### Invoke bmad-create-architecture
 
-Load and follow `{architectureSkill}` in full, then wait for it to return control before continuing this step. It reads `prd.md` itself and will pick up the UX/UI guide from step-03 if one was produced — grr-loop does not pass artifacts by hand or restate its internal steps here.
+Load and follow `{architectureSkill}` in full — a shim that forwards to `bmad-architecture` with create intent, called by this name because the spec-gate customization attaches to it — then wait for it to return control before continuing this step. It reads `prd.md` itself and will pick up the UX/UI guide from step-03 if one was produced — grr-loop does not pass artifacts by hand or restate its internal steps here.
 
 No separate validation call belongs in this step: bmad-create-architecture's own `grr-spec-validate` customization gate (installed via `bmad-grr-customize`, presence checked back in step-01) already quality-gates `architecture.md` as part of that workflow. Adding an explicit validation call here would be redundant.
-
-### Headless behavior
-
-bmad-create-architecture is a native BMAD workflow and may still pause for its own elicitation/approval prompts even when grr-loop is running `--headless`. That's expected — this step does not attempt to auto-answer on its behalf.
 
 ### Verify exit condition
 

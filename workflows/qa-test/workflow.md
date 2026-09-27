@@ -1,7 +1,6 @@
 ---
 name: qa-test
 description: 'Story/Epic-based web QA testing with Chrome DevTools browser verification and immediate fix cycle. Use when the user says "qa test" or "run qa" or "test this story"'
-web_bundle: true
 
 # Critical variables from config
 config_source: "{project-root}/_bmad/bmm/config.yaml"
@@ -23,10 +22,11 @@ systematic_debugging_skill: "~/.claude/skills/systematic-debugging/SKILL.md"
 parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
 
 # Workflow chaining targets
-refine_story_command: "{project-root}/bmad-grr/commands/bmad-grr-refine-story.md"
-dev_story_command: "{project-root}/bmad-grr/commands/bmad-grr-dev-story.md"
+refine_story_command: "~/.claude/commands/bmad-grr-refine-story.md"
+dev_story_command: "~/.claude/commands/bmad-grr-dev-story.md"
 
-# External tool dependencies — Chrome DevTools MCP must be available in the environment
+# Browser: Chrome DevTools MCP preferred. claude-in-chrome (tools via ToolSearch) is the fallback;
+# with neither connected, step-03 halts.
 ---
 
 # QA Test

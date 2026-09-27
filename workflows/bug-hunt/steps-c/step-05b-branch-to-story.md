@@ -4,8 +4,9 @@ description: 'Documentation-first fork — fresh-judge the confirmed root cause,
 stateFile: '{output_folder}/bug-hunt-{date}.state.md'
 extendStepFile: './step-02-code-analysis.md'
 wrapupStepFile: './step-06-wrapup.md'
-quickStoryCommand: '{project-root}/bmad-grr/commands/bmad-grr-quick-story.md'
-refineStoryCommand: '{project-root}/bmad-grr/commands/bmad-grr-refine-story.md'
+freshJudgePrompt: '../data/fresh-judge-prompt.md'
+quickStoryCommand: '~/.claude/commands/bmad-grr-quick-story.md'
+refineStoryCommand: '~/.claude/commands/bmad-grr-refine-story.md'
 ---
 
 # Step 5b — Branch to Story (Documentation-First)
@@ -22,48 +23,9 @@ This step is reached from the **success** menu of step-02 / 03 / 04 via `[Q]`. I
 
 Load `{stateFile}` completely: `bugDescription`, `hypotheses` (the last entry with `result: success` is the confirmed one), `documentationTarget`, `debugLogs`, the Investigation Log.
 
-### Synthesize the root cause
-
-There is no top-level `rootCause` field in bug-hunt state. Synthesize a one-paragraph root-cause statement from the last successful hypothesis (its claim + evidence) and the Investigation Log. This statement seeds both the fresh-judge below and the handoff.
-
 ### Fresh-judge the reasoning (no fix yet)
 
-The same context that ran the hunt anchors on its own hypothesis. Dispatch a fresh sub-agent to judge **coherence of the root cause against the symptoms** — there is no fix and no diff to assess on this path, so use this slim rubric, not step-06's fix-coherence packet.
-
-Build the packet from state:
-
-- `bug_description` — expected vs actual (+ error message / url)
-- `root_cause` — the synthesized statement above
-- `evidence` — the confirmed hypothesis's cited code/runtime excerpts
-- `rejected_hypotheses` — 1-line reason per failed branch
-
-Invoke `Task` / `Agent`:
-
-```text
-Independently assess a bug-hunt reasoning chain. You are a fresh context — you did
-NOT run the hunt and you do NOT have its conversation.
-
-Inputs:
-- bug_description: <symptoms>
-- root_cause: <synthesized root cause>
-- evidence: <code/runtime excerpts that support it>
-- rejected_hypotheses: [<short reason each>]
-
-Constraints:
-- You see only the above plus read access to the codebase for spot checks.
-- Do NOT modify any file.
-
-One question: does the root cause coherently and completely explain the observed
-symptoms, supported by the cited evidence? (There is no fix to evaluate yet.)
-
-Output a single fenced JSON block, no prose:
-
-{
-  "coherence": "COHERENT" | "WEAK" | "INCOHERENT",
-  "gaps": ["<specific reasoning gap or unsupported link>"],
-  "notes": "<= 200 chars"
-}
-```
+The same context that ran the hunt anchors on its own hypothesis. Load `{freshJudgePrompt}`, build its packet **without** the `fix` line — there is no fix or diff on this path — and dispatch it as one fresh `Agent`. The synthesized root cause from that packet also seeds the handoff below.
 
 Parse the JSON.
 

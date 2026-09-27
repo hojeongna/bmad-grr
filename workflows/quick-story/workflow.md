@@ -12,17 +12,17 @@ date: system-generated
 # Workflow components
 installed_path: "~/.claude/workflows/quick-story"
 story_template: "~/.claude/workflows/quick-story/data/story-template.md"
+planning_artifacts: "{config_source}:planning_artifacts"
 implementation_artifacts: "{config_source}:implementation_artifacts"
 sprint_status: "{implementation_artifacts}/sprint-status.yaml"
 project_context: "**/project-context.md"
 
 # Workflow chaining
-dev_story_command: "{project-root}/bmad-grr/commands/bmad-grr-dev-story.md"
-refine_story_command: "{project-root}/bmad-grr/commands/bmad-grr-refine-story.md"
-design_pass_command: "{project-root}/bmad-grr/commands/bmad-grr-design-pass.md"
+dev_story_command: "~/.claude/commands/bmad-grr-dev-story.md"
+refine_story_command: "~/.claude/commands/bmad-grr-refine-story.md"
+design_pass_command: "~/.claude/commands/bmad-grr-design-pass.md"
 
 # Required external skills (superpowers — bundled with bmad-grr)
-tdd_skill: "~/.claude/skills/test-driven-development/SKILL.md"
 systematic_debugging_skill: "~/.claude/skills/systematic-debugging/SKILL.md"
 parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
 
@@ -39,7 +39,7 @@ Produce a lightweight but complete unified story document (mini PRD + mini archi
 
 Before routing, the freshly composed story passes through `grr-spec-validate` (step-04b) in a **fresh sub-agent context** — checking ambiguity, AC measurability, three-stage coherence, and (optionally) a project-supplied codebase-convention checklist. The writer never validates its own work.
 
-If an upstream PRD exists under `_bmad-output/`, step-02 discovers it and passes the path through to the validator as a reference. Architecture files are NOT loaded — they drift too much to be reliable validation input.
+If an upstream PRD exists under `{planning_artifacts}`, step-02 discovers it and passes the path through to the validator as a reference. Architecture files are NOT loaded — they drift too much to be reliable validation input.
 
 ## Your Role
 

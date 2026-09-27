@@ -3,7 +3,7 @@ name: step-01-init
 description: 'Greet, collect PRD ref and/or existing screen capture in one round, resolve has_prd / has_existing_screen flags, delegate to quick-story when neither exists, route'
 nextStepGapScan: './step-02-gap-scan.md'
 nextStepDesignSystems: './step-03-design-systems.md'
-quickStoryCommand: '{project-root}/bmad-grr/commands/bmad-grr-quick-story.md'
+quickStoryCommand: '~/.claude/commands/bmad-grr-quick-story.md'
 prdGlob: '{prd_glob}'
 implementationArtifacts: '{implementation_artifacts}'
 ---

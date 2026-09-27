@@ -62,7 +62,7 @@ Interactive mode halts and presents:
 - `[H]` High — fix only HIGH-priority items (any scope)
 - `[X]` Skip — proceed without fixing
 
-Set `fixScope` accordingly and route: `F`/`S`/`H` → `{fixStepFile}`, `X` → `{completeStepFile}`.
+Set `fixScope` to the matching token — `F` → `ALL`, `S` → `SMALL`, `H` → `HIGH` — and route: `F`/`S`/`H` → `{fixStepFile}`, `X` → `{completeStepFile}`.
 
 ### Discipline for handling pushback during fix selection
 

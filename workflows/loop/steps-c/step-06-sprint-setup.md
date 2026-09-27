@@ -28,7 +28,7 @@ After it returns, verify `{implementation_artifacts}/sprint-status.yaml` exists 
 
 ### Resolve checklist_path
 
-Per the shared spec's Checklist resolution rules, in order:
+In order:
 
 1. If a checklist path was already supplied at kickoff (recorded in `{stateFile}` from step-01), use it as-is.
 2. Else search the project for an existing `checklist-*.md` (review-checklist's own output naming) and reuse it if found.

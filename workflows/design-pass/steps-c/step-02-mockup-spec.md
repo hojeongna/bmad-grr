@@ -7,6 +7,7 @@ extractor: '~/.claude/workflows/design-pass/scripts/extract-dom-spec.js'
 specServer: '~/.claude/workflows/design-pass/scripts/spec-server.py'
 domSpecSchema: '{dom_spec_schema}'
 specDir: '{spec_dir}'
+browserFacts: '{browser_facts}'
 ---
 
 # Step 2 — Extract the Mockup Spec
@@ -33,14 +34,8 @@ navigate  →  inject the extractor  →  __grrSpec.ready()  →  check the repo
 → upload the JSON too   →  S5 traces  →  __grrSpec.responsive([375,768,1440])
 ```
 
-Inject by fetching from the spec server and evaluating:
-
-```js
-(0, eval)(await (await fetch('http://localhost:8973/extract-dom-spec.js')).text())
-```
-
-Fall back to pasting the file's contents only if that throws on CSP. Re-inject after every
-navigation and every reload, and never put a navigation and an extraction in the same call.
+Inject, re-inject after every navigation, and keep navigation and extraction in separate calls
+exactly as `{browserFacts}` says; paste its tab-recovery rule into each agent's prompt.
 
 **The upload signature is `upload(server, name, body)` — in that order.**
 
@@ -57,11 +52,8 @@ smaller dump because the tool result truncates. That truncation is what `upload(
 route around; selecting fields to fit a return value is the failure mode
 `live-capture-protocol.md` §2.1 documents in full.
 
-**The responsive pass runs inside the fan-out now.** `__grrSpec.responsive()` loads each width
-into a same-origin iframe and leaves the parent window alone, so there is nothing shared to
-collide over. The old rule about walking S7 sequentially existed only because `resize_window`
-resized the whole window — and it doesn't work anyway: it returns success and changes nothing on
-a maximized window.
+**The responsive pass runs inside the fan-out** — `__grrSpec.responsive()` uses same-origin
+iframes and leaves the parent window alone (protocol §8).
 
 Capture the baseline through an iframe at the pinned width too, not at whatever the window
 happens to be. Then the mockup and the implementation are measured at literally the same
@@ -85,9 +77,10 @@ present before it starts pairing.
 - **Check `health` before believing anything.** `collapsed: true` (structural nodes under ~15% of
   visible elements) means the extractor found almost no structure — the usual cause is a
   generated mockup built entirely from inline-styled `div`s. The extractor promotes flex/grid
-  items to compensate, but if it still collapses, say so and stop. Diffing a collapsed spec
-  against a semantic implementation produces hundreds of phantom findings that look like a
-  result.
+  items to compensate, but if it still collapses, say so and stop that screen — step-01's
+  `[A]` manual anchors / `[H]` design-handoff / `[S]` skip branch decides what happens to it.
+  Diffing a collapsed spec against a semantic implementation produces hundreds of phantom
+  findings that look like a result.
 - **Static mockups mostly don't work.** Most S5 traces will come back `none`. That is the
   expected result for a static draft, not a failure of the extraction and not a finding.
 - **A mockup can hold state the screen map didn't mention** — a modal already in the DOM at

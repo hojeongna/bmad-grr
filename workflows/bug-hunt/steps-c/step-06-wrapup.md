@@ -4,6 +4,7 @@ description: 'Remove all tracked debug logs, document the fix in story or bug re
 stateFile: '{output_folder}/bug-hunt-{date}.state.md'
 bugReportTemplate: '../data/bug-report-template.md'
 implementation_artifacts: '{config_source}:implementation_artifacts'
+freshJudgePrompt: '../data/fresh-judge-prompt.md'
 ---
 
 # Step 6 — Wrap-up
@@ -37,53 +38,7 @@ Grep the codebase for `[BUG-HUNT]` to catch any logs that drifted from the track
 
 Skip this section if `status: UNRESOLVED` — there is no fix to validate against.
 
-Otherwise, dispatch a sub-agent to independently assess whether the documented root cause and fix coherently explain the observed symptoms. The same context that ran the hunt has anchoring on its own hypothesis path — a fresh judge is more reliable.
-
-Build an evidence packet from the state file:
-
-- `bugDescription` (symptoms — expected vs actual)
-- `rootCause` (final statement)
-- `fixDetails` (what changed, which files)
-- `debugLogs` (relevant outputs that pinned the cause — last N lines per entry)
-- `hypothesesRejected` (1-line summaries — why earlier paths were wrong)
-- Diff of the fix (`git diff` for the changed files, or the changed-line ranges)
-
-Then invoke `Task` / `Agent`:
-
-```text
-Independently assess a bug-hunt session's reasoning chain. You are a
-fresh context — you did NOT run the hunt.
-
-Inputs:
-- bug_description: <symptoms>
-- root_cause: <final root cause statement>
-- fix: <fix description + diff/files>
-- evidence: <debug log excerpts that supported the root cause>
-- rejected_hypotheses: [<short reason per rejected branch>]
-
-Constraints:
-- You see ONLY the above plus the changed files (read-only for spot
-  checks).
-- You do NOT have access to the main conversation.
-- Do NOT modify any file.
-
-Answer one question: does the root cause + fix coherently and
-completely explain the observed symptoms, supported by the cited
-evidence?
-
-Output: a single fenced JSON block, no prose around it:
-
-{
-  "coherence": "COHERENT" | "WEAK" | "INCOHERENT",
-  "gaps": [
-    "<specific reasoning gap or missing link>",
-    "<a fix that only treats a symptom but not the cause>",
-    "<evidence cited that does not actually support the cause>"
-  ],
-  "fix_addresses_root_cause": true | false,
-  "notes": "<short summary, ≤ 200 chars>"
-}
-```
+Otherwise, load `{freshJudgePrompt}`, build its packet **with** the `fix` line (`fixDetails` + the diff), and dispatch it as one fresh `Agent` — the context that ran the hunt anchors on its own hypothesis path.
 
 Parse the JSON.
 

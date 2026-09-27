@@ -14,11 +14,7 @@ Enough context exists to draft a 5-field mini architecture in step-03: project c
 
 ### Discover upstream PRD (if present)
 
-Before scanning code, look for an upstream PRD that may inform the Mini PRD draft in step-04 and the validation gate in step-04b. Glob the BMAD output area:
-
-- `_bmad-output/**/prd.md`
-- `_bmad-output/**/PRD.md`
-- `_bmad-output/**/product-*.md`
+Before scanning code, look for an upstream PRD that may inform the Mini PRD draft in step-04 and the validation gate in step-04b. Glob `{planning_artifacts}/**/prd.md` (case-insensitive), then `{planning_artifacts}/**/product-*.md`.
 
 If a PRD file exists:
 
@@ -51,7 +47,7 @@ For each touchpoint, capture:
 - relevant existing patterns observed (imports, structure, conventions)
 - blast radius (what else changes if we modify this)
 
-Call the **Workflow** tool for touchpoint reading — every quick-story, regardless of file count. Write a script that dispatches one `agent()` per touchpoint file by judgment, and pipelines another round over any new touchpoint a file reveals, repeating until the blast-radius set stops growing (cap at 3 rounds).
+With 3 or more touchpoints, read them through the **Workflow** tool (or parallel `Agent` calls where the Workflow tool isn't available): one `agent()` per touchpoint file, pipelining another round over any new touchpoint a file reveals, repeating until the blast-radius set stops growing (cap at 3 rounds). With fewer, read them inline.
 
 ### Present a tight summary
 

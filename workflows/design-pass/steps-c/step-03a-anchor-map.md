@@ -2,7 +2,7 @@
 name: step-03a-anchor-map
 description: 'Mode L gate — enumerate every repeating identity unit the mockup contains, pair each one with its counterpart in the implementation, and prove the pairing is right by printing human-readable fingerprints from both sides before any extraction happens'
 nextStepFile: './step-03l-live-diff.md'
-handoffCommand: '{project-root}/bmad-grr/commands/bmad-grr-design-handoff.md'
+handoffCommand: '~/.claude/commands/bmad-grr-design-handoff.md'
 domSpecSchema: '{dom_spec_schema}'
 specDir: '{spec_dir}'
 ---

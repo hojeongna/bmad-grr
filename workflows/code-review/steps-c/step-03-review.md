@@ -43,9 +43,9 @@ Each agent receives:
 
 An agent holding more than one file gets one rule on top: work the files one at a time and return findings **per file, never as a merged list**. Nothing learned in one file justifies a finding in another — the checklist is the only thing that carries across them.
 
-### Review and verify via the Workflow tool
+### Review and verify
 
-Call the **Workflow** tool for this — every review, regardless of file or finding count. Write a script with two phases:
+Reviewers are always sub-agents here — the session that wrote the code doesn't review it. With 3 or more agents, dispatch through the **Workflow** tool (or parallel `Agent` calls where the Workflow tool isn't available); with one or two, plain `Agent` calls are enough. Two phases:
 
 - **Review** — one `agent()` per file, or per file group when the user set a lower agent count, each reviewing only its changed/added lines per the per-agent context above. Aggregate the results as `candidate_findings` (group by file, retain checklist references, dedupe identical findings on the same location, note files that passed clean).
 - **Verify** — distribute `candidate_findings` across `agent()` calls however the script balances best (batched or grouped, not forced to one-per-finding); each confirms or refutes its assigned findings against the code (claim = the violation, evidence = the cited checklist item + the changed lines). Keep confirmed findings, drop refuted ones, surface uncertain ones. Verification only — do **not** loop to re-discover, since the diff is already the entire work-list.

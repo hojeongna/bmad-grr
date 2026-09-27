@@ -6,8 +6,8 @@ skipToFixFile: './step-05-fix.md'
 branchToStoryFile: './step-05b-branch-to-story.md'
 stateFile: '{output_folder}/bug-hunt-{date}.state.md'
 systematic_debugging_skill: '~/.claude/skills/systematic-debugging/SKILL.md'
-advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
-partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
+advancedElicitationSkill: 'bmad-advanced-elicitation'
+partyModeSkill: 'bmad-party-mode'
 ---
 
 # Step 2 — Code Analysis (Level 1)
@@ -24,16 +24,16 @@ Follow the loaded systematic-debugging skill's Phase 1 (root cause) and Phase 2 
 
 Load `{stateFile}` for the bug description and prior context. Re-read error messages and stack traces carefully (line numbers, file paths, exact wording). Identify candidate files based on the bug description.
 
-### Analyze candidates via the Workflow tool
+### Analyze candidates
 
-Call the **Workflow** tool for this — every investigation, regardless of file count. Write a script that:
+With 3 or more candidate files, call the **Workflow** tool (or parallel `Agent` calls where the Workflow tool isn't available). With one or two, read them inline and give only the Verify pass to a single fresh `Agent` — the context that formed a candidate doesn't judge it. The shape:
 
 - **Discover** — one `agent()` per candidate file, each reading its file fully and returning structured findings (relevant code segments, suspicious patterns, data-flow notes).
 - **Verify** — a fresh `agent()` per candidate to confirm or refute it against the code; drop refuted candidates.
 - **Loop** — when a confirmed candidate implicates a new file (a caller, a shared util), pipeline another discover-and-verify round over just that file; repeat until a round surfaces nothing new (cap at 3 rounds).
 - **Return** the surviving candidates.
 
-Stay inside Level 1 inside the script — do not pull in runtime evidence or web sources, and do not escalate; that is what the escalation levels and their menus are for.
+Stay inside Level 1 — do not pull in runtime evidence or web sources, and do not escalate; that is what the escalation levels and their menus are for.
 
 The survivors are **candidate root causes for the user to confirm**, not a settled hypothesis. They feed the next sections — they do not bypass them.
 
@@ -69,8 +69,8 @@ After the test, present a menu (halt for input):
 - **If hypothesis failed**: `[A]` Advanced Elicitation, `[P]` Party Mode, `[C]` Continue to Level 2
 
 Menu handling:
-- `A` → execute `{advancedElicitationTask}`, then redisplay
-- `P` → execute `{partyModeWorkflow}`, then redisplay
+- `A` → invoke the `{advancedElicitationSkill}` skill, then redisplay
+- `P` → invoke the `{partyModeSkill}` skill, then redisplay
 - `S` (success only) → load and follow `{skipToFixFile}`
 - `Q` (success only) → load and follow `{branchToStoryFile}`. Best for multi-file or recurrence-prone bugs; for a single-file, low-complexity fix, `[S]` is the lighter choice.
 - `C` → load and follow `{nextStepFile}`

@@ -55,7 +55,7 @@ Loop this section until `PROCEED` or `O`.
 
 ### Headless behavior
 
-The `bmad-create-epics-and-stories` invocation may still pause for its own elicitation/approval prompts even when grr-loop is running `--headless` — that's expected. The `grr-spec-validate` dispatch itself needs no prompting. On `REVISE`, however, there is no sensible auto-default among `[E]`/`[R]`/`[O]` — halt and report the revision pointers rather than guessing on the user's behalf, even in headless mode.
+The `grr-spec-validate` dispatch needs no prompting. On `REVISE`, however, there is no sensible auto-default among `[E]`/`[R]`/`[O]` — halt and report the revision pointers rather than guessing on the user's behalf, even in headless mode.
 
 ### Update state file
 

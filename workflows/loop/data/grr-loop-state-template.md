@@ -5,6 +5,7 @@ status: IN_PROGRESS
 entry_point: null
 deploy_option: none
 design_automation: ask
+retro_per_epic: false
 checklist_path: null
 current_phase: init
 ---

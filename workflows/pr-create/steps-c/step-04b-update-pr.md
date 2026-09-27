@@ -49,7 +49,7 @@ Tell the user briefly: how many files changed, which commits are unpushed, wheth
 
 ### Run tests / CI locally
 
-Detect the project's actual test entry points (same logic as step-04: `package.json` `scripts.test`, `Makefile` `test`, `pytest.ini` / `pyproject.toml` pytest, `.github/workflows/*.yml` for CI test command hints). Run what's actually there — type check, build, unit tests, integration tests — in a sensible order. Don't fabricate.
+Detect the test entry points the same way step-04 does. Run what's actually there — type check, build, unit tests, integration tests — in a sensible order. Don't fabricate.
 
 If the repo has CI defined and a CI test command can be inferred from the workflow file, run that command locally so the push reaches the remote with high confidence of CI passing.
 
@@ -57,7 +57,7 @@ If the repo has CI defined and a CI test command can be inferred from the workfl
 
 - **Tests pass** → skip to the push step.
 - **Tests fail** → show a tight failure summary and ask:
-  - `[A]` Amend the most recent commit (when the changes logically belong to the previous commit) — `git commit --amend --no-edit` after `git add -A`, then `git push --force-with-lease`.
+  - `[A]` Amend the most recent commit (when the changes logically belong to the previous commit) — `git commit --amend --no-edit` after staging the fix (`git add -u`, plus any new file by name — never `-A`), then `git push --force-with-lease`.
   - `[N]` New commit (when the changes are a distinct unit of work) — `git commit -m "fix: …"` then `git push`.
 
 Ask the user to fix the failure (or fix it inline if scope is small and it's clearly within this step's domain). After the fix, re-run the tests. Repeat until passing.

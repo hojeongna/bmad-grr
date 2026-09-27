@@ -45,13 +45,7 @@ In auto mode, record two things for the round gate: which findings were actually
 
 ### Run available tests
 
-Detect what the project actually exposes:
-
-- `tsc --noEmit` if `tsconfig.json` exists
-- `npm/pnpm/yarn run build` if `package.json` `scripts.build` exists (detect package manager from lockfile: `pnpm-lock.yaml` → pnpm, `yarn.lock` → yarn, otherwise npm)
-- `npm/pnpm/yarn test` if `scripts.test` exists; `pytest` if `pytest.ini` or `pyproject.toml` pytest config; `behave` if its config exists
-
-Run only what's detected. If a test fails, analyze the failure, fix it, and re-run only the failed test. Up to three rounds. After three rounds, surface the failure honestly and continue — don't pretend it passed.
+Run whatever typecheck / build / test commands the project actually defines (package manager from the lockfile) — only what's there, nothing fabricated. If a test fails, analyze the failure, fix it, and re-run only the failed test. Up to three rounds. After three rounds, surface the failure honestly and continue — don't pretend it passed.
 
 ## Communicate
 

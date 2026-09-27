@@ -13,7 +13,7 @@ stateFile: '{implementation_artifacts}/grr-loop-state-{date}.md'
 
 For a UI-bearing project: design-handoff has produced a UX/UI guide (and, where applicable, a redesign spec), and a delivery path has been chosen — live by the user, or by the state file's `design_automation` setting when headless. For a non-UI project: this step is a no-op passthrough. Either way, `current_phase` is set to `architecture` in the state file before routing on.
 
-This step uses `bmad-grr-design-handoff` per the shared spec's Design stage section — `bmad-create-ux-design` is not used anywhere in this workflow.
+This step uses `bmad-grr-design-handoff` — `bmad-create-ux-design` is not used anywhere in this workflow.
 
 ## Approach
 
@@ -32,7 +32,7 @@ Immediately append a `## Design Decision` section to `{stateFile}` recording `ui
 
 Load and follow `{designHandoffCommand}` in full, then wait for it to return control before continuing this step.
 
-When design-handoff reaches its own step-06 delivery-path choice: if `{stateFile}`'s `design_automation` field is `auto`, prefer its `[A]` automated Claude Design path; if `ask`, let design-handoff ask the user live exactly as it already does. Do not pre-empt or auto-answer any of design-handoff's *other* interactive choices (design directions, redesign specs) — it remains a mostly interactive workflow, and grr-loop's headless mode may still pause here. That is expected, not a bug.
+When design-handoff reaches its own step-06 delivery-path choice: if `{stateFile}`'s `design_automation` field is `auto`, prefer its `[A]` automated Claude Design path; if `ask`, let design-handoff ask the user live exactly as it already does. Do not pre-empt or auto-answer any of design-handoff's *other* interactive choices (design directions, redesign specs) — it remains a mostly interactive workflow.
 
 After design-handoff returns control, verify on disk (not by its self-report) that it actually produced the UX/UI guide and, if a redesign spec path was generated, that file too. Record both paths plus the chosen delivery path in `{stateFile}`'s `## Design Decision` section.
 

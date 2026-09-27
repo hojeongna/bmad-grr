@@ -3,8 +3,6 @@ name: 'grr-customize'
 description: 'Apply grr customizations to the current BMAD project. Gates /bmad-create-prd, /bmad-create-architecture, /bmad-create-epics-and-stories, and /bmad-create-story with `grr-spec-validate` (sub-agent-dispatched, four-rubric spec validator). No external plugin required. Use when the user says "customize", "apply spec gate", "install grr customizations", or "set up spec validator".'
 ---
 
-IT IS CRITICAL THAT YOU FOLLOW THIS COMMAND PRECISELY:
-
 # /bmad-grr-customize
 
 Install grr customizations into the current BMAD project. The
@@ -93,4 +91,4 @@ Always include the opt-out instruction:
 - `<target>/_bmad/custom/<filename>.user.toml` files are personal overrides; never touch them.
 - `--force` only overwrites the team toml, never the `.user.toml` files.
 - BMAD's `resolve_customization.py` reads these tomls at workflow activation time, merging team toml + user toml on top of the workflow's base `customize.toml`. The customizations only take effect inside this specific project (per-project by design).
-- No external plugin / MCP server is required for the gate to function. The validator is dispatched via Claude Code's Task / Agent sub-agent mechanism, using the local `~/.claude/skills/grr-spec-validate/` skill.
+- No external plugin / MCP server is required for the gate to function. The validator is dispatched via Claude Code's Agent tool, using the local `~/.claude/skills/grr-spec-validate/` skill.

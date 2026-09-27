@@ -19,6 +19,8 @@ Reached only when `deploy_option` (set at step-01) is not `none`. One or more PR
 
 Read `{stateFile}`. If `current_phase` is already `complete` and `status: COMPLETE`, tell the user this loop already finished and show the existing summary instead of re-running anything. Otherwise set `current_phase: pr-deploy`, append a `## Phase Log` entry, and proceed on the recorded `deploy_option`.
 
+If `deploy_option` is `pr-wait-then-deploy` or `pr-immediate-deploy` and `{landAndDeploySkill}` does not exist (bmad-grr doesn't ship it; step-01 only offers these options when it's installed, but a resumed run may be on another machine), halt and ask whether to install it or continue as `pr-only`. Headless: halt with the same message — don't downgrade silently.
+
 ### Branch on `deploy_option`
 
 All three branches run `pr-create` in its **interactive** mode. Never hand it `auto`: that mode merges by itself, which takes the merge decision away from whichever branch is supposed to own it here — `pr-only` in particular promises never to merge, and it can only keep that promise if pr-create is interactive. `pr-create` reads its own `$ARGUMENTS` for the mode, and grr-loop's arguments are not its arguments; pass it nothing rather than forwarding this workflow's argument string, which may well contain the word `auto` for an unrelated reason (`design_automation`, for one).
@@ -31,7 +33,7 @@ All three branches run `pr-create` in its **interactive** mode. Never hand it `a
 
 ### Headless
 
-`deploy_option` was already resolved at step-01, so this step never asks which branch to take. `bmad-grr-pr-create` and `land-and-deploy` remain interactive workflows with their own gates (PR splitting confirmation, the pre-merge readiness gate, canary approval) — headless grr-loop may still pause inside one of them; that is expected, not a bug in this step.
+`deploy_option` was already resolved at step-01, so this step never asks which branch to take. `bmad-grr-pr-create` and `land-and-deploy` keep their own gates (PR splitting confirmation, the pre-merge readiness gate, canary approval).
 
 ### Persist
 

@@ -11,8 +11,6 @@ uxGuidePath: '{ux_guide_path}'
 
 The user's own implementation has been checked against every prescription in `{redesignSpecPath}` (or `{uxGuidePath}` if no redesign spec exists), across **every screen at once** — each item marked applied / partial / missing with concrete evidence from the **live** running app, not from reading the source alone and not from memory. Confirmed gaps have then been implemented directly in the scaffold, one screen at a time, with that screen's checklist re-run after its edits so a regression is caught immediately rather than discovered later.
 
-This step exists because step-07/08's model (paste a prompt into Claude Design, get an HTML draft back, verify that draft) assumes an external tool produced the output. It doesn't fit a user who hand-built their own scaffold and wants it directly extended — that's not "receiving a draft," it's ongoing collaborative implementation, and it needs its own verification loop rather than being forced through the external-draft one.
-
 Two phases, two different concurrency models — don't blur them: **auditing is read-only and safe to parallelize across every screen at once; implementation edits the same files and must stay sequential, one screen at a time, or two screens' edits can collide.**
 
 ## Approach
@@ -25,7 +23,7 @@ Serve it locally (a plain static file server is enough) so every check below hap
 
 ## Phase 1 — Audit every screen in parallel
 
-Don't audit one screen, present it, audit the next, present it — that's slower for no benefit, since read-only checking never conflicts across screens. Use the **Workflow** tool the same way step-04b does: one `agent()` per screen, dispatched together via `parallel()`, each opening its own browser tab against the same locally-served scaffold. Do this for every screen the redesign spec covers in one pass, not just the one screen currently being discussed — the whole point of doing this up front is to hand the user a complete picture before any editing starts.
+Use the **Workflow** tool the same way step-04b does: one `agent()` per screen, dispatched together via `parallel()`, each opening its own browser tab against the same locally-served scaffold. Do this for every screen the redesign spec covers in one pass, not just the one screen currently being discussed — the whole point of doing this up front is to hand the user a complete picture before any editing starts.
 
 ### Per-screen agent: build the checklist
 
@@ -39,7 +37,7 @@ Each screen's agent turns every prescription in that screen's redesign-spec sect
 
 ### Adversarially re-verify before trusting any verdict
 
-Before presenting anything, re-attempt every item marked `applied` or `partial` a second time, independently, directly on the live page — a first pass tends to over-credit things that look right at a glance (a drawer that opens but renders empty, a toast that fires but with no visible text, a button that's present but silently does nothing on click). This re-check is also per-screen and parallelizable — dispatch it the same way (one re-verify `agent()` per screen, or fold it into a second Workflow phase) rather than doing it sequentially after the fact. Downgrade anything that doesn't hold up on the second look, and say why it was downgraded. This mirrors the same adversarial-correction discipline step-05b applies to findings — a single pass asserting its own work is fine is not verification.
+Before presenting anything, re-attempt every item marked `applied` or `partial` a second time, independently, directly on the live page — a first pass tends to over-credit things that look right at a glance (a drawer that opens but renders empty, a toast that fires but with no visible text, a button that's present but silently does nothing on click). Dispatch it the same way (one re-verify `agent()` per screen, or a second Workflow phase). Downgrade anything that doesn't hold up on the second look, and say why it was downgraded. This mirrors the same adversarial-correction discipline step-05b applies to findings — a single pass asserting its own work is fine is not verification.
 
 ### Present the full checklist, all screens together
 
@@ -56,7 +54,7 @@ Show every audited screen in one presentation, not screen-by-screen as each fini
 
 ## Phase 2 — Implement, one screen at a time (sequential)
 
-Once the user picks what to close, edit the scaffold's actual editable source directly. Land one screen's changes before moving to the next — don't batch-rewrite the whole file in one pass, and don't parallelize this phase the way Phase 1 was parallelized: concurrent edits to the same source file (or to shared components/styles multiple screens depend on) can collide in ways read-only audits never do. A single screen's edit is easy to isolate, review, and revert if something breaks; simultaneous multi-screen edits are not, and it becomes much harder to tell which change caused a regression if one shows up.
+Once the user picks what to close, edit the scaffold's actual editable source directly. Land one screen's changes before moving to the next (the sequential rule above) — don't batch-rewrite the whole file in one pass. A single screen's edit is easy to isolate, review, and revert.
 
 ### Re-run that screen's checklist after editing it
 

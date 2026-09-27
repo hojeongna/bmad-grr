@@ -1,7 +1,7 @@
 ---
 name: step-06-complete
 description: 'Update story/sprint status if applicable, reflect changes back into story docs, present summary, offer design-pass routing when UI was touched'
-designPassCommand: '{project-root}/bmad-grr/commands/bmad-grr-design-pass.md'
+designPassCommand: '~/.claude/commands/bmad-grr-design-pass.md'
 handoffOutputPath: '{output_folder}/design-handoff'
 ---
 

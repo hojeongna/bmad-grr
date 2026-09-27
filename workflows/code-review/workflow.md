@@ -12,6 +12,7 @@ date: system-generated
 
 # Workflow components
 installed_path: "~/.claude/workflows/code-review"
+output_folder: "{config_source}:output_folder"
 implementation_artifacts: "{config_source}:implementation_artifacts"
 sprint_status: "{implementation_artifacts}/sprint-status.yaml"
 project_context: "**/project-context.md"

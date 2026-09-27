@@ -4,8 +4,8 @@ description: 'Architecture review after 3+ hypothesis failures — document find
 restartStepFile: './step-02-code-analysis.md'
 nextStepFile: './step-06-wrapup.md'
 stateFile: '{output_folder}/bug-hunt-{date}.state.md'
-advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
-partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
+advancedElicitationSkill: 'bmad-advanced-elicitation'
+partyModeSkill: 'bmad-party-mode'
 ---
 
 # Step 4b — Architecture Review
@@ -71,3 +71,5 @@ Check `architectureReviews.length` in state.
 
 - **First review**: present `[C]` Continue (restart from Level 1 with new direction), `[A]` `[P]`. On `C`, load and follow `{restartStepFile}`.
 - **Second or later review** (we've already restarted at least once): present `[C]` Continue (try again with new direction), `[U]` Unresolved (close out and document), `[A]` `[P]`. On `U`, set `status: UNRESOLVED` in state and route to `{nextStepFile}` (wrap-up will document the unresolved closure).
+
+`A` / `P` invoke the `{advancedElicitationSkill}` / `{partyModeSkill}` skill, then redisplay the menu.

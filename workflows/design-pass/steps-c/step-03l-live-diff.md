@@ -73,7 +73,8 @@ path (`{anchor}/c02/00.button`).
 Do not re-derive the pairing here, and do not silently widen it. A screen recorded as
 `앵커 확정 실패` in step-03a is **not compared** — it is carried to the report as uncompared. It is
 never quietly diffed anyway on the theory that some findings are better than none; findings from
-an unpaired screen are indistinguishable from real ones and there were 4,319 of them last time.
+an unpaired screen are indistinguishable from real ones (step-03a has the 4,319-finding run that
+proved it).
 
 Where step-03a recorded ≥70% automatic key matching, the extractor's own keys are the map and the
 tiers below describe what actually paired:
@@ -127,16 +128,8 @@ Then, before any judgment:
 - **A difference the extractor's own normalization would have erased is an extraction bug, not a
   finding.** Both sides ran the same code; if one says `rgb(17,24,39)` and the other `#111827`,
   something didn't run. Fix it and re-capture.
-- **Compare templates, not instances.** With `collapseRepeats` on, repeated rows are one entry
-  plus a count. `47 ≠ 3` never reaches the report; a row template with a missing column does.
-  Cells inside a row are never collapsed — each column is its own identity.
-- **Skip sample content.** Compare only strings the mockup fixed — headings, labels, button text,
-  errors, empty-state copy.
-- **Read `@components` first.** "One button variant where the mockup has three" explains fifty
-  downstream token rows; filing those fifty separately buries the real finding.
-- **Read `align.*` and `box.*` before `geom.*`.** Geometry is the symptom; alignment, sizing and
-  `@table:*.layout` are the cause. A finding that says a column moved 24px is unactionable; one
-  that says `align.textAlign right → left` names the edit.
+- **Compare templates, not instances, and skip sample content** (protocol §4). Cells inside a
+  row are never collapsed — each column is its own identity.
 - **A one-sided line means the other side is at the documented default** — the schema's default
   table says which. It is a real difference, not a missing record.
 

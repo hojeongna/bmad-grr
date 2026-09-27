@@ -1,7 +1,6 @@
 ---
 name: bug-hunt
 description: 'Systematic debugging with escalation levels, Chrome DevTools MCP evidence collection, and story/bug-report documentation. Use when the user says "bug hunt" or "debug this" or "find the bug"'
-web_bundle: true
 
 # Critical variables from config
 config_source: "{project-root}/_bmad/bmm/config.yaml"
@@ -14,6 +13,7 @@ date: system-generated
 installed_path: "~/.claude/workflows/bug-hunt"
 
 # Story and sprint references
+output_folder: "{config_source}:output_folder"
 implementation_artifacts: "{config_source}:implementation_artifacts"
 sprint_status: "{implementation_artifacts}/sprint-status.yaml"
 project_context: "**/project-context.md"
@@ -22,7 +22,9 @@ project_context: "**/project-context.md"
 systematic_debugging_skill: "~/.claude/skills/systematic-debugging/SKILL.md"
 parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
 
-# External tool dependencies — Chrome DevTools MCP must be available in the environment
+# Browser evidence (frontend bugs): Chrome DevTools MCP. If it isn't connected, use claude-in-chrome
+# (load its tools via ToolSearch); with no browser MCP at all, ask the user to reproduce the bug and
+# paste the console / network output instead.
 ---
 
 # Bug Hunt

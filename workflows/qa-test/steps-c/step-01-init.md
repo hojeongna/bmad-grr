@@ -22,7 +22,7 @@ A QA session is set up (or resumed): scope decided (single story vs. full epic),
 
 ## Approach
 
-### Resume detection (merged from old step-01b)
+### Resume detection
 
 Run `uv run {installed_path}/scripts/qa-state.py find-active --directory {output_folder}`. If an active state file exists, load it completely. Welcome the user back, present current progress (last completed step, stories progress `{completed}/{total}`, current story title, paths to QA spec and report). Update `lastContinued`. Route based on `lastStep` to the matching file in `{nextStepOptions}` — `step-01-init` → step-02, `step-02-test-plan` → step-03, `step-03-execute-and-fix` → step-04, `step-04-story-wrapup` → step-02 (next story) or step-05 (all stories done). Skip the rest of this step.
 

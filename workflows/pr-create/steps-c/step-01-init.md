@@ -30,7 +30,7 @@ On resume, the mode recorded in the state file wins — a session that started u
 
 Say which mode is running before doing anything else. In auto mode add one line on what that means here: no confirmation stops, and this workflow will merge the PRs itself once they are clean.
 
-### Resume detection (merged from old step-01b)
+### Resume detection
 
 Look for any `pr-state-*.md` in `_bmad-output/` or `docs/` with `status: IN_PROGRESS`. If found, load it completely. Read `stepsCompleted`, `lastStep`, the per-PR status table, the worktree map path, and the recorded plan.
 

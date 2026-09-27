@@ -15,7 +15,7 @@ The composed story has passed an independent quality gate before routing — che
 
 ## Why a separate step
 
-The story drafted in step-04 was authored in this session's context. Asking the same context to validate it would mask sycophancy and anchoring. The `grr-spec-validate` skill is read-only and **dispatched via Agent / Task — one sub-agent per rubric** so each validator only sees the artifact, its own rubric, the checklist (user-provided), and the upstream PRD (if found in step-02). Nothing else.
+The story drafted in step-04 was authored in this session's context. Asking the same context to validate it would mask sycophancy and anchoring. The `grr-spec-validate` skill is read-only and **dispatched via `Agent` — one sub-agent per rubric** so each validator only sees the artifact, its own rubric, the checklist (user-provided), and the upstream PRD (if found in step-02). Nothing else.
 
 ## Approach
 
@@ -25,7 +25,7 @@ In `{communication_language}`:
 
 ```
 스토리 검증을 위해 코드베이스 컨벤션 체크리스트가 있다면 절대 경로를 알려주세요.
-없으면 `skip`이라고 입력하시면 됩니다 — 체크리스트 rubric만 빠지고 나머지 3개는 그대로 돌립니다.
+없으면 `skip`이라고 입력하시면 됩니다 — 체크리스트 rubric만 빠지고 나머지는 그대로 돌립니다.
 ```
 
 Halt for input. Save as `checklist_path` (or `null` if `skip`).
@@ -34,39 +34,11 @@ If the path was given but the file does not exist or is empty, tell the user bri
 
 ### 2. Dispatch grr-spec-validate — one sub-agent per rubric
 
-Load `{validatorInvocation}` for the canonical dispatch prompt (its Step 2). Dispatch every rubric **in a single message so they run concurrently** — one `Task` / `Agent` call each, never several rubrics folded into one call:
+Follow Step 2 of `{validatorInvocation}` — its prompt, used verbatim, one `Agent` call per rubric, all in a single message — and its "Merge the results" rules. The inputs from this workflow:
 
-- `ambiguity`
-- `ac-measurability`
-- `three-stage`
-- `checklist` — drop this agent entirely if the user said `skip` in section 1
-
-Each call:
-
-```text
-Load and follow the grr-spec-validate skill — rubric: <RUBRIC_NAME>.
-
-Inputs:
-- artifact_path: <absolute path to {story_path} composed in step-04>
-- rubrics: <RUBRIC_NAME>
-- checklist_path: <checklist_path — only on the checklist agent>
-- reference_paths: <prd_path from step-02, OR omit if null>
-
-Constraints:
-- Run ONLY the rubric named above, and load only that rubric file.
-  Sibling sub-agents hold the others.
-- You see ONLY the artifact, your rubric file, the checklist (if
-  provided), and the reference PRD (if provided).
-- You do NOT have access to the main conversation that produced this
-  artifact.
-- You do NOT modify the artifact. Return validation output only.
-
-Return: a single fenced JSON block carrying `verdict`, `artifact`, this
-rubric's own fields per the SKILL.md schema, and `revision_pointers`.
-Derive `verdict` from this rubric alone. No preamble, no prose.
-```
-
-Each sub-agent returns one fenced JSON block per `{validatorSkill}` schema. Merge them: `verdict` is the worst across the agents (any `REVISE` → `REVISE`), per-rubric fields concatenate, `revision_pointers` union. A rubric whose agent returns nothing parseable is a `REVISE` for that rubric — name it in the verdict rather than counting it as a pass.
+- `artifact_path` — the absolute path of the story composed in step-04.
+- `reference_paths` — `prd_path` from step-02; omit when null.
+- Rubrics: `ambiguity`, `ac-measurability`, `three-stage`; `checklist` with `checklist_path` unless the user said `skip`; and `brownfield-grounding` with `project_root` (and the touchpoint paths as `brownfield_areas`) whenever step-02's touchpoints include existing files — which is nearly every quick-story.
 
 ### 3. Present the verdict to the user
 

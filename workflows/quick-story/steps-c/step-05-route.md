@@ -1,8 +1,8 @@
 ---
 name: step-05-route
 description: 'Present a clean summary; route to dev-story (immediate implementation), design-pass (mockup coverage check first), or save-only exit'
-devStoryCommand: '{project-root}/bmad-grr/commands/bmad-grr-dev-story.md'
-designPassCommand: '{project-root}/bmad-grr/commands/bmad-grr-design-pass.md'
+devStoryCommand: '~/.claude/commands/bmad-grr-dev-story.md'
+designPassCommand: '~/.claude/commands/bmad-grr-design-pass.md'
 ---
 
 # Step 5 — Route

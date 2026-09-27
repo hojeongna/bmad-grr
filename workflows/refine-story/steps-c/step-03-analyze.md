@@ -2,9 +2,9 @@
 name: step-03-analyze
 description: 'Gap analysis between story documents and current state; per-story decision (modify vs create new); user-confirmed change proposal'
 nextStepFile: './step-04-execute.md'
-advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
-partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'
-brainstormingWorkflow: '{project-root}/_bmad/core/workflows/brainstorming/workflow.md'
+advancedElicitationSkill: 'bmad-advanced-elicitation'
+partyModeSkill: 'bmad-party-mode'
+brainstormingSkill: 'bmad-brainstorming'
 ---
 
 # Step 3 — Analyze
@@ -15,9 +15,9 @@ For each loaded story, the gap between the story's AC/Tasks and the current impl
 
 ## Approach
 
-### Analyze the current state via the Workflow tool
+### Analyze the current state
 
-Call the **Workflow** tool for this — every refine-story session, one story or many. Write a script with one `agent()` per story: each loads the story, checks completed `[x]` vs incomplete `[ ]` tasks against the actual implementation, scores AC satisfaction and task completion, and returns structured findings `{story_key, gaps_found, tasks_affected, recommendation}`. When a story implicates another, pipeline another round over it and repeat until no new story surfaces (cap at 3 rounds). Aggregate the results.
+With 3 or more stories, call the **Workflow** tool (or parallel `Agent` calls where the Workflow tool isn't available) with one `agent()` per story; with fewer, analyze them inline. Per story: load the story, check completed `[x]` vs incomplete `[ ]` tasks against the actual implementation, score AC satisfaction and task completion, and return structured findings `{story_key, gaps_found, tasks_affected, recommendation}`. When a story implicates another, pipeline another round over it and repeat until no new story surfaces (cap at 3 rounds). Aggregate the results.
 
 If the cause of the gap is unclear (not surfaced in step-02 visual findings, not obvious from the diff), do a focused web search for related error patterns, framework behaviors, or known issues, and incorporate findings.
 
@@ -42,7 +42,7 @@ Present the full proposal in `{communication_language}`. Halt for input. If the 
 
 ### Menu
 
-After confirmation, offer `[A]` Advanced Elicitation, `[P]` Party Mode, `[B]` Brainstorming, `[C]` Continue. `A`/`P`/`B` execute their respective workflows and return to the menu. `C` advances.
+After confirmation, offer `[A]` Advanced Elicitation, `[P]` Party Mode, `[B]` Brainstorming, `[C]` Continue. `A`/`P`/`B` invoke the `{advancedElicitationSkill}` / `{partyModeSkill}` / `{brainstormingSkill}` skill and return to the menu. `C` advances.
 
 ## Next
 

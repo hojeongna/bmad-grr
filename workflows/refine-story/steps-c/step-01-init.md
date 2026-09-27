@@ -21,7 +21,7 @@ Ask the user, in `{communication_language}`, what's happening. Useful prompts (d
 - Story file path, story key, or epic number — if known.
 - A URL to verify visually, if applicable.
 
-If the situation is reviewer or QA feedback (the user is bringing comments from a code review, a QA report, or a stakeholder), load `{receivingCodeReviewSkill}` and apply its discipline through the analysis: read every item completely before reacting, restate each requirement, verify against the actual codebase before implementing, ask for clarification on items you don't fully understand instead of guessing, push back with technical reasoning when a comment is wrong (don't silently agree). No performative "you're absolutely right!" responses — actions over words.
+If the situation is reviewer or QA feedback (the user is bringing comments from a code review, a QA report, or a stakeholder), load `{receivingCodeReviewSkill}` and apply it through the analysis.
 
 ### Parse and discover stories
 
