@@ -38,7 +38,7 @@ The commands are run in **this** session — that's the execution side. If any c
 
 #### Step 5.2 — Dispatch the DoD verifier sub-agent
 
-Invoke `Task` / `Agent` with the prompt below. The sub-agent inherits no context.
+Invoke `Agent` with the prompt below. The sub-agent inherits no context.
 
 ```text
 Verify the Definition of Done for a just-completed story. You are a
@@ -102,7 +102,9 @@ Parse the returned JSON.
 
 ### Branch hygiene
 
-Before declaring the story ready for review, follow `{finishingBranchSkill}` to clean up the working branch: verify all tests pass, identify the base branch, surface uncommitted changes, remove temporary files / debug logs / `.skip` test markers / dead helpers introduced during development. Present the user with the standard finishing options (merge locally, create PR, keep as-is, or discard) and execute the chosen path.
+Before declaring the story ready for review, clean up the working branch using `{finishingBranchSkill}`'s cleanup checks: verify all tests pass, identify the base branch, surface uncommitted changes, remove temporary files / debug logs / `.skip` test markers / dead helpers introduced during development.
+
+The story still has code-review and QA ahead of it, so don't merge or open a PR here. Run standalone, offer that skill's finishing options (merge locally, create PR, keep as-is, discard) only if the user asks, and mention `pr-create` as the usual route once review is done. Invoked from `grr-loop`, skip the finishing options entirely — PRs belong to the loop's step-09.
 
 ### Status update
 
@@ -132,7 +134,7 @@ Tailor explanation depth to `{user_skill_level}`. Offer to walk through anything
 
 ### Offer routing
 
-Halt for input:
+Invoked from `grr-loop`, skip this menu and return control — the loop runs code-review and qa-test itself. Otherwise halt for input:
 
 - `[C]` Run `code-review` now — load `{codeReviewCommand}`. Recommended, and ideally with a different model than the one that wrote the code.
 - `[U]` Run `design-pass` Mode L — check the running screen against the HTML mockup it was built from. Offer this **only** when the story touched UI **and** a mockup actually exists (look for `{handoffOutputPath}/auto-draft/*.html` or `converted/*.html`); without a mockup there's nothing to compare against, so don't show the option at all.
