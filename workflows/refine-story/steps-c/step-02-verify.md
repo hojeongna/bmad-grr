@@ -30,7 +30,7 @@ Ask which URL to inspect. If a URL was already given in step-01, suggest it as t
 
 ### Inspect
 
-Use Chrome DevTools MCP (or Playwright MCP if available):
+Use Chrome DevTools MCP, or Playwright MCP / claude-in-chrome (tools via ToolSearch) when that's what's connected:
 
 1. Navigate to the URL.
 2. Take a screenshot of the current state.
