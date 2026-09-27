@@ -25,7 +25,7 @@ From the state file, find PRs with status `PLANNED`. The processing rules:
 Inside each repo folder:
 
 - **Multi-PR split** — `git add` only the files belonging to the current PR's role.
-- **Single PR** — `git add -A`.
+- **Single PR** — stage what this PR is meant to carry: `git add -u` for tracked changes, plus each new file by name. Never `git add -A` or `git add .` — untracked files include `.env`, local session/cookie files, and scratch artifacts. Run `git status --short` first and list any untracked file you are *not* staging, so nothing is dropped or leaked silently.
 
 Show the preview before committing:
 
@@ -34,6 +34,7 @@ Commit preview for {repo} — {pr_role}:
 {generated commit message}
 
 Files staged: {count}
+Untracked, not staged: {list or "none"}
 Lines: +{added} -{removed}
 
 [Y] Commit   [E] Edit message

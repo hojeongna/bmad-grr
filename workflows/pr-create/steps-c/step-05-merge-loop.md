@@ -51,7 +51,7 @@ git rebase {base_branch}
 
 **Rebase has conflicts** → list conflicting files and offer:
 
-- `[D]` Done — user resolved conflicts manually; run `git add -A && git rebase --continue && git push --force-with-lease`, then route to `{testCreateFile}`.
+- `[D]` Done — user resolved conflicts manually; stage the resolved paths by name (`git add <path>…` — the ones `git diff --name-only --diff-filter=U` listed), then `git rebase --continue && git push --force-with-lease`, then route to `{testCreateFile}`.
 - `[A]` Abort — `git rebase --abort`. Help troubleshoot, then offer to retry.
 
 ### Persist

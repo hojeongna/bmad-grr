@@ -38,7 +38,7 @@ Mark every PR `MERGED` with its timestamp.
 
 ### Branch hygiene
 
-For each repo whose feature branch is now merged, follow `{finishingBranchSkill}` to wrap the branch up: confirm tests still pass against the merged base, prune the local feature branch (after confirming the remote was deleted by GitHub or doing it manually if needed), and surface any leftover artifacts (stash entries, local-only files, untracked debug helpers) so the user decides what to keep. Present the standard options and execute the chosen path per repo.
+For each repo whose feature branch is now merged, follow `{finishingBranchSkill}` to wrap the branch up: confirm tests still pass against the merged base, prune the local feature branch (after confirming the remote was deleted by GitHub or doing it manually if needed), and surface any leftover artifacts (stash entries, local-only files, untracked debug helpers) so the user decides what to keep. The PRs are already merged, so the skill's merge / create-PR options don't apply here — prune only.
 
 ### Summary
 
