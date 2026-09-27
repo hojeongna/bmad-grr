@@ -8,6 +8,8 @@ implementation_artifacts: '{config_source}:implementation_artifacts'
 sprint_status: '{implementation_artifacts}/sprint-status.yaml'
 stateFile: '{implementation_artifacts}/grr-loop-state-{date}.md'
 customizeCommand: '~/.claude/commands/bmad-grr-customize.md'
+stateTemplate: '~/.claude/workflows/loop/data/grr-loop-state-template.md'
+landAndDeploySkill: '~/.claude/skills/land-and-deploy/SKILL.md'
 
 # current_phase → next step file. Same map routes a freshly-detected entry
 # point and a resumed IN_PROGRESS state file — both land on a phase name.
@@ -32,7 +34,7 @@ The entry point is resolved to exactly one of `fresh-idea` / `has-prd` / `has-ep
 
 ### Resume detection (highest priority)
 
-Search `{implementation_artifacts}` for any `grr-loop-state-*.md` with `status: IN_PROGRESS`. If found, this is a `resume` regardless of what planning/epic artifacts also exist — load the file completely, re-extract `current_phase`, `entry_point`, `deploy_option`, `design_automation`, `checklist_path`, the Story Ladder table, and any Escalated Stories. Welcome the user back, show the current phase and story ladder summary, append a `## Phase Log` entry ("resumed at {current_phase}"), then route to `{nextStepOptions}[current_phase]`. Skip the rest of this step.
+Search `{implementation_artifacts}` for any `grr-loop-state-*.md` with `status: IN_PROGRESS`. If found, this is a `resume` regardless of what planning/epic artifacts also exist — load the file completely, re-extract `current_phase`, `entry_point`, `deploy_option`, `design_automation`, `retro_per_epic`, `checklist_path`, the Story Ladder table, and any Escalated Stories. Welcome the user back, show the current phase and story ladder summary, append a `## Phase Log` entry ("resumed at {current_phase}"), then route to `{nextStepOptions}[current_phase]`. Skip the rest of this step.
 
 Exception: if `current_phase` is still `init` (a crash before the first phase transition), don't treat it as a routable resume — fall through to entry-point detection below, reusing this same state file instead of creating a new one.
 
@@ -57,6 +59,8 @@ Check for `{project-root}/_bmad/custom/bmad-create-prd.toml` and its siblings (`
 
 ### Capture deploy_option / design_automation / retro choice
 
+`pr-wait-then-deploy` and `pr-immediate-deploy` hand off to the external `land-and-deploy` skill, which bmad-grr does not ship. Offer options 3 and 4 only when `{landAndDeploySkill}` exists; otherwise show 1 and 2 and say in one line that the deploy options need `land-and-deploy` installed.
+
 Interactive — ask once, in `{communication_language}`:
 
 ```
@@ -73,36 +77,19 @@ Design automation when a UI-bearing project reaches design-handoff's delivery-pa
 Run a retrospective after each epic's stories are clean-or-escalated? [y/N]
 ```
 
-Halt for input. Headless — these must come from the caller's supplied args (`deploy_option`, `design_automation`); if either is absent, halt with an error naming the missing arg rather than guessing. The retro choice is the one exception: default to **skip** in headless unless explicitly passed as enabled.
+Halt for input. Headless — these must come from the caller's supplied args (`deploy_option`, `design_automation`); if either is absent, halt with an error naming the missing arg rather than guessing. A deploy option that needs `land-and-deploy` while `{landAndDeploySkill}` is missing is also a halt with an error. The retro choice is the one exception: default to **skip** in headless unless explicitly passed as enabled.
 
 ### Create or update the state file
 
-Write `{stateFile}`:
+Copy `{stateTemplate}` to `{stateFile}` (or reuse the `init` state file from a crashed run) and fill its frontmatter:
 
-```yaml
----
-name: grr-loop-state
-started: '{date}'
-status: IN_PROGRESS
-entry_point: fresh-idea | has-prd | has-epics-sprint
-deploy_option: none | pr-only | pr-wait-then-deploy | pr-immediate-deploy
-design_automation: ask | auto
-checklist_path: null
-current_phase: planning | design | epics | sprint-setup
----
+- `entry_point`: `fresh-idea` | `has-prd` | `has-epics-sprint`
+- `deploy_option`: `none` | `pr-only` | `pr-wait-then-deploy` | `pr-immediate-deploy`
+- `design_automation`: `ask` | `auto`
+- `retro_per_epic`: `true` | `false`
+- `current_phase`: the phase resolved above
 
-# grr-loop State: {date}
-
-## Phase Log
-- {timestamp} — initialized, entry_point={entry_point}, current_phase={current_phase}
-
-## Story Ladder
-
-| Story | Attempts | Status | Notes |
-|-------|----------|--------|-------|
-
-## Escalated Stories
-```
+Put `# grr-loop State: {date}` above the Phase Log and append its first entry: `- {timestamp} — initialized, entry_point={entry_point}, current_phase={current_phase}`.
 
 ### Route
 
@@ -110,4 +97,4 @@ Load and follow `{nextStepOptions}[current_phase]`. Route to exactly one file �
 
 ## Next
 
-Load and follow the step file resolved above, carrying `entry_point`, `deploy_option`, `design_automation`, and `{stateFile}`'s path forward in context.
+Load and follow the step file resolved above, carrying `entry_point`, `deploy_option`, `design_automation`, `retro_per_epic`, and `{stateFile}`'s path forward in context.

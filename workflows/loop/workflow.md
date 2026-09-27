@@ -37,15 +37,19 @@ Every step's job is to check, invoke, wait, verify against real artifacts, updat
 
 ## Phases (in order)
 
-1. **Init / Resume** — resolve entry point, capture deploy/design/retro choices, verify the spec-gate precondition, create or reload `{stateFile}`.
+1. **Init / Resume** — resolve entry point, capture deploy/design/retro choices, verify the spec-gate precondition, create or reload `{stateFile}` from `{state_template}`.
 2. **Planning** — produce a validated `prd.md` (fresh-idea entry point only).
 3. **Design** — for UI-bearing projects, hand off to `design-handoff` for a UX/UI guide and redesign spec.
-4. **Architecture** — produce `architecture.md` via `bmad-create-architecture`.
+4. **Architecture** — produce `architecture.md` via `bmad-create-architecture` (a shim that forwards to `bmad-architecture`, kept because the grr spec-gate customization attaches to its name).
 5. **Epics** — produce `epics.md` via `bmad-create-epics-and-stories`, gated by `grr-spec-validate`.
 6. **Sprint Setup** — generate `sprint-status.yaml` and resolve the shared code-review checklist path.
 7. **Story Loop** — drive every story through dev-story → code-review → qa-test under the shared 3-attempt retry ladder to clean-or-escalated.
 8. **Report** — consolidate clean/escalated results; gate on escalation before PR/deploy; terminal when `deploy_option` is `none`.
 9. **PR & Deploy** — create (and, per `deploy_option`, merge and/or deploy) PRs for the finished work; mark the loop `COMPLETE`.
+
+## Headless runs
+
+`--headless` removes grr-loop's own prompts only. The native BMAD and grr workflows it invokes keep their own elicitation and approval prompts, so a headless run may still pause inside one of them — expected, not a bug. Steps don't auto-answer on another workflow's behalf.
 
 ## Activation
 
