@@ -33,9 +33,9 @@ reference_images_dir: "{handoff_output_path}/references"
 reference_images_aside_dir: "{handoff_output_path}/references/_do-not-attach"
 
 # Workflow chaining
-quick_story_command: "{project-root}/bmad-grr/commands/bmad-grr-quick-story.md"
-dev_story_command: "{project-root}/bmad-grr/commands/bmad-grr-dev-story.md"
-design_pass_command: "{project-root}/bmad-grr/commands/bmad-grr-design-pass.md"
+quick_story_command: "~/.claude/commands/bmad-grr-quick-story.md"
+dev_story_command: "~/.claude/commands/bmad-grr-dev-story.md"
+design_pass_command: "~/.claude/commands/bmad-grr-design-pass.md"
 
 # External tool dependencies:
 # - Mobbin MCP must be available in the environment for step-05/05b. Its exact tool/method names

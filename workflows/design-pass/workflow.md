@@ -38,10 +38,10 @@ spec_dir: "{design_pass_output_path}/specs"
 gap_report_path: "{design_pass_output_path}/fidelity-report-{date}.md"
 
 # Workflow chaining
-quick_story_command: "{project-root}/bmad-grr/commands/bmad-grr-quick-story.md"
-dev_story_command: "{project-root}/bmad-grr/commands/bmad-grr-dev-story.md"
-refine_story_command: "{project-root}/bmad-grr/commands/bmad-grr-refine-story.md"
-design_handoff_command: "{project-root}/bmad-grr/commands/bmad-grr-design-handoff.md"
+quick_story_command: "~/.claude/commands/bmad-grr-quick-story.md"
+dev_story_command: "~/.claude/commands/bmad-grr-dev-story.md"
+refine_story_command: "~/.claude/commands/bmad-grr-refine-story.md"
+design_handoff_command: "~/.claude/commands/bmad-grr-design-handoff.md"
 
 # External tool dependencies:
 # - claude-in-chrome is mandatory, not optional — a mockup is only a spec once it's been rendered.

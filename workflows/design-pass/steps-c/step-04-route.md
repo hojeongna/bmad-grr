@@ -4,9 +4,9 @@ description: 'Single batch approval of the routing plan; apply fix-now edits seq
 gapReportTemplate: '{gap_report_template}'
 gapReportPath: '{gap_report_path}'
 specDir: '{spec_dir}'
-quickStoryCommand: '{project-root}/bmad-grr/commands/bmad-grr-quick-story.md'
-devStoryCommand: '{project-root}/bmad-grr/commands/bmad-grr-dev-story.md'
-designHandoffCommand: '{project-root}/bmad-grr/commands/bmad-grr-design-handoff.md'
+quickStoryCommand: '~/.claude/commands/bmad-grr-quick-story.md'
+devStoryCommand: '~/.claude/commands/bmad-grr-dev-story.md'
+designHandoffCommand: '~/.claude/commands/bmad-grr-design-handoff.md'
 ---
 
 # Step 4 — Approve, Fix, Route

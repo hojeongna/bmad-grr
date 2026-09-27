@@ -2,8 +2,8 @@
 name: step-05-final-report
 description: 'Finalize the QA report; present clear summary; halt at the decision menu (Stop / Refine / Dev / Elicit / Party)'
 stateFile: '{output_folder}/qa-test-{date}.state.md'
-refine_story_command: '{project-root}/bmad-grr/commands/bmad-grr-refine-story.md'
-dev_story_command: '{project-root}/bmad-grr/commands/bmad-grr-dev-story.md'
+refine_story_command: '~/.claude/commands/bmad-grr-refine-story.md'
+dev_story_command: '~/.claude/commands/bmad-grr-dev-story.md'
 implementation_artifacts: '{config_source}:implementation_artifacts'
 advancedElicitationTask: '{project-root}/_bmad/core/workflows/advanced-elicitation/workflow.xml'
 partyModeWorkflow: '{project-root}/_bmad/core/workflows/party-mode/workflow.md'

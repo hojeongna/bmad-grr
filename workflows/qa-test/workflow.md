@@ -23,8 +23,8 @@ systematic_debugging_skill: "~/.claude/skills/systematic-debugging/SKILL.md"
 parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
 
 # Workflow chaining targets
-refine_story_command: "{project-root}/bmad-grr/commands/bmad-grr-refine-story.md"
-dev_story_command: "{project-root}/bmad-grr/commands/bmad-grr-dev-story.md"
+refine_story_command: "~/.claude/commands/bmad-grr-refine-story.md"
+dev_story_command: "~/.claude/commands/bmad-grr-dev-story.md"
 
 # External tool dependencies — Chrome DevTools MCP must be available in the environment
 ---

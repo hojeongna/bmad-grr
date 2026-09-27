@@ -4,8 +4,8 @@ description: 'Documentation-first fork — fresh-judge the confirmed root cause,
 stateFile: '{output_folder}/bug-hunt-{date}.state.md'
 extendStepFile: './step-02-code-analysis.md'
 wrapupStepFile: './step-06-wrapup.md'
-quickStoryCommand: '{project-root}/bmad-grr/commands/bmad-grr-quick-story.md'
-refineStoryCommand: '{project-root}/bmad-grr/commands/bmad-grr-refine-story.md'
+quickStoryCommand: '~/.claude/commands/bmad-grr-quick-story.md'
+refineStoryCommand: '~/.claude/commands/bmad-grr-refine-story.md'
 ---
 
 # Step 5b — Branch to Story (Documentation-First)

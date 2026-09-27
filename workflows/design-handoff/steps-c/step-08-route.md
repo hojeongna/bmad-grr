@@ -1,9 +1,9 @@
 ---
 name: step-08-route
 description: 'Produce standalone fix-prompts for surviving findings, offer a Design Sync push of the approved draft, log the outcome into the UX/UI Guide document, present final summary + routing menu'
-quickStoryCommand: '{project-root}/bmad-grr/commands/bmad-grr-quick-story.md'
-devStoryCommand: '{project-root}/bmad-grr/commands/bmad-grr-dev-story.md'
-designPassCommand: '{project-root}/bmad-grr/commands/bmad-grr-design-pass.md'
+quickStoryCommand: '~/.claude/commands/bmad-grr-quick-story.md'
+devStoryCommand: '~/.claude/commands/bmad-grr-dev-story.md'
+designPassCommand: '~/.claude/commands/bmad-grr-design-pass.md'
 uxGuidePath: '{ux_guide_path}'
 ---
 

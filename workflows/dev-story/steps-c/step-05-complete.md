@@ -4,8 +4,8 @@ description: 'Gather evidence, dispatch a fresh sub-agent to verify Definition o
 checklistFile: '~/.claude/workflows/dev-story/data/checklist.md'
 finishingBranchSkill: '~/.claude/skills/finishing-a-development-branch/SKILL.md'
 verificationBeforeCompletion: '~/.claude/skills/verification-before-completion/SKILL.md'
-codeReviewCommand: '{project-root}/bmad-grr/commands/bmad-grr-code-review.md'
-designPassCommand: '{project-root}/bmad-grr/commands/bmad-grr-design-pass.md'
+codeReviewCommand: '~/.claude/commands/bmad-grr-code-review.md'
+designPassCommand: '~/.claude/commands/bmad-grr-design-pass.md'
 handoffOutputPath: '{output_folder}/design-handoff'
 ---
 

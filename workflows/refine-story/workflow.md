@@ -16,8 +16,8 @@ sprint_status: "{implementation_artifacts}/sprint-status.yaml"
 project_context: "**/project-context.md"
 
 # Workflow chaining
-dev_story_command: "{project-root}/bmad-grr/commands/bmad-grr-dev-story.md"
-design_pass_command: "{project-root}/bmad-grr/commands/bmad-grr-design-pass.md"
+dev_story_command: "~/.claude/commands/bmad-grr-dev-story.md"
+design_pass_command: "~/.claude/commands/bmad-grr-design-pass.md"
 ---
 
 # Refine Story

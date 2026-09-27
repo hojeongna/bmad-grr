@@ -2,7 +2,7 @@
 name: step-01-init
 description: 'Collect intent in one round; detect existing stories in sprint-status; delegate to refine-story when a match is found'
 nextStepFile: './step-02-analyze.md'
-refineStoryCommand: '{project-root}/bmad-grr/commands/bmad-grr-refine-story.md'
+refineStoryCommand: '~/.claude/commands/bmad-grr-refine-story.md'
 ---
 
 # Step 1 — Intent & Existing-Story Detection

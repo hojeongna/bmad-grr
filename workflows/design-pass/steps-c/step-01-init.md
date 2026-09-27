@@ -5,7 +5,7 @@ nextStepFile: './step-02-mockup-spec.md'
 autoDraftDir: '{auto_draft_dir}'
 convertedScreensDir: '{converted_screens_dir}'
 redesignSpecGlob: '{redesign_spec_glob}'
-designHandoffCommand: '{project-root}/bmad-grr/commands/bmad-grr-design-handoff.md'
+designHandoffCommand: '~/.claude/commands/bmad-grr-design-handoff.md'
 ---
 
 # Step 1 — Init / Mode Decision
