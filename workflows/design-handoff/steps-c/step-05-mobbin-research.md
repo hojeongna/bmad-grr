@@ -18,7 +18,7 @@ Mobbin MCP has been used to find reference patterns for the specific screens/flo
 
 ### Confirm Mobbin MCP is available
 
-Mobbin MCP tool names weren't verified against a live connection when this workflow was authored — use ToolSearch with a query like `"mobbin"` to discover its actual tools before calling anything. If nothing turns up, halt and tell the user plainly that Mobbin MCP needs to be connected for this step — don't silently skip reference research; that's a different, worse workflow than the one being run.
+Load the Mobbin MCP tools via ToolSearch (`search_screens`, `search_flows`, `search_sections`). If they aren't connected, halt and tell the user plainly that Mobbin MCP needs to be connected for this step — don't silently skip reference research; that's a different, worse workflow than the one being run.
 
 ### Decide what to search for
 

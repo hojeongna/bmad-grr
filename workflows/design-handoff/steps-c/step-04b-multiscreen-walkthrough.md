@@ -40,7 +40,7 @@ Dispatch one more agent to merge every screen's results into a single coherent S
 
 ### Optional: capture each screen to an editable HTML base
 
-Only do this if the user wants a code-level starting point (e.g. to attach alongside the eventual handoff prompt). Prefer the same safe path as step-04's `url` branch: ask the user to Ctrl+S each screen as `.mhtml` and batch-convert with `{mhtmlConverter}` into `{convertedScreensDir}/{slug}.html` for each. If attempting a live in-browser capture instead, the same rule from step-04 applies without exception: never retry around a safety refusal, never construct a capture whose result is hidden from review — fall back to the manual per-screen save immediately if blocked.
+Only do this if the user wants a code-level starting point (e.g. to attach alongside the eventual handoff prompt). Prefer the same safe path as step-04's `url` branch: ask the user to Ctrl+S each screen as `.mhtml` and batch-convert with `{mhtmlConverter}` into `{convertedScreensDir}/{slug}.html` for each. A live in-browser capture instead follows step-04's safety-refusal rule without exception — fall back to the manual per-screen save immediately if blocked.
 
 ## Next
 

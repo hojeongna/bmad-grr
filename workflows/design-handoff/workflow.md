@@ -38,25 +38,15 @@ dev_story_command: "~/.claude/commands/bmad-grr-dev-story.md"
 design_pass_command: "~/.claude/commands/bmad-grr-design-pass.md"
 
 # External tool dependencies:
-# - Mobbin MCP must be available in the environment for step-05/05b. Its exact tool/method names
-#   were not verified against a live connection when this workflow was authored — resolve them
-#   via ToolSearch at first run rather than assuming a specific tool name.
-# - The seed-docs MCP (`claude mcp add seed-docs -- npx -y @seed-design/docs-mcp`) is required only
-#   when the user turns on SEED norm mode in step-03. Public docs, no auth. Step-03b halts rather
-#   than falling back to WebFetch or recollection if it's missing — a remembered design system is
-#   the exact failure mode this workflow exists to avoid. Note that its `section` enum
-#   (react/docs/breeze/ai-integration/lynx) lags the live site, which moved the norms to
-#   foundations/components/patterns; step-03b documents the relative-path workaround.
-# - The native DesignSync tool (claude.ai/design design-system projects) is required for step-03
-#   and the optional push in step-08. It ships with Claude Code; no separate MCP install needed.
-# - Multi-screen walkthroughs (step-04b), reference re-audits (step-05b), and direct-implementation
-#   conformance checks (step-07b) all lean on the Workflow tool for parallel per-screen sub-agent
-#   dispatch — this is not optional flourish, it's how those steps stay honest (fresh eyes per
-#   screen, adversarial re-verification) instead of one context asserting its own work is fine.
-# - Automated in-browser capture (step-04b) must never route around a safety refusal (retrying with
-#   base64/obfuscation, or hiding a script's own return value from review) — that pattern reads as
-#   data exfiltration even when the underlying intent is benign, and it should be treated as a hard
-#   stop, not an obstacle to engineer past. Fall back to asking the user to capture manually.
+# - Mobbin MCP (`search_screens`, `search_flows`, `search_sections`) for step-05/05b.
+# - seed-docs MCP (`claude mcp add seed-docs -- npx -y @seed-design/docs-mcp`), only when SEED norm
+#   mode is on in step-03; step-03b halts rather than falling back if it's missing, and documents the
+#   `section`-enum workaround.
+# - DesignSync tool (claude.ai/design projects) for step-03 and the optional push in step-08. Not
+#   every Claude Code build or account exposes it: if ToolSearch doesn't find it, those steps take
+#   their no-project path (plain prompt, no push).
+# - claude-in-chrome for live capture and step-06c; the Workflow tool for per-screen fan-out
+#   (04b, 05b, 07b). The "never route around a safety refusal" rule lives in step-04.
 ---
 
 # Design Handoff

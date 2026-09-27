@@ -31,7 +31,7 @@ Ask whether to push the approved draft into that Claude Design project so it's s
 [Y] {claude_design_project.name}에 저장   [N] 저장 안 함
 ```
 
-On `Y`: call `DesignSync` — `get_project` to confirm it's still `type: PROJECT_TYPE_DESIGN_SYSTEM`, then `finalize_plan` with the approved screen file(s) as `writes` and the local directory they live in as `localDir`, then `write_files`. If the screens are meant to show up as cards in the Design System pane, add `@dsCard group="..."` as the first line of each preview file, or fall back to `register_assets` for hand-authored previews without that marker. Report what was written.
+On `Y` (only offered when a project was resolved in step-03, which also means `DesignSync` exists here): call `DesignSync` — `get_project` to confirm it's still `type: PROJECT_TYPE_DESIGN_SYSTEM`, then `finalize_plan` with the approved screen file(s) as `writes` and the local directory they live in as `localDir`, then `write_files`. If the screens are meant to show up as cards in the Design System pane, add `@dsCard group="..."` as the first line of each preview file, or fall back to `register_assets` for hand-authored previews without that marker. Report what was written.
 
 ### Log the outcome into the UX/UI Guide document
 

@@ -22,7 +22,7 @@ So this step resolves *which project* the work targets and nothing about its con
 
 ### Claude Design project — check via DesignSync
 
-Call the `DesignSync` tool with `method: list_projects`. (Its first call in a session may prompt to add design-system access — that's expected, not an error.)
+Call the `DesignSync` tool with `method: list_projects`. (Its first call in a session may prompt to add design-system access — that's expected, not an error.) If ToolSearch doesn't find a `DesignSync` tool in this environment, say so in one line, set `claude_design_project: null`, and continue — step-06 then produces a plain prompt with no project behind it.
 
 - If one or more projects plausibly match this product, show them (name, `projectId`, `updatedAt`) and ask the user to confirm which one this handoff should target, or say none apply.
 - If none match, ask whether to create one now (`create_project` with a sensible name derived from the project/PRD title) or skip entirely and produce a plain prompt with no persistent Claude Design project behind it.

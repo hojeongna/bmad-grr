@@ -12,7 +12,7 @@ This is the `[D]` (Claude Design) path from step-06 — it assumes an external d
 
 ## Outcome
 
-The HTML draft(s) from Claude Design are collected, and a fresh sub-agent pipeline — never this same conversation's context, per this repo's sub-agent-dispatch-over-self-verification rule — has checked them against `{uxGuidePath}` (screen spec, design system, and `[ASSUMPTION]` entries). Surviving findings are stored as `conformance_findings`.
+The HTML draft(s) from Claude Design are collected, and a fresh sub-agent pipeline — never this same conversation's context — has checked them against `{uxGuidePath}` (screen spec, design system, and `[ASSUMPTION]` entries). Surviving findings are stored as `conformance_findings`.
 
 ## Approach
 
@@ -22,7 +22,7 @@ If `auto_draft_paths` is already populated (the `[A]` automated path from step-0
 
 ### Dispatch via the Workflow tool
 
-Call the **Workflow** tool — this is the same pattern this repo's `code-review` step-03 uses, and for the same reason: the agent that wrote the prompt is a bad judge of whether the result actually matches it. Two phases:
+Call the **Workflow** tool — this is the same pattern `code-review` step-03 uses, and for the same reason: the agent that wrote the prompt is a bad judge of whether the result actually matches it. Two phases:
 
 - **Review** — one `agent()` per screen/file, each given: that screen's entry from `{redesignSpecPath}` (preferred, when it exists — it has the actual prescriptions to check against) or `{uxGuidePath}` section 2 otherwise, the relevant section 3 `[ASSUMPTION]` entries, section 4's design-system tokens (or the design system Claude Design proposed, if none existed locally), and the file content. Scope-locked: report only concrete mismatches (missing state, wrong IA, unaddressed assumption or open question, off-system token/color, accessibility gap, a prescription that was cited as done but doesn't actually match its named pattern) with what's wrong and where — never a style opinion dressed as a requirement. If `has_prd` is false (improvement-only mode), section 3 is N/A — skip assumption checks and focus the review on design-system anchoring, internal consistency, and prescription conformance instead.
 - **Verify** — distribute the candidate findings across `agent()` calls to confirm or refute each against the actual file content. Keep confirmed, drop refuted, surface uncertain.

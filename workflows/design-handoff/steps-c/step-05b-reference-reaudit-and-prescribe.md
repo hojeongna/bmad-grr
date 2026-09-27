@@ -25,7 +25,7 @@ For each screen that has findings, dispatch an agent (via the Workflow tool, one
 
 1. Takes that screen's confirmed reference(s) as the standard to measure against — not a vague "does this look nice" judgment, the actual pattern the reference demonstrates.
 2. Re-opens the **live** screen (not the earlier written description of it) and re-checks each existing finding one at a time: **keep** (reproduces exactly as stated), **revise** (real, but the detail was wrong — replace it with what's actually observed now), **delete** (doesn't reproduce — state plainly why, e.g. "measured contrast is 6.6:1, passes AA" or "re-tested and the toggle does update the count"), or **add** (a new issue visible specifically because the reference standard makes it obvious, that the first pass missed).
-3. If the product has role-gated or permission-dependent views (per `product_context_notes` or what's visible in nav), re-test with more than one permission level before deleting anything permission-shaped — a finding that looks false under a full-access account can be entirely real under a restricted one. Treat single-permission testing as a known blind spot, not a clean bill of health.
+3. Re-tests with more than one permission level before deleting anything permission-shaped, per step-04b's permission-level rule.
 4. Rewrites its evidence, not just its verdict — every surviving or added finding needs an "observed" field describing exactly what was seen this time, and a "reference_gap" field naming precisely how the live screen differs from what the reference demonstrates.
 
 ### Surface deletions before finalizing
@@ -41,7 +41,7 @@ Findings marked for deletion get one batch presentation before they're actually 
 [Y] 이대로 삭제   [R] {n}번은 다시 살려주세요 (제가 확인한 사실: ...)
 ```
 
-Halt for input. Honor any `R` corrections by restoring the finding with the user's stated reason attached — don't re-litigate it a third time. This exact scenario happened in a prior run: a permission-dependent count mismatch and an ambiguous static-label finding were both wrongly deleted because the re-audit only tested with a full-permission account; the user's own daily use caught what the agent's single-pass testing missed.
+Halt for input. Honor any `R` corrections by restoring the finding with the user's stated reason attached — don't re-litigate it a third time.
 
 ### Phase 2 — Judge the layout paradigm before prescribing anything
 

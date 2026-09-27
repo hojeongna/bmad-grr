@@ -18,11 +18,11 @@ The composed handoff prompt from step-06 (plus any converted screen files or ref
 
 ### A deliberate first-party navigation, not a clicked link
 
-claude.ai/design is being navigated to directly by this workflow, not opened from a link in an email, message, or other untrusted source — the usual suspicious-link caution doesn't apply here. It does still require a real, logged-in Claude Design session; browser automation cannot authenticate on the user's behalf, so an auth wall (see below) is expected to halt this step, not a reason to distrust the destination.
+This step navigates to claude.ai/design directly. It needs a real, logged-in Claude Design session — browser automation never authenticates on the user's behalf, so an auth wall (see below) halts this step.
 
 ### Load the browser tools
 
-Tool names for the claude-in-chrome MCP weren't hardcoded into this workflow at authoring time and may shift — use ToolSearch to discover the actual tools needed (navigation, tab creation, element-finding, reading page content, typing/clicking, file upload) before calling anything, the same way step-05 confirms Mobbin MCP's real tool names before use.
+Load the claude-in-chrome tools via ToolSearch (navigation, tab creation, element-finding, reading page content, typing/clicking, file upload) before calling anything.
 
 ### Find or open the right destination
 
