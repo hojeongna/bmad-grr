@@ -52,11 +52,11 @@ Once tests pass, ask:
 
 Auto mode takes `[A]` without asking. The PR URL matters more there than in interactive mode — step-05a needs the number to poll reviews — so capture it from the `gh` output rather than reconstructing it.
 
-PR title and body are generated from the branch name and the PR's role/responsibility from step-02. Make the body concise and specific — what changed, why, and how to test.
+Use the PR role/branch for title and body. Include what changed and why; for screen/behavior review fixes, include checked behavior, result and unverified scope, one line each, from final-diff verification.
 
 ### Optional — request post-create code review
 
-After the PR exists, optionally follow `{requestingCodeReview}` to dispatch a fresh code-reviewer sub-agent against the PR diff. Useful when: the PR is non-trivial, when the user wants a "second pair of eyes" pass before merge, or when the PR is the first in a chain (catching issues early prevents cascade through subsequent rebased PRs). The skill provides exact dispatch templates with `BASE_SHA` / `HEAD_SHA` / requirements context — use them.
+Optionally use `{requestingCodeReview}` for a fresh review of non-trivial PRs, a requested second review, or the first PR in a dependency chain. Use its BASE_SHA/HEAD_SHA/requirements template.
 
 Skip the request if the PR is small, mechanical, or already covered by the project's CI review automation. Auto mode always skips it: step-05a is about to collect the reviews the PR actually receives, and a local sub-agent review would only compete with them.
 

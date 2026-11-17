@@ -1,58 +1,26 @@
 ---
 name: step-06-complete
-description: 'Update story/sprint status if applicable, reflect changes back into story docs, present summary, offer design-pass routing when UI was touched'
+description: 'Verify affected behavior after review fixes, reflect changes in story docs, and summarize status'
 designPassCommand: '~/.claude/commands/bmad-grr-design-pass.md'
 handoffOutputPath: '{output_folder}/design-handoff'
 ---
 
 # Step 6 — Complete
 
-## Outcome
+## Final behavior
 
-Reflect review changes in the story and summarize the outcome. Mark `done` only after a clean independent review and passing required checks; skipped/unresolved findings, unverified checks or a stopped loop leave it at `review`. This is story status, not Linear Done or merge approval.
+If review fixes affect screens or behavior, verify the affected user path against the final diff using the project's existing test/browser/capture route. Carry the checked behavior, observed result and unverified scope to the PR body, one line each. Validation with server writes blocked does not prove saving. If the accepted screen/behavior changed, return to the ticket caller for Hojeong's acceptance before push/PR; keep this requirement in auto mode too. Reuse valid results for that final state under the verification skill; do not add a harness or evidence file.
 
-## Approach
+## Story status
 
-### Story status update
+Only a clean independent review and passing required checks, including applicable behavior verification, permits story `done`. Skipped/unresolved findings, unverified checks or a stopped loop leave `review`. This is not Linear Done or merge approval.
 
-If `review_source == "story"` (the story path is already known), load the story file, set `Status: done`, and — if `{sprint_status}` exists — update the matching key to `done` in `sprint-status.yaml`, preserving comments and structure.
+For story-based review, update the known story and sprint status under that condition, preserving structure. For diff/manual review, use a supplied related story path or ask once; auto mode with no story path skips status updates without asking.
 
-If the review was diff- or manual-based, ask the user once: is there a related story document? Wait for the answer; don't assume. If yes, take the path and run the same update; if no, skip status updates.
+Reflect changed implementation/data flow/files in the story. Extend its existing review/changes notes (or `Code Review Changes`) with date, changed files, fixes and checklist items; keep unresolved items visible.
 
-Auto mode does not ask — it skips straight past the status update and says so in the summary. A story path it was never given is not one it should go looking for while running unattended.
+## Summary and routing
 
-Apply the status condition above in both modes, including partial fixes and Skip.
+Summarize source, files/lines reviewed, findings found/fixed/unresolved, checklist, checks and story status. Auto adds a line per round and the clean/stopped outcome with reasons.
 
-### Reflect review changes into the story
-
-For each known story document, after the status update:
-
-- Load the story completely.
-- Look for sections that describe implementation approach, data flow, file structure, or architecture. If code-review fixes changed any of those, update the story to match the actual post-review state.
-- Append a `## Code Review Changes` section (or extend an existing equivalent: `## Changes`, `## Notes`, `## Review Notes`) with: date, files modified, summary of changes per file, checklist items that triggered the changes.
-
-### Summary
-
-Tight summary in `{communication_language}`:
-
-- Review source
-- Files reviewed and total changed lines
-- Violations found / fixed
-- Checklist used
-- Story status (if updated)
-- Suggested next steps: review and test the modified code; update the checklist if new patterns emerged.
-
-In auto mode add the loop's history — one line per round with findings found and fixed — and how it ended: cleared on round N, or stopped by which condition with what is still unfixed. The user was not asked anything after the first report, so this summary is the whole record of what ran on their behalf; a stop condition buried under a fix tally is the one thing it must not do.
-
-### Offer routing
-
-If the review touched UI **and** a mockup exists (look for `{handoffOutputPath}/auto-draft/*.html` or `converted/*.html`), halt for input:
-
-- `[U]` Run `design-pass` Mode L — check the running screen against the HTML mockup it was built from. Review fixes can drift a screen away from its mockup, and that drift is invisible to a checklist-based review.
-- `[S]` Stop.
-
-On `U`, load and follow `{designPassCommand}` with the mockup path, the app URL, and the story path (when known). Don't show this menu at all when the review was non-UI or no mockup exists — there's nothing to compare against, and offering it anyway trains the user to skip the prompt.
-
-Auto mode does not halt here either: when the same conditions hold, name `design-pass` Mode L as the suggested next step in the summary and end. Auto mode loops a review, it does not take the user into a second workflow unasked.
-
-End the workflow.
+If UI was touched and a mockup exists under `{handoffOutputPath}/auto-draft/*.html` or `converted/*.html`, interactive offers `[U]` design-pass Mode L or `[S]` stop; `U` loads `{designPassCommand}` with mockup, app URL and known story path. Auto suggests this route and returns. This menu does not replace final behavior verification above. Otherwise end.
