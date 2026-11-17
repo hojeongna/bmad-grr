@@ -1,6 +1,6 @@
 ---
 name: verification-before-completion
-description: Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires command output supporting claims, with same-session reuse for unchanged inputs
+description: Use before claiming completion or passing checks, committing or creating PRs; require command output, with unchanged-input reuse only in grr validation/DoD/PR
 ---
 
 # Verification Before Completion
@@ -9,7 +9,7 @@ description: Use when about to claim work is complete, fixed, or passing, before
 
 Support claims with command output: identify the required check, read its full output, exit code and failure count, and report the result and gaps. Failed, partial or missing checks are not passes.
 
-At validation, DoD and PR, reuse a successful check from this session when the command/scope and its inputs (code, tests, configuration, dependencies and relevant environment) are unchanged. Cite the earlier command and result in one line; status records or commits alone do not require a rerun. Changed or uncertain inputs require rerunning the affected checks. This does not reuse results across sessions or replace TDD's observed RED→GREEN. Remote CI/review/merge state needs a current query.
+Only in grr validation/DoD/PR, cite a same-session success when command/scope, code/tests/config/dependencies and relevant environment are unchanged. If `git status`/`git diff` cannot establish that related paths stayed unchanged since that run, treat inputs as uncertain and rerun affected checks. Status records/commits alone need no rerun. No cross-session reuse or substitute for observed TDD RED→GREEN; query remote CI/review/merge state afresh.
 
 ## Common Failures
 
