@@ -41,7 +41,11 @@ Before routing, `grr-spec-validate` (step-04b) independently checks the story in
 
 Use an upstream PRD as a reference when present; derive architecture from current code.
 
-**Small branch.** Use `small` only for a clear, low-risk, local change with known current and expected behavior. Shared contracts/state, permissions, payments, external APIs, concurrency, new dependencies, or uncertain impact require `full`, regardless of file count; promote on discovery. After step-02 confirms small, go directly to step-04: write one story containing problem/user/scope, observable ACs and edge cases, ordered tasks, touchpoints/constraints, verification notes, and the usual status/change_type/Dev Agent Record/File List. Record the small rationale in Dev Notes; omit the full template and separate architecture step. Step-04b uses one fresh validator for all applicable rubrics. Pass supplied answers, save permission and next route through arguments; ask only about missing decisions. Both paths retain DoD, independent code review, Hojeong's screen acceptance and human merge; ticket coding stays Opus+xhigh.
+**Small branch.** Use `small` for clear, low-risk, local changes with known current and expected behavior. Shared contracts/state, permissions, payments, external APIs, concurrency, new dependencies or uncertain impact require `full` regardless of file count; promote on discovery.
+
+After step-02 confirms small, go to step-04: write one story with problem/user/scope, observable ACs/edge cases, ordered tasks, touchpoints/constraints, verification notes, status/change_type/Dev Agent Record/File List. Record the small rationale in Dev Notes; skip the full template and architecture step.
+
+Step-04b uses one fresh validator for all applicable rubrics. Pass supplied answers, save permission and next route; ask only about missing decisions. Both paths retain DoD, independent review, Hojeong's screen acceptance and human merge; ticket coding stays Opus+xhigh.
 
 ## Your Role
 
