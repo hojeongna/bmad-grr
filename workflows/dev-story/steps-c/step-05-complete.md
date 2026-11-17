@@ -27,7 +27,7 @@ The DoD checklist is the final gate. To break the writer-judges-own-work loop, t
 
 #### Step 5.1 — Main session gathers evidence
 
-Before dispatching, the main session runs the verification commands itself (following `{verificationBeforeCompletion}`) and captures actual outputs. The evidence packet contains, at minimum:
+Use this session's actual outputs under `{verificationBeforeCompletion}`; run missing/invalidated checks. Send the verifier these existing results, without a separate evidence file:
 
 - Acceptance command + last N lines of output (exit code, count, pass/fail tally) — the BDD runner on the scenario track, the tests step-02 named on the UI track
 - Unit/integration test command + last N lines of output
@@ -38,7 +38,7 @@ Before dispatching, the main session runs the verification commands itself (foll
 - DoD checklist absolute path (`{checklistFile}`)
 - The story's `change_type` — it decides which half of the checklist's Acceptance section applies
 
-The commands are run in **this** session — that's the execution side. If any command fails, do NOT proceed to dispatch; route back to whichever earlier step owns the failure (step-03 for failing scenarios or named tests, step-04 for regressions).
+Failed acceptance checks return to step-03; regressions return to step-04 before dispatch.
 
 #### Step 5.2 — Dispatch the DoD verifier sub-agent
 

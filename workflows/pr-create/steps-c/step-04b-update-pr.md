@@ -49,9 +49,9 @@ Tell the user briefly: how many files changed, which commits are unpushed, wheth
 
 ### Run tests / CI locally
 
-Detect the test entry points the same way step-04 does. Run what's actually there — type check, build, unit tests, integration tests — in a sensible order. Don't fabricate.
+Use step-04's command detection and same-session reuse rule. Run missing/invalidated configured checks; cite commands and results.
 
-If the repo has CI defined and a CI test command can be inferred from the workflow file, run that command locally so the push reaches the remote with high confidence of CI passing.
+Include configured local CI checks; remote CI still needs a current query.
 
 ### Handle test failures (amend or new commit)
 

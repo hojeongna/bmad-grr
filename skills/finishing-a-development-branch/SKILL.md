@@ -17,7 +17,7 @@ Guide completion of development work by presenting clear options and handling ch
 
 ### Step 1: Verify Tests
 
-**Before presenting options, verify tests pass:**
+Verify tests before options, using valid same-session results per `verification-before-completion`; run missing/invalidated checks:
 
 ```bash
 # Run project's test suite
@@ -240,12 +240,3 @@ git worktree prune  # Self-healing: clean up any stale registrations
 - Remove a worktree before confirming merge success
 - Clean up worktrees you didn't create (provenance check)
 - Run `git worktree remove` from inside the worktree
-
-**Always:**
-- Verify tests before offering options
-- Detect environment before presenting menu
-- Present exactly 4 options (or 3 for detached HEAD)
-- Get typed confirmation for Option 4
-- Clean up worktree for Options 1 & 4 only
-- `cd` to main repo root before worktree removal
-- Run `git worktree prune` after removal

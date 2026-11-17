@@ -8,7 +8,7 @@ nextStepFile: '~/.claude/workflows/dev-story/steps-c/step-05-complete.md'
 
 ## Outcome
 
-Every acceptance check from step-02 passes, the full project test suite passes (no regressions), basic code health is acceptable, every AC is verifiably satisfied (by its scenario, by its named test, or by inspection), and Tasks/Subtasks marked [x] correspond to real, working implementations.
+Confirm acceptance, regression, code health and inspection ACs. Use valid same-session results under the loaded verification skill; run missing or invalidated checks below. Reconcile tasks with the implementation.
 
 ## Approach
 
@@ -26,7 +26,7 @@ Run the project's complete test suite (unit + integration, plus BDD where the pr
 
 ### Inline health check
 
-Run the project's standard quality commands — typically type check, linter, dead-code detector. Use whatever the project actually exposes (`npm run typecheck`, `tsc --noEmit`, `mypy`, `ruff`, `eslint`, `golangci-lint`, etc.). If a command isn't configured, skip it — don't fabricate. Report results to the user briefly.
+Verify the project's configured type/lint/dead-code checks, citing commands and results. Skip unconfigured tools; do not invent commands.
 
 ### Inspection-only AC verification
 

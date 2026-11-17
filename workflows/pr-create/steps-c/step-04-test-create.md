@@ -28,9 +28,9 @@ Tell the user briefly which command will run.
 
 ### Run tests
 
-Execute the detected command. If multiple are detected and reasonable, run them in sequence (typecheck → unit → integration) — but only what the project actually exposes; don't fabricate.
+Use `{verificationBeforeCompletion}`'s valid same-session results, or run the configured checks (typecheck → unit → integration).
 
-Before claiming "tests pass" anywhere downstream (commit message, PR body, status update), follow `{verificationBeforeCompletion}` — read the actual exit code and pass/fail counts from this turn's output and cite the evidence. Don't echo "should pass" forward.
+Cite each command and observed result in the PR; records/commits alone do not invalidate it. Changed or uncertain inputs require rerunning the affected checks.
 
 ### On failure — amend or new commit
 

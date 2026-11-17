@@ -1,57 +1,27 @@
 ---
 name: verification-before-completion
-description: Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always
+description: Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires command output supporting claims, with same-session reuse for unchanged inputs
 ---
 
 # Verification Before Completion
 
 ## Verification
 
-Support completion claims with observed evidence. Before reporting success or committing/creating a PR, identify the command that proves the claim, run it fully in this message, and read its output, exit code and failure count. Report the supported result and any gaps. A failed or incomplete check is not a pass.
+Support claims with command output: identify the required check, read its full output, exit code and failure count, and report the result and gaps. Failed, partial or missing checks are not passes.
+
+At validation, DoD and PR, reuse a successful check from this session when the command/scope and its inputs (code, tests, configuration, dependencies and relevant environment) are unchanged. Cite the earlier command and result in one line; status records or commits alone do not require a rerun. Changed or uncertain inputs require rerunning the affected checks. This does not reuse results across sessions or replace TDD's observed RED→GREEN. Remote CI/review/merge state needs a current query.
 
 ## Common Failures
 
 | Claim | Requires | Not Sufficient |
 |-------|----------|----------------|
-| Tests pass | Test command output: 0 failures | Previous run, "should pass" |
+| Tests pass | Test command output: 0 failures | Unmatched/stale run, "should pass" |
 | Linter clean | Linter output: 0 errors | Partial check, extrapolation |
 | Build succeeds | Build command: exit 0 | Linter passing, logs look good |
 | Bug fixed | Test original symptom: passes | Code changed, assumed fixed |
 | Regression test works | Red-green cycle verified | Test passes once |
 | Agent completed | VCS diff shows changes | Agent reports "success" |
 | Requirements met | Line-by-line checklist | Tests passing |
-
-## Key Patterns
-
-**Tests:**
-```
-✅ [Run test command] [See: 34/34 pass] "All tests pass"
-❌ "Should pass now" / "Looks correct"
-```
-
-**Regression tests (TDD Red-Green):**
-```
-✅ Write → Run (pass) → Revert fix → Run (MUST FAIL) → Restore → Run (pass)
-❌ "I've written a regression test" (without red-green verification)
-```
-
-**Build:**
-```
-✅ [Run build] [See: exit 0] "Build passes"
-❌ "Linter passed" (linter doesn't check compilation)
-```
-
-**Requirements:**
-```
-✅ Re-read plan → Create checklist → Verify each → Report gaps or completion
-❌ "Tests pass, phase complete"
-```
-
-**Agent delegation:**
-```
-✅ Agent reports success → Check VCS diff → Verify changes → Report actual state
-❌ Trust agent report
-```
 
 ## Reporting
 
