@@ -105,42 +105,21 @@ persistent_facts = [
 on_complete = """
 ### Post-flight: Dispatch grr-spec-validate on the completed story
 
-Get the final story file path (typically under {implementation_artifacts}/).
-Dispatch one fresh sub-agent PER RUBRIC, all in a single message so they run
-concurrently — never fold several rubrics into one agent. The rubrics are
-ambiguity, ac-measurability, three-stage and checklist (drop that one when
-$CHECKLIST_PATH is unset), plus brownfield-grounding when $STORY_MODE == "B".
-Dispatch pattern: Step 2 of
-~/.claude/skills/grr-spec-validate/invocation-template.md.
+Get the completed story path under {implementation_artifacts}/.
+Use ambiguity, ac-measurability, three-stage, checklist unless $CHECKLIST_PATH
+is unset, and brownfield-grounding when $STORY_MODE == "B".
 
-  Task prompt (one per rubric):
-    Load and follow the grr-spec-validate skill — rubric: <RUBRIC_NAME>.
-
-    Inputs:
-    - artifact_path: <absolute story path>
-    - rubrics: <RUBRIC_NAME>
-    - checklist_path: <$CHECKLIST_PATH — only on the checklist agent>
-    - project_root: <absolute project root — only on the brownfield-grounding agent>
-    - brownfield_areas: <$STORY_AREAS — only on the brownfield-grounding agent>
-    - reference_paths: <comma-separated: $BLAST_RADIUS if written + PRD path if
-                        present under {implementation_artifacts}/; architecture
-                        path is NOT included; omit if none>
-
-    Constraints:
-    - Run ONLY the rubric named above, and load only that rubric file.
-      Sibling sub-agents hold the others.
-    - Fresh context, no access to main conversation.
-    - Artifact-only rubrics read the artifact alone; brownfield-grounding
-      may Read/Glob/Grep project_root to verify the story's file-level
-      claims (the files each Task names, "no existing X" assertions).
-    - Read-only — never edit source. Return a single JSON block per the
-      SKILL.md schema, carrying this rubric's own fields and a verdict
-      derived from this rubric alone.
-
-Merge the returned blocks: verdict = worst across agents (any REVISE →
-REVISE), per-rubric fields concatenate, revision_pointers union. An agent
-that returns nothing parseable is a REVISE for its rubric — name it rather
-than counting it as a pass. Branch on the merged `verdict`:
+Follow ~/.claude/skills/grr-spec-validate/invocation-template.md Steps 2–4:
+one fresh read-only validator for all applicable criteria; a second only
+for contradicted code claims, scope expansion or increased risk.
+Pass artifact_path, all rubrics, checklist_path=$CHECKLIST_PATH when set,
+project_root and brownfield_areas=$STORY_AREAS for grounding,
+and reference_paths containing $BLAST_RADIUS and the PRD if present
+(no architecture doc). No drafting conversation.
+Require every score/verdict row and detailed fields; return missing rows
+for completion, keeping REVISE. Show the complete result table.
+After edits, revalidate only affected/new criteria; unclear impact requires all.
+Branch on verdict:
 
 - "PROCEED": tell the user "Story 검증 통과. dev-story로 진행 가능." End the workflow.
 

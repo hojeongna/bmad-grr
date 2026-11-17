@@ -1,6 +1,6 @@
 ---
 name: grr-spec-validate
-description: Use when validating a story document or spec artifact in a fresh sub-agent context — checks ambiguity (score), AC measurability (Gherkin convertibility), three-stage coherence (concept/structure/detail), and codebase-convention violations against a user-supplied checklist. Dispatched independently without the drafting conversation; small stories use one validator for all applicable rubrics.
+description: Use for independent spec/story validation; one fresh validator scores every applicable rubric, including current-code grounding, without the drafting conversation.
 ---
 
 # grr-spec-validate
@@ -34,7 +34,7 @@ Do NOT use when:
 
 ## Dispatching this skill
 
-The caller reads `invocation-template.md`. For a small story, one independent validator applies every assigned rubric and reports each result; full uses one validator per rubric. Small eligibility comes from quick-story's risk policy, not document length. Load only assigned rubric files. Independence from the author is required in both modes.
+Read `invocation-template.md`. Small/full both use one independent validator per artifact for all applicable rubrics. Add a second only for contradicted code claims, scope expansion or increased risk, covering affected criteria. Load each assigned rubric; no drafting conversation.
 
 ## The rubrics
 
@@ -46,13 +46,7 @@ The caller reads `invocation-template.md`. For a small story, one independent va
 | Checklist conformance | `rubric-checklist.md` (consumes user-supplied file) | Violation count | 0 hard violations |
 | Brownfield grounding | `rubric-brownfield-grounding.md` (reads project source) | grounded / ungrounded / contradicted claim counts | 0 contradicted, ≤ 2 ungrounded |
 
-The first four work from the artifact alone. **Brownfield grounding is
-different** — it reads the real codebase to verify the spec's claims about
-existing code, and is requested only for brownfield specs (it needs
-`project_root`).
-
-Each rubric file contains: scoring procedure, heuristics, and worked
-examples. Load the rubric files named in the payload.
+Only brownfield grounding reads source (`project_root`); other rubrics use the artifact, checklist and supplied references.
 
 ## Output schema
 
@@ -60,8 +54,15 @@ The sub-agent **must** return a single fenced JSON block (no prose around it):
 
 ```json
 {
-  "verdict": "PROCEED",
+  "verdict": "REVISE",
   "artifact": "<path that was evaluated>",
+  "rubric_results": [
+    { "rubric": "ambiguity", "score": 0.13, "verdict": "PROCEED" },
+    { "rubric": "ac-measurability", "score": "1/2 YES", "verdict": "REVISE" },
+    { "rubric": "three-stage", "score": "0.85/0.62/0.40", "verdict": "REVISE" },
+    { "rubric": "checklist", "score": "1 HIGH", "verdict": "REVISE" },
+    { "rubric": "brownfield-grounding", "score": "6 grounded / 1 ungrounded / 1 contradicted", "verdict": "REVISE" }
+  ],
   "ambiguity_score": 0.13,
   "ambiguity_offenders": [
     {
@@ -90,7 +91,7 @@ The sub-agent **must** return a single fenced JSON block (no prose around it):
     }
   ],
   "brownfield_grounding": {
-    "claims_checked": 9,
+    "claims_checked": 8,
     "grounded": 6,
     "ungrounded": [
       { "claim": "the scheduler reloads on every keystroke", "location": "NFR-2", "searched": "src/features/scheduler/** input handlers" }
@@ -108,29 +109,15 @@ The sub-agent **must** return a single fenced JSON block (no prose around it):
 }
 ```
 
-The block above is the **full field catalogue** — the merged shape the
-main session builds. A validator returns `verdict`, `artifact`, the fields for every assigned rubric, and `revision_pointers`; unassigned fields are absent. Any failed or unassessable rubric yields `"REVISE"`; otherwise `"PROCEED"`.
-`revision_pointers` is always present when `"REVISE"`. Array fields use
-`[]` when the rubric ran but found nothing to report.
+`rubric_results` is the result table: one complete rubric/score/verdict row per assigned criterion, matching its detailed fields. Score every criterion, including later ones; the coordinator returns missing scores/rows to the validator and keeps REVISE until complete. No silent passes.
 
-The main session merges the blocks and handles `PROCEED` / `REVISE` as
-`invocation-template.md` Step 4 describes.
+Return `verdict`, `artifact`, that table, all assigned rubric fields and `revision_pointers`; omit unassigned fields/rows. Use `[]` for evaluated arrays with no findings. Any failed/unassessable criterion yields REVISE. The caller processes results under `invocation-template.md` Step 4.
 
 ## Common mistakes
 
-**❌ Reading the main session's chat history.** The sub-agent works from
-the artifact alone. If you find yourself reasoning from "the user said …",
-stop — that information must come from the artifact or not be used.
-
-**❌ Soft-pedaling failures.** If any score is below threshold, the
-verdict is `REVISE`, period. Do not write "mostly fine, just polish."
-The whole point of fresh-context validation is honest scoring.
-
-**❌ Inventing rubrics.** Use only the rubrics in this skill. If a
-new dimension is needed, the main session must add a rubric file
-explicitly — not the sub-agent inline.
-
-**Unassigned rubrics:** do not score them; the caller owns coverage.
+- Use artifact evidence, not the author's conversation.
+- Score honestly against the listed thresholds; invent no rubrics.
+- Do not score unassigned rubrics; the caller owns coverage.
 
 **❌ Modifying the artifact OR any source file.** This skill is read-only —
 including the brownfield-grounding rubric, which reads source only to

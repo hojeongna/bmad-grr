@@ -11,7 +11,7 @@ validatorInvocation: '~/.claude/skills/grr-spec-validate/invocation-template.md'
 
 ## Outcome
 
-The composed story has passed an independent quality gate before routing — checked in a **fresh sub-agent context** so the writing context cannot defend its own output. On `PROCEED`, the workflow advances to step-05. On `REVISE`, use the revision choices below.
+Validate independently in a fresh context before routing. PROCEED advances to step-05; REVISE uses the choices below.
 
 ## Approach
 
@@ -21,7 +21,7 @@ Use the supplied `checklist_path` or `skip`. Ask only if neither is known. Read 
 
 ### 2. Dispatch independent validation
 
-Follow `{validatorInvocation}` with the story's absolute `artifact_path`, `prd_path` as a reference when present, and applicable rubrics: `ambiguity`, `ac-measurability`, `three-stage`, plus `checklist` unless skipped and `brownfield-grounding` for existing code (pass `project_root` and touchpoints). Small uses one fresh validator for the entire set; full uses one per rubric. No validator inherits the writing conversation. Merge every applicable score; a missing result is REVISE.
+Follow `{validatorInvocation}`: pass absolute `artifact_path`, optional `prd_path`, and `ambiguity`, `ac-measurability`, `three-stage`, plus `checklist` unless skipped and `brownfield-grounding` for existing code (`project_root`, touchpoints). Small/full both use one fresh validator for all criteria; add a second only for contradicted code claims, scope expansion or increased risk. No drafting conversation. Return missing score/verdict rows for completion; keep REVISE until every criterion is scored.
 
 ### 3. Present the verdict to the user
 
@@ -31,8 +31,8 @@ Render in `{communication_language}`:
 🧪 스토리 검증 결과
 
 Verdict: <PROCEED | REVISE>
-{rubric}: <score> [✓ / ✗]
-...
+| rubric | score | verdict |
+| ... | ... | PROCEED / REVISE |
 
 (when REVISE)
 수정 포인터:
@@ -41,7 +41,7 @@ Verdict: <PROCEED | REVISE>
 ...
 ```
 
-Show only requested rubrics. For `ambiguity_offenders`, list each with location. For `ac_measurability` NO entries, list with issue. For `three_stage`, name the `weakest` stage. For `checklist_violations`, list HIGH-severity violations and their quotes.
+Show all requested rows from `rubric_results`. Include offender locations, NO ACs, weakest stage, HIGH checklist quotes and contradicted code claims with source paths.
 
 ### 4. Branch on verdict
 
@@ -59,7 +59,7 @@ Show only requested rubrics. For `ambiguity_offenders`, list each with location.
 
 - **`R`** — Load `{recomposeStepFile}` with the revision pointers attached as additional context. The user's previous Mini PRD answers can be reused; only the sections covered by the pointers need re-thinking. After re-compose, step-04 routes back here (idempotent).
 
-- **`E`** — Tell the user the story file path. They edit directly with their editor (or via the main session's Edit tool on small fixes). When they confirm "done", re-dispatch the applicable set under the same small/full policy, in fresh contexts.
+- **`E`** — Give the story path for editing. After confirmation, revalidate only affected/new criteria per `{validatorInvocation}`; R uses the same rule. Retain unaffected scores; unclear impact requires all criteria.
 
 - **`O`** — Append to the story file's Dev Notes:
 
