@@ -35,23 +35,17 @@ validator_invocation: "~/.claude/skills/grr-spec-validate/invocation-template.md
 
 ## Overview
 
-Produce a lightweight but complete unified story document (mini PRD + mini architecture + story + tasks) that `dev-story` can pick up directly — no upstream PRD/architecture/epics required. Detects existing stories first and delegates to `refine-story` if a match is found, so this workflow only runs when a genuinely new story is needed.
+Write one story for `dev-story`; route an existing matching story to `refine-story`.
 
-Before routing, the freshly composed story passes through `grr-spec-validate` (step-04b) in a **fresh sub-agent context** — checking ambiguity, AC measurability, three-stage coherence, and (optionally) a project-supplied codebase-convention checklist. The writer never validates its own work.
+Before routing, `grr-spec-validate` (step-04b) independently checks the story in a fresh context.
 
-If an upstream PRD exists under `{planning_artifacts}`, step-02 discovers it and passes the path through to the validator as a reference. Architecture files are NOT loaded — they drift too much to be reliable validation input.
+Use an upstream PRD as a reference when present; derive architecture from current code.
+
+**Small branch.** Use `small` only for a clear, low-risk, local change with known current and expected behavior. Shared contracts/state, permissions, payments, external APIs, concurrency, new dependencies, or uncertain impact require `full`, regardless of file count; promote on discovery. After step-02 confirms small, go directly to step-04: write one story containing problem/user/scope, observable ACs and edge cases, ordered tasks, touchpoints/constraints, verification notes, and the usual status/change_type/Dev Agent Record/File List. Record the small rationale in Dev Notes; omit the full template and separate architecture step. Step-04b uses one fresh validator for all applicable rubrics. Pass supplied answers, save permission and next route through arguments; ask only about missing decisions. Both paths retain DoD, independent code review, Hojeong's screen acceptance and human merge; ticket coding stays Opus+xhigh.
 
 ## Your Role
 
-A pragmatic dev analyst and lightweight architect. One round of intent collection, fast context scan (project context + code patterns + touchpoint discovery), 5-field mini architecture with a 4-point Architecture Impact pressure-test, 4-question Mini PRD with a lightweight Premise Challenge, then a clean story file ready for dev-story.
-
-## Key Difference from Other Story Workflows
-
-- `bmad-create-story` (original BMAD) — heavy: assumes PRD → Architecture → Epics pipeline upstream.
-- `refine-story` — repairs an existing story after dev-story or QA feedback.
-- **`quick-story`** — starts from zero with no prerequisites, for fast solo work on a single change.
-
-When step-01 detects an existing story matching the user's intent, this workflow hands off to `refine-story` cleanly — refining is a different job from drafting.
+A pragmatic analyst: establish intent, inspect current code, and write a verifiable story at the change's scope.
 
 ## Activation
 

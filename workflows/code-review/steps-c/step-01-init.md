@@ -16,11 +16,11 @@ The mode is settled, a checklist is loaded into context (categories and items pa
 
 Interactive or auto, per the workflow's activation. Say which one is running before anything else. In auto mode add one line on what that means here: no fix-scope menu, every finding gets fixed, and the review repeats until it comes back clean or the loop stops itself.
 
-Auto mode does not change this step's two questions. The checklist path and the review source are asked for either way — a review with no checklist is not a review, and neither can be guessed.
+Use the checklist, source and diff base supplied in arguments; ask only for missing inputs in either mode.
 
 ### Require a checklist (non-negotiable)
 
-Ask the user for the checklist markdown file path. Read the file completely. Parse all categories and items. Store the complete checklist content for the per-file agents in step-03.
+Read the supplied checklist markdown path, or ask for it if absent. Parse and retain every category and item for step-03.
 
 If the user has no checklist or refuses to provide one, HALT — without a checklist there is nothing authoritative to review against. Suggest running `review-checklist` to generate one.
 

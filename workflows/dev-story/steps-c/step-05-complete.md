@@ -134,9 +134,9 @@ Tailor explanation depth to `{user_skill_level}`. Offer to walk through anything
 
 ### Offer routing
 
-Invoked from `grr-loop`, skip this menu and return control — the loop runs code-review and qa-test itself. Otherwise halt for input:
+From `grr-loop` or `ticket-dev-loop`, return control after DoD PASS and status/summary updates; the caller owns review and screen acceptance. Otherwise ask:
 
-- `[C]` Run `code-review` now — load `{codeReviewCommand}`. Recommended, and ideally with a different model than the one that wrote the code.
+- `[C]` Run independent `code-review` — load `{codeReviewCommand}`.
 - `[U]` Run `design-pass` Mode L — check the running screen against the HTML mockup it was built from. Offer this **only** when the story touched UI **and** a mockup actually exists (look for `{handoffOutputPath}/auto-draft/*.html` or `converted/*.html`); without a mockup there's nothing to compare against, so don't show the option at all.
 - `[S]` Stop — the story is at `review` and sprint tracking is updated.
 

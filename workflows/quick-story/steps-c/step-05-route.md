@@ -9,7 +9,7 @@ designPassCommand: '~/.claude/commands/bmad-grr-design-pass.md'
 
 ## Outcome
 
-The user sees a clear summary of the completed story and chooses what's next: chain into `dev-story` immediately for implementation in this session, run `design-pass` Mode P first to check the story against an existing HTML mockup (only when one exists), or save and exit so the story can be picked up later. Both routing-now and saving-for-later are equally valid — no pressure to chain.
+Summarize the validated story and execute the supplied next route; ask only when none was supplied.
 
 ## Approach
 
@@ -24,14 +24,12 @@ Present in `{communication_language}`:
 | Complexity | `{complexity}` |
 | Status | `ready-for-dev` ✓ |
 | sprint-status | 등록 완료 ✓ |
-| Mini PRD | 4 fields ✓ |
-| Mini Architecture | 5 fields ✓ |
-| Architecture Impact | 4 points ✓ |
+| Scope | small rationale / full architecture and PRD |
 | Validation | `grr-spec-validate` ✓ (or `overridden` if step-04b's `[O]` was chosen) |
 
 ### Offer routing
 
-Halt for input:
+Use the supplied route, or ask:
 
 - `[D]` Run `dev-story` now — implement immediately in this session (recommended; context is warm).
 - `[U]` Run `design-pass` Mode P first — check this story against the HTML mockup and promote anything it doesn't cover into AC / Tasks before deciding `D` / `S`. Offer this only when a `design-handoff` mockup actually exists for this UI; without one there's nothing to compare against. After design-pass returns, re-offer `D` / `S` (the `U` option is consumed).

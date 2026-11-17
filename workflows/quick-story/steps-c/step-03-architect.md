@@ -68,7 +68,7 @@ Risks: …
 (R) Impact 결과 보고 구조를 다시 짤래요
 ```
 
-Halt for input. On `E`, accept user edits, merge, re-present. On `R`, adjust the architecture based on Impact findings, re-present. On `Y`, advance.
+If arguments already approve this scope and direction, advance. Otherwise wait: `E` edits the draft, `R` revises its structure, `Y` advances.
 
 ## Next
 

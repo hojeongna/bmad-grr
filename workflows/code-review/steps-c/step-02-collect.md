@@ -14,9 +14,7 @@ A list of changed files with their per-file diff content (added/modified lines w
 
 ### Determine the diff range
 
-- **review_source == "story"**: read the story file, extract paths from the File List, ask the user for the diff base (default suggestion `main...HEAD`).
-- **review_source == "diff"**: present quick options — `[1]` `main...HEAD`, `[2]` `HEAD~1..HEAD`, `[3]` `HEAD` (uncommitted), `[M]` custom range.
-- **review_source == "manual"**: ask for the file paths (any common separator) and the diff base.
+Use a supplied diff base/range without asking again. Otherwise ask once: story → File List plus base (default `main...HEAD`); diff → `main...HEAD`, `HEAD~1..HEAD`, `HEAD` or custom; manual → paths plus base.
 
 ### Pin the base commit
 
