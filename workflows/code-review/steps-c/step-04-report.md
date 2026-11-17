@@ -66,4 +66,4 @@ Set `fixScope` to the matching token — `F` → `ALL`, `S` → `SMALL`, `H` →
 
 ### Discipline for handling pushback during fix selection
 
-If the user pushes back on findings (says "this is wrong", "the reviewer doesn't understand X", "we don't actually need this"), follow `{receivingCodeReviewSkill}`: verify the codebase reality before agreeing to drop a finding (it might be wrong, but the burden of proof is technical evidence, not "the user said so"). Push back politely with the checklist citation if the user's reasoning doesn't hold up. If the user has clarifying context the checklist couldn't have, accept it and adjust — but never silently drop a finding without recording the reason.
+For disputed findings, follow `{receivingCodeReviewSkill}`: check codebase reality and record the technical reason for retaining or dropping the finding. HIGH disputes follow step-03's new-evidence and independent-reviewer rule.

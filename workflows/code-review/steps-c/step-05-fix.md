@@ -1,6 +1,6 @@
 ---
 name: step-05-fix
-description: 'Apply checklist-based fixes via parallel per-file agents, run available tests, auto-retry failures'
+description: 'Apply scoped checklist fixes by responsibility, run available tests, recover failures'
 nextStepFile: '~/.claude/workflows/code-review/steps-c/step-06-complete.md'
 recollectStepFile: '~/.claude/workflows/code-review/steps-c/step-02-collect.md'
 parallelAgentsSkill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
@@ -10,7 +10,7 @@ parallelAgentsSkill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
 
 ## Outcome
 
-Every finding inside the selected `fixScope` is fixed by a dedicated per-file sub-agent. After fixes, available project tests run automatically; failures trigger up to three auto-retry rounds. Nothing outside the report's findings is modified — no "while we're here" cleanups.
+Resolve selected findings with the developer; delegate only independent responsibility groups, at most five concurrently. Run available checks after relevant changes, with up to three recovery rounds. Stay within the reported defects.
 
 ## Approach
 
@@ -22,24 +22,15 @@ Apply `fixScope` from step-04:
 - `SMALL` — only SMALL-scope findings
 - `HIGH` — only HIGH-priority findings
 
-Group filtered findings by file. Briefly tell the user the fix plan (counts by priority and file count).
+Group selected findings by responsibility/contract; summarize the fix scope.
 
-### Dispatch per-file fix agents
+### Apply fixes
 
-Read `{parallelAgentsSkill}` for the dispatch pattern. One agent per file — never batch.
-
-Each agent receives:
-
-1. **File path** to fix.
-2. **All filtered findings for that file** — checklist category, item, line number, description, and how-to-fix from the report.
-3. **Fix instruction**: read the file completely; for every finding, apply the minimum change that resolves it without breaking surrounding code; do not skip, defer, or "save for later" any finding inside the assigned scope.
-4. **Scope lock**: modify only the assigned file; no improvements beyond the listed findings; no refactors.
-5. **No-deferral rule**: "too complex" and "too large" are not valid reasons to skip a fix; if a fix truly cannot be applied, return a concrete technical reason (e.g., file deleted, syntax conflict).
-6. **Output**: list of fixes applied with checklist item, change description, and lines affected.
+The existing developer applies minimal fixes. If independent groups merit delegation, read `{parallelAgentsSkill}` and give each worker its responsibility, related files, full findings and scope. Keep coupled contract changes together and serialize overlapping edits. Return applied fixes or a concrete technical blocker; size alone is not a blocker. Fix owners do not replace independent reviewers or dismiss HIGH findings under step-03's rule.
 
 ### Verify completion
 
-Aggregate results. Confirm every assigned finding was addressed. If any agent deferred without a concrete technical reason, surface that to the user — that's a real failure, not just a partial result.
+Confirm each selected finding was addressed; report unresolved items and blockers.
 
 In auto mode, record two things for the round gate: which findings were actually applied (keyed by file + checklist item, not by line number — the lines just moved), and any finding that came back with a technical blocker. Both are stop conditions there, so a fix that quietly went missing from the record reads as a fix that worked.
 

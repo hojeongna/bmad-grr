@@ -1,56 +1,28 @@
 ---
 name: step-03-review
-description: 'Parallel per-file checklist review — one sub-agent per file by default, every finding cites a specific checklist item'
+description: 'Independent checklist review grouped by responsibility and contract; confirm candidate findings against evidence'
 nextStepFile: '~/.claude/workflows/code-review/steps-c/step-04-report.md'
-askAgentCountAbove: 10
 ---
 
-# Step 3 — Parallel Review
+# Step 3 — Independent Review
 
 ## Outcome
 
-Every collected file has been reviewed against the full checklist, restricted to that file's changed/added lines — by its own sub-agent, or by an agent holding a small group of files when the user asked for fewer agents. Findings are aggregated for the report step. No file is modified during this step.
+Every changed responsibility is independently reviewed against the full checklist. Confirmed, refuted and uncertain findings are ready for the report. Reviewers do not modify files.
 
 ## Approach
 
-### Decide the agent count
+### Group the work
 
-Below `{askAgentCountAbove}` files: one agent per file, nothing to ask. That is the shape this review is built around — one agent, one file, one scope.
+Group by changed behavior, responsibility and contract, keeping producers and consumers together even across files. Small starts with one reviewer for the whole diff; full adds reviewers only for independent responsibilities. File/line counts help balance load, not decide independence. Every review/re-review has at most five concurrent agents; queue further groups.
 
-At `{askAgentCountAbove}` files or more, halt and ask:
+Use fresh reviewers who did not implement the change, without the writing conversation. Each receives the full checklist, owned responsibility/paths, relevant diffs (including deletions), and related source paths. They may read callers, consumers and surrounding code together; findings must identify a defect introduced by the diff, not unrelated unchanged code. Return checklist item, location, evidence, impact and suggested fix, or PASS for the assigned group.
 
-```
-25 files collected. How many sub-agents?
-  [Enter] 25 — one per file (default)
-  [N]     a number — the 25 files split across N agents
-```
+### Confirm candidates
 
-Say once, and only once, what a lower number costs: an agent holding four files carries what it just decided in the first one into the fourth, and findings thin out toward the end of a long list. Then take the answer. The user knows their file count and their budget; this is a question, not an argument.
+Aggregate as `candidate_findings`, deduplicate by defect, and confirm with reproduction or a static/code check first. Keep confirmed findings as `primary_findings`; retain refuted/uncertain ones with evidence and reasons. Additional agents are for unresolved risky judgments, not a mandatory second verification wave.
 
-Split by **changed-line count, not file count**. Step-02 already counted lines per file, and a split handing one agent five 400-line files while another gets five 10-line files finishes no sooner than no split at all.
-
-In auto mode, ask on round 1 and reuse that answer for every later round — a loop that stops to ask each round is not unattended.
-
-### Prepare each agent
-
-Each agent receives:
-
-1. **The full checklist** (every category, every item — not a summary).
-2. **The file path** to review — or the small group of paths it owns.
-3. **The diff content** (changed/added lines only) from step-02, per file.
-4. **A scope-locked instruction**: review only the changed/added lines; the agent may use Read for surrounding context but only the diff lines are subject to checklist evaluation; for each violation, return the checklist category, the specific item, file path and line number, what is wrong, and how to fix it; do not modify any files; do not flag unchanged code.
-5. **Output format**: a structured list of findings; if no violations exist on the changed lines, return `PASS - no checklist violations in changed lines of {file_path}`.
-
-An agent holding more than one file gets one rule on top: work the files one at a time and return findings **per file, never as a merged list**. Nothing learned in one file justifies a finding in another — the checklist is the only thing that carries across them.
-
-### Review and verify
-
-Reviewers are always sub-agents here — the session that wrote the code doesn't review it. With 3 or more agents, dispatch through the **Workflow** tool (or parallel `Agent` calls where the Workflow tool isn't available); with one or two, plain `Agent` calls are enough. Two phases:
-
-- **Review** — one `agent()` per file, or per file group when the user set a lower agent count, each reviewing only its changed/added lines per the per-agent context above. Aggregate the results as `candidate_findings` (group by file, retain checklist references, dedupe identical findings on the same location, note files that passed clean).
-- **Verify** — distribute `candidate_findings` across `agent()` calls however the script balances best (batched or grouped, not forced to one-per-finding); each confirms or refutes its assigned findings against the code (claim = the violation, evidence = the cited checklist item + the changed lines). Keep confirmed findings, drop refuted ones, surface uncertain ones. Verification only — do **not** loop to re-discover, since the diff is already the entire work-list.
-
-Store the surviving findings as `primary_findings` for step-04, and carry the refuted/uncertain list so the report can show what was checked and dropped.
+A fix owner cannot dismiss a HIGH finding alone: new evidence must be accepted by the original independent reviewer or another independent reviewer; otherwise keep it unresolved.
 
 ## Next
 

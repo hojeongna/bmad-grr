@@ -47,7 +47,7 @@ For each touchpoint, capture:
 - relevant existing patterns observed (imports, structure, conventions)
 - blast radius (what else changes if we modify this)
 
-With 3 or more touchpoints, read them through the **Workflow** tool (or parallel `Agent` calls where the Workflow tool isn't available): one `agent()` per touchpoint file, pipelining another round over any new touchpoint a file reveals, repeating until the blast-radius set stops growing (cap at 3 rounds). With fewer, read them inline.
+Read related contracts together; batch independent reads with parallel tools. Delegate only sizeable independent investigations, grouped by responsibility, at most five concurrently. File count alone does not warrant agents.
 
 ### Present a tight summary
 
