@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: 'Checklist-based code review with responsibility-based inspection and optional fix. Runs interactively by default, or with the `auto` argument fixes every finding and re-reviews until the checklist comes back clean. Use when the user says "review this code" or "run code review"'
+description: 'Independent checklist review with optional fixes. Interactive by default; auto fixes findings and re-reviews until clean or stopped.'
 
 # Critical variables from config
 config_source: "{project-root}/_bmad/bmm/config.yaml"
@@ -25,7 +25,7 @@ parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
 
 ## Overview
 
-Review changed responsibilities/contracts against the full checklist in independent contexts. Small starts with one reviewer; all rounds cap concurrent reviewers at five. Confirm candidates against code or reproduction before reporting; fixes stay with the developer or independent responsibility groups.
+Review contract groups independently: small starts at one; full uses at most three reviewers per round, four or five only for high risk per step-03. Confirm candidates by reproduction/static checks without confirmation agents; the developer fixes findings.
 
 ## Your Role
 

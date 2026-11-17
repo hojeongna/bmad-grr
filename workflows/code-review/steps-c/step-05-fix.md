@@ -10,7 +10,7 @@ parallelAgentsSkill: '~/.claude/skills/dispatching-parallel-agents/SKILL.md'
 
 ## Outcome
 
-Resolve selected findings with the developer; delegate only independent responsibility groups, at most five concurrently. Run available checks after relevant changes, with up to three recovery rounds. Stay within the reported defects.
+Resolve selected findings with the developer; delegate only independent groups within step-03's agent limit. Check relevant changes, with up to three recovery rounds. Stay within reported defects.
 
 ## Approach
 

@@ -33,10 +33,10 @@ Story implementation with an **acceptance outer loop** + a **TDD inner loop**.
 
 ### 2. `code-review` — Checklist and responsibility review
 
-Strict checklist-based code review — no subjective judgment.
+Checklist-based independent review.
 
 - **Checklist supremacy** — must provide a checklist `.md` file; halts otherwise.
-- **Contract groups:** small starts with one independent reviewer; all rounds cap concurrency at five. Findings cite checklist items and checked evidence.
+- **Contract groups:** small starts at one; full ≤3 per round, 4–5 only for high risk (permissions/payments/concurrency/external APIs). No confirmation agents.
 - **3 review sources** — story, git diff, manual file list.
 - **Priority × Scope** — every finding gets HIGH/MEDIUM/LOW × SMALL/LARGE.
 - **Fix scope choice** — `[F]` Full / `[S]` Small / `[H]` High / `[X]` Skip.

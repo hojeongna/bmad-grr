@@ -14,13 +14,13 @@ Every changed responsibility is independently reviewed against the full checklis
 
 ### Group the work
 
-Group by changed behavior, responsibility and contract, keeping producers and consumers together even across files. Small starts with one reviewer for the whole diff; full adds reviewers only for independent responsibilities. File/line counts help balance load, not decide independence. Every review/re-review has at most five concurrent agents; queue further groups.
+Keep a contract's producers/consumers with one reviewer. Small starts with one for the whole diff; full uses at most three per round, sharing groups as needed. Permissions, payments, concurrency, external APIs or comparable risk may justify four or five; otherwise stay within three. File counts only balance load.
 
-Use fresh reviewers who did not implement the change, without the writing conversation. Each receives the full checklist, owned responsibility/paths, relevant diffs (including deletions), and related source paths. They may read callers, consumers and surrounding code together; findings must identify a defect introduced by the diff, not unrelated unchanged code. Return checklist item, location, evidence, impact and suggested fix, or PASS for the assigned group.
+Use fresh reviewers who did not implement the change, without the writing conversation. Give each the full checklist, assigned paths/diffs including deletions, and related source. Read callers/consumers together; report only defects introduced by the diff. Return checklist item, location, evidence, impact and fix, or PASS.
 
 ### Confirm candidates
 
-Deduplicate `candidate_findings`; confirm by reproduction or static/code check first. Keep confirmed items as `primary_findings`, and refuted/uncertain items with reasons and evidence.
+Deduplicate `candidate_findings`; confirm by reproduction or static/code check first. Keep confirmed items as `primary_findings`, refuted/uncertain items with reasons and evidence. Do not spawn confirmation agents; assigned reviewers handle independent acceptance below.
 
 Refuting any HIGH candidate requires a new reproduction command/result, static check, or independent confirmation. The original or another independent reviewer must accept the evidence; the fix owner alone cannot dismiss it. Otherwise keep it unresolved.
 
