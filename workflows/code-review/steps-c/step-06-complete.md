@@ -9,7 +9,11 @@ handoffOutputPath: '{output_folder}/design-handoff'
 
 ## Final behavior
 
-If review fixes affect screens or behavior, verify the affected user path against the final diff using the project's existing test/browser/capture route. Carry the checked behavior, observed result and unverified scope to the PR body, one line each. Validation with server writes blocked does not prove saving. If the accepted screen/behavior changed, return to the ticket caller for Hojeong's acceptance before push/PR; keep this requirement in auto mode too. Reuse valid results for that final state under the verification skill; do not add a harness or evidence file.
+For screen/behavior fixes, verify the affected path against the final diff via the existing test/browser/capture route. Carry checked behavior, result and unverified scope to the PR, one line each.
+
+Blocked server writes do not prove saving. Changed acceptance requires returning to the ticket caller for Hojeong's reacceptance before push/PR, including auto mode.
+
+Reuse valid final-state results under the verification skill. Add no harness or evidence file.
 
 ## Story status
 
