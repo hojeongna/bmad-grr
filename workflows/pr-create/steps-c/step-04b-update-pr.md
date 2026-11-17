@@ -9,7 +9,7 @@ autoNextStepFile: './step-05a-auto-review-merge.md'
 
 ## Outcome
 
-The current PR (status `OPEN`) on its existing branch receives the additional changes the user made via another workflow (typically `refine-story`, `dev-story`, manual edits, etc.). Local CI/test commands pass, the new commit is pushed to the same remote branch (so the existing PR picks up the update on GitHub automatically), and the workflow returns to merge tracking. **No new PR is created** — this is a follow-up push, not a fresh PR.
+Validate and push additional changes to the existing OPEN PR. After persistence, ticket-dev-loop returns its link and ends under human merge; other calls return to merge tracking. No new PR is created.
 
 ## When this step runs
 
@@ -98,4 +98,4 @@ Update the state file: append a `pushed_update` event entry to the PR's record (
 
 ## Next
 
-Load and follow `{nextStepFile}` so merge tracking continues with the updated PR — or `{autoNextStepFile}` in auto mode, where the push just made starts a fresh review round rather than a wait for somebody else to merge.
+Ticket-dev-loop → return OPEN PR links and end. Otherwise load `{nextStepFile}`, or `{autoNextStepFile}` in auto mode.

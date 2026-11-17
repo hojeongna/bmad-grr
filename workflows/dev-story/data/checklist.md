@@ -43,8 +43,6 @@ Which set applies depends on `change_type` in the story file's frontmatter. Read
 - [ ] Change Log entry added
 - [ ] Only permitted story sections were modified
 
-## Final
+## After PASS (records, not DoD prerequisites)
 
-- [ ] Story Status set to `review`
-- [ ] Sprint status updated to `review` (if tracking enabled)
-- [ ] Summary delivered to user
+Set story/sprint status to `review`, then deliver the summary.

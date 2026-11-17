@@ -18,7 +18,7 @@ nextStepOptions:
 
 ## Outcome
 
-A PR session is set up (or resumed): the mode is settled, the worktree map is loaded, per-repo change volume is computed, and the state file is created with the planned-but-not-yet-pushed PR queue. If a previous session is in progress, it's restored and the workflow routes directly to the right next step based on the recorded `lastStep` and per-PR statuses.
+Initialize or resume the PR plan, worktree map and queue. Apply the workflow's human-merge boundary before saved routing: ticket calls with clean OPEN PRs return links and stop; local changes still route through step-04b.
 
 ## Approach
 
@@ -28,7 +28,7 @@ Read `$ARGUMENTS`. `auto` selects auto mode; anything else, including no argumen
 
 On resume, the mode recorded in the state file wins — a session that started unattended does not silently become interactive halfway through, and vice versa. A state file with no `mode` field predates the split: treat it as interactive, which is what it was actually running.
 
-Say which mode is running before doing anything else. In auto mode add one line on what that means here: no confirmation stops, and this workflow will merge the PRs itself once they are clean.
+Say which mode is running before doing anything else. In auto mode explain unattended creation; automatic merge applies only outside ticket-dev-loop.
 
 ### Resume detection
 

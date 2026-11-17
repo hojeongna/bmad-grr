@@ -11,7 +11,7 @@ requestingCodeReview: '~/.claude/skills/requesting-code-review/SKILL.md'
 
 ## Outcome
 
-The current PR's local tests pass (after any number of amend/new-commit recovery rounds), and the PR exists on GitHub — either created automatically via `gh pr create` or via a copy-paste command the user runs themselves. The state file moves the matching PR to status `OPEN` and records the PR URL when known.
+Tests pass and the PR exists on GitHub. Record status `OPEN` and its URL. A ticket-dev-loop call returns links after persistence and ends; it does not enter either merge path.
 
 ## Approach
 
@@ -66,8 +66,8 @@ Update the matching PR's status to `OPEN` in the state file and record `prUrl` i
 
 ### Menu
 
-Offer `[C]` Continue. On `C`, advance. Auto mode skips the menu.
+Ticket-dev-loop returns links and ends. Otherwise offer `[C]` Continue; auto skips the menu.
 
 ## Next
 
-Load and follow `{nextStepFile}` — or `{autoNextStepFile}` in auto mode.
+Ticket-dev-loop → return OPEN PR links and end. Otherwise load `{nextStepFile}`, or `{autoNextStepFile}` in auto mode.

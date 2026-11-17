@@ -17,6 +17,10 @@ The Definition of Done checklist passes — verified by a **fresh sub-agent** th
 
 ## Approach
 
+### Branch hygiene
+
+Before gathering evidence, use `{finishingBranchSkill}`'s cleanup checks: identify the base, inspect uncommitted changes and remove temporary/debug files or test skips introduced by this work. This step does not merge or create PRs; ticket/grr-loop callers own the next route.
+
 ### Definition of Done — fresh-context verification
 
 The DoD checklist is the final gate. To break the writer-judges-own-work loop, the main session **gathers evidence**, then **dispatches a sub-agent** to judge that evidence against the checklist. The main session does the executing; the sub-agent does the judging. Neither role does both.
@@ -64,6 +68,7 @@ Constraints:
   absence is not a FAIL.
 - You do NOT have access to the main conversation that produced this work.
 - You do NOT modify any file.
+- Judge only the pre-PASS checklist items; exclude "After PASS" records.
 - For each DoD item, your verdict is one of:
     PASS  — evidence in the packet (or in a file you read) demonstrates
             compliance, citation provided.
@@ -96,15 +101,9 @@ Parse the returned JSON.
 
 #### Step 5.3 — Branch on the verdict
 
-- **PASS** — proceed to "Branch hygiene".
+- **PASS** — proceed to "Status update"; post-PASS records are not DoD prerequisites.
 - **FAIL** — route back. For each FAIL item, identify which earlier step owns it (step-03 for missing/broken tests, step-04 for regressions / validation gaps, step-01 for AC issues). Re-enter that step with the blockers as additional context. After re-completion, restart step 5.1.
 - **INSUFFICIENT_EVIDENCE** — the main session runs the missing checks the sub-agent specified, appends to the evidence packet, and re-dispatches Step 5.2. Idempotent — fresh sub-agent each dispatch, no state shared between calls.
-
-### Branch hygiene
-
-Before declaring the story ready for review, clean up the working branch using `{finishingBranchSkill}`'s cleanup checks: verify all tests pass, identify the base branch, surface uncommitted changes, remove temporary files / debug logs / `.skip` test markers / dead helpers introduced during development.
-
-The story still has code-review and QA ahead of it, so don't merge or open a PR here. Run standalone, offer that skill's finishing options (merge locally, create PR, keep as-is, discard) only if the user asks, and mention `pr-create` as the usual route once review is done. Invoked from `grr-loop`, skip the finishing options entirely — PRs belong to the loop's step-09.
 
 ### Status update
 
@@ -119,7 +118,7 @@ Add a Completion Notes section summarizing:
 - Test counts: unit, integration, and acceptance — scenarios on the scenario track, named tests on the UI track
 - Files touched (point at the File List)
 - Any surprises or carryover items the next agent should know about
-- **DoD verifier verdict** — overall `PASS` (or the per-item JSON if any was overridden by the user)
+- **DoD verifier verdict** — `PASS` with supporting citations.
 
 ### Communicate to user
 

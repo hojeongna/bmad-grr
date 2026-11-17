@@ -23,7 +23,7 @@ parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
 
 ## Overview
 
-Drive the full PR lifecycle for multi-repo workspaces created by `set-worktree`: read the worktree map, analyze change volume per repo, split large changes by responsibility, commit and push, run local tests with amend/new-commit recovery, create the PRs (auto via `gh pr create` or manual command), track merge status, and rebase sequential PRs between merges. The workflow is continuable — state is saved between sessions so it can span multi-day merge cycles.
+Read the worktree map, plan responsibility-based PRs, commit/push/test, create PRs and track merges; saved state supports resume. For `ticket-dev-loop`, human merge overrides all modes and saved routing: return OPEN PR links and stop before merge tracking or automatic merge.
 
 ## Your Role
 

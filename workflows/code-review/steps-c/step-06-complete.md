@@ -9,7 +9,7 @@ handoffOutputPath: '{output_folder}/design-handoff'
 
 ## Outcome
 
-If the review was tied to a story, the story's `Status` is moved from `review` to `done`, sprint tracking is updated to match, and the code-review changes are reflected in the story document so the story stays consistent with the actual code state. The user sees a clear summary and suggested next actions.
+Reflect review changes in the story and summarize the outcome. Mark `done` only after a clean independent review and passing required checks; skipped/unresolved findings, unverified checks or a stopped loop leave it at `review`. This is story status, not Linear Done or merge approval.
 
 ## Approach
 
@@ -21,7 +21,7 @@ If the review was diff- or manual-based, ask the user once: is there a related s
 
 Auto mode does not ask — it skips straight past the status update and says so in the summary. A story path it was never given is not one it should go looking for while running unattended.
 
-**A stopped auto loop leaves the status alone even when the story path is known.** Stopping means findings survived; `done` would be a claim the last review contradicts.
+Apply the status condition above in both modes, including partial fixes and Skip.
 
 ### Reflect review changes into the story
 
