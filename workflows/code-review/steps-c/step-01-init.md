@@ -8,13 +8,13 @@ nextStepFile: '~/.claude/workflows/code-review/steps-c/step-02-collect.md'
 
 ## Outcome
 
-The mode is settled, a checklist is loaded into context (categories and items parsed and ready for downstream agents), and the review source is selected — story file, git diff range, or a manual file list. The workflow halts here if no checklist is provided.
+Set mode, load the checklist and choose story/diff/manual source. Halt without a checklist.
 
 ## Approach
 
 ### Mode
 
-Interactive or auto, per the workflow's activation. Say which one is running before anything else. In auto mode add one line on what that means here: no fix-scope menu, every finding gets fixed, and the review repeats until it comes back clean or the loop stops itself.
+Announce interactive/auto per the workflow. Auto fixes all findings and repeats until clean or stopped, without a scope menu.
 
 Use the checklist, source and diff base supplied in arguments; ask only for missing inputs in either mode.
 
@@ -22,7 +22,14 @@ Use the checklist, source and diff base supplied in arguments; ask only for miss
 
 Read the supplied checklist markdown path, or ask for it if absent. Parse and retain every category and item for step-03.
 
-If the user has no checklist or refuses to provide one, HALT — without a checklist there is nothing authoritative to review against. Suggest running `review-checklist` to generate one.
+In memory, replace three generic responsibility/DRY/value-edge items with:
+- 같은 정책이 두 곳에 복사되지 않았나
+- 없음·빈 값·0의 뜻이 바뀌지 않았나
+- 저장 순서·여러 조회가 이름 뒤에 숨지 않았나
+
+Replace only matching items; do not append or write a checklist. Preserve concrete contracts, security and authorization rules.
+
+No checklist → halt; suggest `review-checklist`.
 
 ### Select review source
 

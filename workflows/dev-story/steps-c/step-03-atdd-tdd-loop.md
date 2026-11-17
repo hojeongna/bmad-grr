@@ -12,11 +12,14 @@ verificationBeforeCompletion: '~/.claude/skills/verification-before-completion/S
 
 ## Outcome
 
-Every acceptance check from step-02 is green — Gherkin scenarios under the BDD runner on the scenario track, the named tests on the UI track — every supporting unit was implemented through RED-GREEN-REFACTOR per the TDD skill's Iron Law, and the story file's Tasks/Subtasks reflect what was actually built.
+Step-02's acceptance checks pass: BDD scenarios or named UI-track tests, with supporting units built through RED-GREEN-REFACTOR. Tasks/Subtasks reflect the implementation.
+
+When writing or changing service/domain functions, read `~/.claude/skills/test-driven-development/code-structure-notes.md` once here.
+Before implementation, fill any missing Placement / Policy / Meaning answers in the story from current code.
 
 ## Loop Structure — scenario track
 
-The outer loop is **acceptance** — driven by Gherkin scenarios. The inner loop is **unit TDD** — governed by the loaded TDD skill. Together they form ATDD: outer scenarios stay red until all required units exist; once outer turns green, the AC is genuinely done.
+Gherkin drives acceptance; the TDD skill governs each unit. The scenario stays red until the required units exist.
 
 For each scenario (independent groups in parallel, dependent ones sequential):
 

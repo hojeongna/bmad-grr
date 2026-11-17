@@ -1,6 +1,6 @@
 ---
 name: quick-story
-description: 'Quickly compose a lightweight unified story doc (mini PRD + mini architecture + story + tasks) before dev-story execution. Detects existing stories and delegates to refine-story; otherwise drafts fresh from project context, code patterns, and TDD-aware testing standards.'
+description: 'Compose a story from intent and current code for dev-story; route matching existing stories to refine-story.'
 
 # Critical variables from config
 config_source: "{project-root}/_bmad/bmm/config.yaml"
@@ -39,11 +39,15 @@ Write one story for `dev-story`; route an existing matching story to `refine-sto
 
 Before routing, `grr-spec-validate` (step-04b) independently checks the story in a fresh context.
 
-Use an upstream PRD as a reference when present; derive architecture from current code.
+Use an upstream PRD if present; derive architecture from code.
 
 **Small branch.** Use `small` for clear, low-risk, local changes with known current and expected behavior. Shared contracts/state, permissions, payments, external APIs, concurrency, new dependencies or uncertain impact require `full` regardless of file count; promote on discovery.
 
-After step-02 confirms small, go to step-04: write one story with problem/user/scope, observable ACs/edge cases, ordered tasks, touchpoints/constraints, verification notes, status/change_type/Dev Agent Record/File List. Record the small rationale in Dev Notes; skip the full template and architecture step.
+After step-02 confirms small, go to step-04 with problem/user/scope, observable ACs/edge cases, ordered tasks, touchpoints/constraints, checks, status/change_type/Dev Agent Record/File List. Skip the full template and architecture step; in Dev Notes keep the small rationale and answer from code, one line each:
+
+- Placement: existing function or named small stages, and why?
+- Policy: existing rule? Name its owner and location.
+- Meaning: which empty values, order and failures must stay?
 
 Step-04b uses one fresh validator for all applicable rubrics. Pass supplied answers, save permission and next route; ask only about missing decisions. Both paths retain DoD, independent review, Hojeong's screen acceptance and human merge; ticket coding stays Opus+xhigh.
 
