@@ -20,9 +20,9 @@ Use fresh reviewers who did not implement the change, without the writing conver
 
 ### Confirm candidates
 
-Aggregate as `candidate_findings`, deduplicate by defect, and confirm with reproduction or a static/code check first. Keep confirmed findings as `primary_findings`; retain refuted/uncertain ones with evidence and reasons. Additional agents are for unresolved risky judgments, not a mandatory second verification wave.
+Deduplicate `candidate_findings`; confirm by reproduction or static/code check first. Keep confirmed items as `primary_findings`, and refuted/uncertain items with reasons and evidence.
 
-A fix owner cannot dismiss a HIGH finding alone: new evidence must be accepted by the original independent reviewer or another independent reviewer; otherwise keep it unresolved.
+Refuting any HIGH candidate requires a new reproduction command/result, static check, or independent confirmation. The original or another independent reviewer must accept the evidence; the fix owner alone cannot dismiss it. Otherwise keep it unresolved.
 
 ## Next
 

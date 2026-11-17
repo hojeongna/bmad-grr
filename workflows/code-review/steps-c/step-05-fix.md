@@ -26,7 +26,7 @@ Group selected findings by responsibility/contract; summarize the fix scope.
 
 ### Apply fixes
 
-The existing developer applies minimal fixes. If independent groups merit delegation, read `{parallelAgentsSkill}` and give each worker its responsibility, related files, full findings and scope. Keep coupled contract changes together and serialize overlapping edits. Return applied fixes or a concrete technical blocker; size alone is not a blocker. Fix owners do not replace independent reviewers or dismiss HIGH findings under step-03's rule.
+The developer applies minimal fixes. Delegate independent groups via `{parallelAgentsSkill}` with responsibility, files, findings and scope; keep coupled contracts together and serialize overlapping edits. Return fixes or a technical blocker, not size alone. Step-03's new-check and independent-acceptance rule also covers refuting HIGH candidates; fix owners cannot dismiss them alone.
 
 ### Verify completion
 
