@@ -25,7 +25,7 @@ Read `{stateFile}`. Confirm `{planning_artifacts}/prd.md` and `{planning_artifac
 
 Load and follow `{epicsSkill}` in full, then wait for it to return control before continuing this step. It reads `prd.md` and `architecture.md` itself — grr-loop does not pass artifacts by hand or restate its internal steps here.
 
-Note: this native workflow's own `grr-spec-validate` customization (installed via `bmad-grr-customize`, presence checked in step-01) already dispatches one validator sub-agent **per (story × rubric) pair** as part of its `on_complete`. That per-story gate is not a substitute for the whole-document check below — it never evaluates `epics.md` itself for cross-epic ambiguity or structural coherence, only the individual story files it produces.
+The native workflow's customization validates each story with one fresh validator by default. That does not replace the whole-document check of `epics.md` for cross-epic ambiguity and coherence below.
 
 ### Verify exit condition
 
@@ -33,13 +33,13 @@ Check the filesystem directly: does `{planning_artifacts}/epics.md` exist? Do no
 
 ### Explicit whole-document grr-spec-validate dispatch
 
-Dispatch three fresh sub-agents per `{specValidateSkill}` — one per rubric, all in a single message so they run concurrently. Do not inline the rubrics here; reference the skill and its documented dispatch payload (see that skill's own `invocation-template.md`, Step 2). Each agent gets:
+Use `{specValidateSkill}` and its invocation template: one fresh read-only validator for all criteria, a second only for contradicted code claims, scope expansion or increased risk. Pass:
 
 - `artifact_path`: `{planning_artifacts}/epics.md`
-- `rubrics`: exactly one of `ambiguity` / `ac-measurability` / `three-stage`
+- `rubrics`: `ambiguity`, `ac-measurability`, `three-stage`
 - `reference_paths`: `{planning_artifacts}/prd.md`, `{planning_artifacts}/architecture.md`
 
-Merge the three returned blocks — worst verdict wins, `revision_pointers` union; a rubric whose agent returns nothing parseable is a `REVISE` for that rubric, not a pass. Present the verdict and, if `REVISE`, every `revision_pointer` to the user verbatim.
+Require every criterion's score/verdict row; return missing rows for completion, keeping REVISE. Present the result table and revision pointers. After edits, revalidate affected/new criteria only; unclear impact requires all criteria.
 
 ### Handle REVISE
 

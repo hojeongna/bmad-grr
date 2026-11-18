@@ -32,7 +32,7 @@ If `$ARGUMENTS` already contains a clear intent description, use it directly and
 - Optional: module/file paths or feature areas.
 - Optional: an existing story key or epic number, if known.
 
-Do not run a multi-step interview here — one round.
+Carry supplied scope, Mini PRD answers, checklist path (or `skip`), save permission and next route forward. Ask only for missing decisions that change the work; do not re-ask an answered question.
 
 ### Parse intent into structured fields
 
@@ -43,7 +43,7 @@ From the response (or `$ARGUMENTS`), extract:
 - `existing_story_ref` — explicit story key or path, if mentioned.
 - `change_type` — infer one of `feature | fix | refactor | chore | ui | devex` from wording and touchpoints. Be precise: a UI-touching feature is `ui`, not `feature`. If genuinely ambiguous, ask once.
 
-The `change_type` is consumed in step-03 to decide whether the systematic-debugging superpower is loaded (when `change_type == 'fix'`), and it is written into the story's frontmatter in step-04 because `dev-story` reads it to pick its acceptance track (`ui` skips Gherkin scenarios and the BDD runner). Getting `ui` right therefore matters beyond this workflow.
+Write `change_type` into the story: `dev-story` uses `ui` for project tests/inspection, other values for BDD. Full-path fixes load systematic-debugging in step-03; small fixes still need a confirmed cause.
 
 ### Detect existing stories
 

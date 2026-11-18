@@ -27,7 +27,10 @@ complexity: {{complexity}}
 **Touchpoints:**
 {{arch_touchpoints_list}}
 
-**Patterns:** {{arch_patterns}}
+**Structure:**
+- Placement: existing function or named small stages, and why? {{arch_placement}}
+- Policy: existing rule? Name its owner and location. {{arch_policy}}
+- Meaning: which empty values, order and failures must stay? {{arch_meaning}}
 
 **Constraints:** {{arch_constraints}}
 
@@ -44,7 +47,7 @@ complexity: {{complexity}}
 
 {{conditional_review_bullets}}
 
-> Included only when `change_type` is `fix` (Fix-Specific Review) — `ui` / `devex` notes stay inline in step-03 commentary. Omitted entirely otherwise.
+> Only for `fix`; `ui` / `devex` notes stay in step-03.
 
 ## Story
 
@@ -71,9 +74,9 @@ complexity: {{complexity}}
 **Testing Standards:**
 - Unit: {{testing_unit}}
 - Integration: {{testing_integration}}
-- TDD: dev-story 실행 시 `test-driven-development` 스킬 자동 로드 (RED-GREEN-REFACTOR + anti-patterns)
+- TDD: dev-story loads RED-GREEN-REFACTOR + anti-patterns.
 
-**디버깅 시:** `/bmad-grr-bug-hunt` 사용 — superpowers systematic-debugging 통합 파이프라인.
+**디버깅:** `/bmad-grr-bug-hunt`.
 
 ## Dev Agent Record
 

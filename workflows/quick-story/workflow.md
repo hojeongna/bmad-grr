@@ -1,6 +1,6 @@
 ---
 name: quick-story
-description: 'Quickly compose a lightweight unified story doc (mini PRD + mini architecture + story + tasks) before dev-story execution. Detects existing stories and delegates to refine-story; otherwise drafts fresh from project context, code patterns, and TDD-aware testing standards.'
+description: 'Compose a story from intent and current code for dev-story; route matching existing stories to refine-story.'
 
 # Critical variables from config
 config_source: "{project-root}/_bmad/bmm/config.yaml"
@@ -35,23 +35,25 @@ validator_invocation: "~/.claude/skills/grr-spec-validate/invocation-template.md
 
 ## Overview
 
-Produce a lightweight but complete unified story document (mini PRD + mini architecture + story + tasks) that `dev-story` can pick up directly — no upstream PRD/architecture/epics required. Detects existing stories first and delegates to `refine-story` if a match is found, so this workflow only runs when a genuinely new story is needed.
+Write one story for `dev-story`; route an existing matching story to `refine-story`.
 
-Before routing, the freshly composed story passes through `grr-spec-validate` (step-04b) in a **fresh sub-agent context** — checking ambiguity, AC measurability, three-stage coherence, and (optionally) a project-supplied codebase-convention checklist. The writer never validates its own work.
+Before routing, `grr-spec-validate` (step-04b) independently checks the story in a fresh context.
 
-If an upstream PRD exists under `{planning_artifacts}`, step-02 discovers it and passes the path through to the validator as a reference. Architecture files are NOT loaded — they drift too much to be reliable validation input.
+Use an upstream PRD if present; derive architecture from code.
+
+**Small branch.** Use `small` for clear, low-risk, local changes with known current and expected behavior. Shared contracts/state, permissions, payments, external APIs, concurrency, new dependencies or uncertain impact require `full` regardless of file count; promote on discovery.
+
+After step-02 confirms small, go to step-04 with problem/user/scope, observable ACs/edge cases, ordered tasks, touchpoints/constraints, checks, status/change_type/Dev Agent Record/File List. Skip the full template and architecture step; in Dev Notes keep the small rationale and answer from code, one line each:
+
+- Placement: existing function or named small stages, and why?
+- Policy: existing rule? Name its owner and location.
+- Meaning: which empty values, order and failures must stay?
+
+Step-04b uses one fresh validator for all applicable rubrics. Pass supplied answers, save permission and next route; ask only about missing decisions. Both paths retain DoD, independent review, Hojeong's screen acceptance and human merge; ticket coding stays Opus+xhigh.
 
 ## Your Role
 
-A pragmatic dev analyst and lightweight architect. One round of intent collection, fast context scan (project context + code patterns + touchpoint discovery), 5-field mini architecture with a 4-point Architecture Impact pressure-test, 4-question Mini PRD with a lightweight Premise Challenge, then a clean story file ready for dev-story.
-
-## Key Difference from Other Story Workflows
-
-- `bmad-create-story` (original BMAD) — heavy: assumes PRD → Architecture → Epics pipeline upstream.
-- `refine-story` — repairs an existing story after dev-story or QA feedback.
-- **`quick-story`** — starts from zero with no prerequisites, for fast solo work on a single change.
-
-When step-01 detects an existing story matching the user's intent, this workflow hands off to `refine-story` cleanly — refining is a different job from drafting.
+A pragmatic analyst: establish intent, inspect current code, and write a verifiable story at the change's scope.
 
 ## Activation
 

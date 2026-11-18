@@ -8,7 +8,7 @@ nextStepFile: './step-03-architect.md'
 
 ## Outcome
 
-Enough context exists to draft a 5-field mini architecture in step-03: project conventions are loaded, touchpoint files are identified with their blast radius, and observed patterns from those files are captured. No architecture drafting happens here.
+Identify conventions, touchpoints and impact from current code; confirm small eligibility or use full.
 
 ## Approach
 
@@ -47,7 +47,7 @@ For each touchpoint, capture:
 - relevant existing patterns observed (imports, structure, conventions)
 - blast radius (what else changes if we modify this)
 
-With 3 or more touchpoints, read them through the **Workflow** tool (or parallel `Agent` calls where the Workflow tool isn't available): one `agent()` per touchpoint file, pipelining another round over any new touchpoint a file reveals, repeating until the blast-radius set stops growing (cap at 3 rounds). With fewer, read them inline.
+Read related contracts together; batch independent reads with parallel tools. Delegate only sizeable independent investigations, grouped by responsibility, at most five concurrently. File count alone does not warrant agents.
 
 ### Present a tight summary
 
@@ -57,8 +57,8 @@ Tell the user, in `{communication_language}`:
 - Touchpoint candidates (path → purpose → blast radius)
 - Observed patterns (1–3 bullets of the most relevant conventions)
 
-Brief — this is reconnaissance for step-03, not a deliverable.
+Keep the summary in context; it needs no separate document.
 
 ## Next
 
-Load and follow `{nextStepFile}`.
+Small → step-04-compose.md under the workflow's small branch; otherwise load `{nextStepFile}`.

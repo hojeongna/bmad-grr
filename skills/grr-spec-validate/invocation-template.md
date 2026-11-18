@@ -3,10 +3,10 @@
 This is the prompt the **main session** uses when dispatching
 grr-spec-validate to a sub-agent. The main session is responsible for:
 
-1. Gathering inputs (especially asking the user for `checklist_path`).
+1. Resolving inputs from arguments, asking only for missing decisions.
 2. Deciding which rubrics apply to this artifact.
-3. Calling `Agent` once per rubric, all in one message.
-4. Merging the returned JSON blocks and deciding the next step.
+3. Dispatching one fresh validator per artifact for small/full.
+4. Checking the complete result table and deciding the next step.
 
 The sub-agent NEVER inherits the main session's chat history.
 
@@ -32,24 +32,13 @@ When validating a **story**, the main session also looks for a PRD file
 **Architecture files are intentionally NOT included** — they drift too
 much during development to be reliable validation input.
 
-**Brownfield mode.** If the spec is brownfield (extends existing code),
-the main session adds `brownfield-grounding` to the rubric list and passes
-`project_root` (and optionally `brownfield_areas` to narrow scope). That
-rubric makes the validator read the real source to confirm the spec's
-current-state claims are true — it catches "spec describes the codebase as
-imagined, not as it is." Omit it for greenfield specs (nothing to ground
-against).
+For existing-code specs, add `brownfield-grounding` and `project_root`; optional `brownfield_areas` narrows source reads. Check current-state claims against actual code. Omit for greenfield.
 
 ---
 
-## Step 2 — Dispatch: one sub-agent per rubric
+## Step 2 — Dispatch
 
-Settle the rubric set, then dispatch **all of it at once** — one `Agent`
-call per rubric, in a single message so they run concurrently.
-Never fold several rubrics into one call: they share no state, score
-against independent thresholds, and a sub-agent carrying four rubrics
-skims the later ones and reports a clean verdict for a rubric it never
-really ran.
+Small/full use one fresh `Agent` call per artifact for all applicable rubrics. Add a second only for contradicted code claims, scope expansion or increased risk; assign affected criteria. Pass no drafting conversation.
 
 For a story or PRD the set is the four artifact-only rubrics —
 `ambiguity`, `ac-measurability`, `three-stage`, `checklist` — minus
@@ -62,29 +51,27 @@ The dispatch payload for one sub-agent:
 | Key | Required | Notes |
 |---|---|---|
 | `artifact_path` | yes | Absolute path to the spec / story file under evaluation |
-| `rubrics` | yes | **Exactly one** of {`ambiguity`, `ac-measurability`, `three-stage`, `checklist`, `brownfield-grounding`} — one rubric per sub-agent. |
-| `checklist_path` | conditional | Required if `rubrics` includes `checklist`. Main session **must ask the user** for this path — do not infer. |
+| `rubrics` | yes | All applicable criteria from {`ambiguity`, `ac-measurability`, `three-stage`, `checklist`, `brownfield-grounding`}. |
+| `checklist_path` | conditional | Required if `rubrics` includes `checklist`. Use a supplied path; ask only when absent. |
 | `project_root` | conditional | Required if `rubrics` includes `brownfield-grounding` — the directory the validator reads source from. |
 | `brownfield_areas` | optional | Glob/Grep seeds for `brownfield-grounding` (file paths, folders, feature names the spec targets). Narrows the verification scope. |
 | `reference_paths` | optional | Additional context files (e.g. PRD path when validating a story, or a prior code-analysis artifact — used as a hint, never as ground truth) |
 
-Use this prompt verbatim for each sub-agent, substituting the
-placeholders:
+Use this prompt with the assigned rubric names:
 
 ```text
-Load and follow the grr-spec-validate skill — rubric: <RUBRIC_NAME>.
+Load and follow the grr-spec-validate skill — rubric: <ASSIGNED_RUBRICS>.
 
 Inputs:
 - artifact_path: <ABSOLUTE_PATH_TO_ARTIFACT>
-- rubrics: <RUBRIC_NAME>   # exactly one of: ambiguity, ac-measurability, three-stage, checklist, brownfield-grounding
-- checklist_path: <ABSOLUTE_PATH — only when RUBRIC_NAME is checklist>
-- project_root: <ABSOLUTE_PROJECT_ROOT — only when RUBRIC_NAME is brownfield-grounding>
+- rubrics: <ASSIGNED_RUBRICS>   # assigned set
+- checklist_path: <ABSOLUTE_PATH — when checklist is assigned>
+- project_root: <ABSOLUTE_PROJECT_ROOT — when brownfield-grounding is assigned>
 - brownfield_areas: <comma-separated paths/folders/feature names — optional scope hint for brownfield-grounding>
 - reference_paths: <comma-separated absolute paths or omit>
 
 Constraints:
-- Run ONLY the rubric named above, and load only that rubric file.
-  Sibling sub-agents hold the others.
+- Apply each assigned rubric and load its file; omit unassigned rubrics.
 - For the artifact-only rubrics you see ONLY the artifact, your rubric
   file, the checklist (if provided), and reference files (if provided).
 - For the brownfield-grounding rubric ONLY, you may additionally
@@ -98,36 +85,19 @@ Constraints:
   return verdict REVISE with a revision_pointer naming the issue — do
   not return PROCEED for a rubric you could not run.
 
-Return: a single fenced JSON block carrying `verdict`, `artifact`, this
-rubric's own fields per the SKILL.md schema, and `revision_pointers`.
-Derive `verdict` from this rubric alone. No preamble, no prose.
+Return one fenced JSON block: `verdict`, `artifact`, complete `rubric_results` table, each assigned rubric's detailed fields, and `revision_pointers` per SKILL.md.
+Any failed or missing rubric yields REVISE. No preamble, no prose.
 ```
 
-### Merge the results
+### Check results
 
-When every sub-agent has returned:
-
-- `verdict` = worst across sub-agents (any `REVISE` → overall `REVISE`)
-- Concatenate the per-rubric fields into one block matching the SKILL.md
-  schema
-- Union `revision_pointers`
-
-A sub-agent that returns nothing parseable counts as `REVISE` for its
-rubric, never as a silent pass — name the rubric that failed to report
-when presenting the verdict.
+Require a score and verdict row for every assigned criterion, matching detailed fields. Return incomplete tables to the same validator; missing/unparseable results remain REVISE. Render all rows as `rubric | score | verdict` in the existing response. A second validator's failures cannot be overwritten by a pass; combine pointers and resolve disputes before PROCEED.
 
 ---
 
 ## Step 3 — Batch dispatch (N artifacts × M rubrics)
 
-Use when validating an epic of N stories. The two axes cross: one
-sub-agent per (artifact × rubric) pair — N stories against four rubrics
-is 4N sub-agents, not N.
-
-Past roughly a dozen pairs, dispatch through the **Workflow** tool rather
-than by hand: write a script with one `agent()` per pair (never batch
-pairs into one agent), using the Step-2 prompt as each agent's prompt.
-The tool caps concurrency and accounts for every pair.
+For N artifacts, use one validator per artifact, a second only under Step 2's conditions. Limit concurrency to five; no dispatch script.
 
 Merge per artifact first (worst verdict across that artifact's rubrics),
 then present a per-story summary sorted by verdict (REVISE first).
@@ -154,9 +124,7 @@ Show the `revision_pointers` to the user verbatim. Offer:
     (for cases where the user disagrees with the validator's assessment)
 ```
 
-After the user picks `R` or `E` and the artifact is updated, the main
-session **re-dispatches the full rubric set** (every dispatch is a fresh
-sub-agent — idempotent and side-effect-free).
+After R/E edits, revalidate only affected/newly applicable criteria in a fresh context. Retain unaffected scores in the existing result; require complete coverage before PROCEED. If impact is unclear, revalidate all criteria. Use Step 2's policy for a second validator.
 
 For `O`, log the override decision in the artifact's metadata or
 sprint-status for traceability, then proceed.

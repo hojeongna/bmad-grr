@@ -1,9 +1,6 @@
 # grr customization for bmad-create-epics-and-stories
 # Source: bmad-grr (https://github.com/hojeongna/bmad-grr)
-# Effect: grr-spec-validate dispatched IN PARALLEL — one sub-agent per
-#         (story × rubric) pair — after the epics-and-stories doc is
-#         produced. Every rubric is scored by its own agent; verdicts merge
-#         per story, then aggregate to gate downstream consumption.
+# Effect: one fresh validator per story scores all criteria; aggregate verdicts.
 #
 # Requires:
 #   - bmad-grr installed
@@ -109,57 +106,31 @@ persistent_facts = [
 ]
 
 on_complete = """
-### Post-flight: Parallel grr-spec-validate dispatch (one sub-agent per story × rubric)
+### Post-flight: grr-spec-validate, one validator per story
 
 Locate the produced epics-and-stories document (typically under
 {implementation_artifacts}/) and extract every story key + corresponding story
 section / file path. Stories may be sub-documents under
 {implementation_artifacts}/stories/ — discover them.
 
-The two axes cross: one sub-agent per (story × rubric) pair — N stories
-against four rubrics is 4N sub-agents, not N. Never fold several rubrics
-into one agent; they score against independent thresholds, and an agent
-carrying four of them skims the later ones and reports a clean verdict for
-a rubric it never really ran. The rubrics are ambiguity, ac-measurability,
-three-stage and checklist (drop that one when $CHECKLIST_PATH is unset),
-plus brownfield-grounding when $EPIC_MODE == "B".
+Use ambiguity, ac-measurability, three-stage, checklist unless $CHECKLIST_PATH
+is unset, and brownfield-grounding when $EPIC_MODE == "B".
+Follow ~/.claude/skills/grr-spec-validate/invocation-template.md Steps 2–4:
+one fresh read-only validator per story for all criteria, a second only
+for contradicted code claims, scope expansion or increased risk.
+Limit concurrency to five; no dispatch script. No drafting conversation.
 
-Past roughly a dozen pairs, dispatch through the Workflow tool rather than
-by hand — write a script with one `agent()` per pair (never batch pairs
-into one agent), so concurrency is capped and every pair is accounted for.
-Below that, dispatch them all in a single message.
+Pass each story's artifact_path, all rubrics, checklist_path=$CHECKLIST_PATH
+when set, project_root and brownfield_areas=that story's target modules/files
+for grounding, and reference_paths containing $MODULE_SURVEY, PRD and
+architecture paths if present. References are hints; grounding uses source.
+Require every criterion's score/verdict row and detailed fields; return
+missing rows for completion, keeping REVISE. Show each result table.
 
-  Task prompt (one per story × rubric pair):
-    Load and follow the grr-spec-validate skill — rubric: <RUBRIC_NAME>.
-
-    Inputs:
-    - artifact_path: <absolute path to this single story>
-    - rubrics: <RUBRIC_NAME>
-    - checklist_path: <$CHECKLIST_PATH — only on the checklist agent>
-    - project_root: <absolute project root — only on the brownfield-grounding agent>
-    - brownfield_areas: <this story's target module/files — only on the brownfield-grounding agent>
-    - reference_paths: <comma-separated: $MODULE_SURVEY if written + PRD path if
-                        present + architecture path if present; otherwise omit>
-
-    Constraints:
-    - Run ONLY the rubric named above, and load only that rubric file.
-      Sibling sub-agents hold the others.
-    - Fresh context, no access to main conversation.
-    - Artifact-only rubrics read the artifact alone; brownfield-grounding
-      may Read/Glob/Grep project_root to verify the story's claims about
-      existing code (e.g. files it says it will touch, "no existing X").
-    - Read-only — never edit source. Return a single JSON block per the
-      SKILL.md schema, carrying this rubric's own fields and a verdict
-      derived from this rubric alone.
-
-When all return, merge per story first (worst verdict across that story's
-rubrics; its revision_pointers are the union), then aggregate the epic:
-
-- Worst verdict across stories → overall verdict (any REVISE → epic REVISE)
-- Concatenate revision_pointers per story, prefix with story key
-- Build a summary table: story_key | verdict | weakest_aspect
-- A pair whose agent returns nothing parseable is a REVISE for that story's
-  rubric — name the pair rather than counting it as a pass
+Aggregate stories: any REVISE means epic REVISE; prefix revision pointers
+with story keys. Show story_key | verdict | weakest_aspect, REVISE first.
+After edits, revalidate only affected/new criteria of affected stories;
+retain unaffected scores, and revalidate all criteria if impact is unclear.
 
 Present the summary to the user in {communication_language}, sorted REVISE first.
 
@@ -173,5 +144,5 @@ Branch on aggregate verdict:
     [O <story_key>] Override the named story (append override note to its file).
     [O *] Override all REVISE stories.
 
-After any revision, re-dispatch the affected stories' validators — idempotent.
+After revision, revalidate affected/new criteria of affected stories per the invocation template.
 """

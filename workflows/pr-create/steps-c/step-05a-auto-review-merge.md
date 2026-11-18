@@ -18,7 +18,7 @@ Every OPEN PR went through at least one review round — waited for reviews to l
 
 ## When this step runs
 
-Auto mode only (`mode: auto` in the state file). Interactive mode never arrives here — it stays in `{mergeLoopFile}`, which polls for a merge somebody else performs. **This step merges by itself.** That is the whole difference, and it is why the gate below is not optional.
+Ticket-dev-loop → return OPEN links and stop, even on a saved auto resume. Otherwise this step is auto-only; interactive uses `{mergeLoopFile}`.
 
 ## Round structure
 

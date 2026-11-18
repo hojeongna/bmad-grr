@@ -9,10 +9,10 @@ or MCP server required).
 
 | BMAD workflow | Pre-flight | Mid-workflow guidance | Post-flight (on_complete) |
 | --- | --- | --- | --- |
-| `/bmad-create-prd` | skill availability check + ask checklist path | `persistent_facts` block vague answers / non-measurable ACs | dispatch `grr-spec-validate` — one sub-agent per rubric (ambiguity + ac-measurability + three-stage + checklist) |
-| `/bmad-create-architecture` | same check | block soft NFRs, require trade-off rationale | one sub-agent per rubric (ambiguity + three-stage + checklist; AC rubric skipped) |
-| `/bmad-create-epics-and-stories` | same check | per-story anti-vagueness + scope-overlap check | one sub-agent per (story × rubric) pair; merge per story, then aggregate the epic verdict |
-| `/bmad-create-story` | same check | per-AC measurability + task atomicity + edge-case requirement | one sub-agent per rubric (the full four) |
+| `/bmad-create-prd` | skill + checklist path | measurable goals/ACs | one validator, all applicable rubrics |
+| `/bmad-create-architecture` | same | numeric NFRs, trade-offs | one validator, AC rubric skipped |
+| `/bmad-create-epics-and-stories` | same | measurable ACs, no scope overlap | one validator per story, then aggregate |
+| `/bmad-create-story` | same | measurable ACs, atomic tasks, edge cases | one validator, all applicable rubrics |
 
 ## Prerequisites
 
@@ -23,9 +23,9 @@ or MCP server required).
    ```
 2. **BMAD project** — the target project must have `_bmad/` initialized.
 
-No external plugin / MCP server is required. The validator is a local
-skill dispatched via Claude Code's Task / Agent sub-agent mechanism — one
-sub-agent per rubric, dispatched concurrently.
+Use one fresh validator per artifact and a complete criterion/score/verdict table.
+Add a second only for contradicted code claims, scope expansion or increased risk.
+Return missing scores for completion; after edits revalidate affected/new criteria.
 
 If `~/.claude/skills/grr-spec-validate/` is missing when one of the
 gated workflows runs, the customization halts the workflow at pre-flight

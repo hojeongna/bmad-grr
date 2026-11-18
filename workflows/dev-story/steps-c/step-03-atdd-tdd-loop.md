@@ -12,11 +12,14 @@ verificationBeforeCompletion: '~/.claude/skills/verification-before-completion/S
 
 ## Outcome
 
-Every acceptance check from step-02 is green — Gherkin scenarios under the BDD runner on the scenario track, the named tests on the UI track — every supporting unit was implemented through RED-GREEN-REFACTOR per the TDD skill's Iron Law, and the story file's Tasks/Subtasks reflect what was actually built.
+Step-02's acceptance checks pass: BDD scenarios or named UI-track tests, with supporting units built through RED-GREEN-REFACTOR. Tasks/Subtasks reflect the implementation.
+
+When writing or changing service/domain functions, read `~/.claude/skills/test-driven-development/code-structure-notes.md` once here.
+Before implementation, fill any missing Placement / Policy / Meaning answers in the story from current code.
 
 ## Loop Structure — scenario track
 
-The outer loop is **acceptance** — driven by Gherkin scenarios. The inner loop is **unit TDD** — governed by the loaded TDD skill. Together they form ATDD: outer scenarios stay red until all required units exist; once outer turns green, the AC is genuinely done.
+Gherkin drives acceptance; the TDD skill governs each unit. The scenario stays red until the required units exist.
 
 For each scenario (independent groups in parallel, dependent ones sequential):
 
@@ -53,7 +56,7 @@ When all ACs in the group are green, write technical decisions and notable surpr
 - **3 consecutive failures on the same unit** → stop, surface the obstacle to the user, do not thrash.
 - **Parallel groups** — when developing independent scenarios (or ACs) via subagents, give each subagent: the scenario text, or the AC plus the test step-02 named for it, the `{project_context}` path, the TDD skill path with explicit instruction to load and follow it, and a hard scope ("do not modify code outside this one's surface"). Collect results, resolve any file conflicts, then run the full BDD suite — or, on the UI track, the project's own test suite — to verify integration.
 - **Optional rigor — context-isolated inner TDD.** For non-trivial implementations where the risk of "gaming the test" is real, load `{subagentDrivenDevelopment}` and follow it: dispatch separate sub-agents for the test-writer phase and the implementer phase, where the implementer never reads the test source code. The coordinator orchestrates, runs commands, and feeds only failure messages (never test source) back to the implementer. This is overkill for tiny tweaks but valuable for complex units where you want structural protection against test-fitting.
-- **Verification before completion.** Load `{verificationBeforeCompletion}` once, at the start of this step. Every RED, GREEN, or REFACTOR-clean claim — unit or AC — cites the actual output of a command run in this turn (test counts, exit code).
+- **Verification.** Load `{verificationBeforeCompletion}` once. Cite observed command output for the relevant RED/GREEN/REFACTOR state; its same-session reuse rule governs later checks.
 
 ## Dry-run mode — scenario track
 

@@ -1,6 +1,6 @@
 ---
 name: step-03-architect
-description: 'Draft 5-field mini architecture; run inline 4-point Architecture Impact pressure test; for fix change_type, layer in superpowers systematic-debugging'
+description: 'Draft mini architecture from current code, check impact, and investigate root cause for fixes'
 nextStepFile: './step-04-compose.md'
 systematicDebuggingSkill: '~/.claude/skills/systematic-debugging/SKILL.md'
 ---
@@ -9,7 +9,7 @@ systematicDebuggingSkill: '~/.claude/skills/systematic-debugging/SKILL.md'
 
 ## Outcome
 
-A 5-field mini architecture (Stack / Touchpoints / Patterns / Constraints / Risks) is drafted from step-02 context and pressure-tested through a 4-point Architecture Impact analysis (Scope Challenge / Failure Scenarios / Cross-Story Impact / Test Coverage Gap). For `change_type == 'fix'`, the superpowers systematic-debugging skill is loaded to ensure root-cause-shaped touchpoints. The user has confirmed the draft.
+Draft Stack / Touchpoints / Structure / Constraints / Risks from step-02, check impact, and confirm direction through the existing approval below. For fixes, investigate root cause via `{systematicDebuggingSkill}`.
 
 ## Approach
 
@@ -19,7 +19,10 @@ Bullet points only — no paragraphs. 2–5 bullets per field.
 
 1. **Stack** — language, framework, key libs and versions actually touched (not the whole project).
 2. **Touchpoints** — files/modules to change; one-line "why" each.
-3. **Patterns** — existing conventions from `project-context.md` and observed code that this change must respect.
+3. **Structure** — answer from current code; no new user questions:
+   - Placement: existing function or named small stages, and why?
+   - Policy: existing rule? Name its owner and location.
+   - Meaning: which empty values, order and failures must stay?
 4. **Constraints** — performance, security, compatibility, API contracts that bind the change.
 5. **Risks** — realistic things that could break.
 
@@ -51,7 +54,7 @@ Show the draft in `{communication_language}`:
 🏗️ Mini Architecture
 Stack: …
 Touchpoints: …
-Patterns: …
+Structure: Placement / Policy / Meaning answers
 Constraints: …
 Risks: …
 
@@ -68,7 +71,7 @@ Risks: …
 (R) Impact 결과 보고 구조를 다시 짤래요
 ```
 
-Halt for input. On `E`, accept user edits, merge, re-present. On `R`, adjust the architecture based on Impact findings, re-present. On `Y`, advance.
+If arguments already approve this scope and direction, advance. Otherwise wait: `E` edits the draft, `R` revises its structure, `Y` advances.
 
 ## Next
 

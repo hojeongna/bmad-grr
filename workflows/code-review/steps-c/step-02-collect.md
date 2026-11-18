@@ -8,15 +8,13 @@ nextStepFile: '~/.claude/workflows/code-review/steps-c/step-03-review.md'
 
 ## Outcome
 
-A list of changed files with their per-file diff content (added/modified lines with line numbers) is ready for the per-file review agents in step-03. At least one file with diffs must be present, or the workflow halts.
+Collect changed paths and numbered diffs, including deletions, for responsibility groups in step-03; an empty diff halts the workflow.
 
 ## Approach
 
 ### Determine the diff range
 
-- **review_source == "story"**: read the story file, extract paths from the File List, ask the user for the diff base (default suggestion `main...HEAD`).
-- **review_source == "diff"**: present quick options — `[1]` `main...HEAD`, `[2]` `HEAD~1..HEAD`, `[3]` `HEAD` (uncommitted), `[M]` custom range.
-- **review_source == "manual"**: ask for the file paths (any common separator) and the diff base.
+Use a supplied diff base/range without asking again. Otherwise ask once: story → File List plus base (default `main...HEAD`); diff → `main...HEAD`, `HEAD~1..HEAD`, `HEAD` or custom; manual → paths plus base.
 
 ### Pin the base commit
 
@@ -24,7 +22,7 @@ Resolve whatever range was chosen down to a single base commit SHA and store it 
 
 ### Collect per-file diffs
 
-Run `git diff {diff_range}` and parse the unified output. Split by file boundary (`diff --git a/... b/...`). For each file capture: path, hunks of added/modified lines with line numbers, and exclude deleted files (nothing to review). Store each file's diff separately so step-03 can hand it to one sub-agent per file.
+Run `git diff {diff_range}`. Keep paths and numbered hunks, including deletions and their consumers; step-03 groups related paths by responsibility/contract.
 
 If `review_source` is `story` or `manual`, intersect the diff with the provided path list. Note any listed file that has no diff (unchanged) and exclude it from the review queue.
 
@@ -35,7 +33,7 @@ Arriving here from step-05 means fixes were just applied and the diff has to be 
 - **Run `git diff {base_sha}`** — two dots, no right-hand side, so the comparison runs against the working tree. Fixes are applied in the working tree and never committed, so the round-one range (`main...HEAD` and friends) does not contain a single one of them. Re-collecting with it would hand the reviewers the pre-fix lines and re-report every finding that was just fixed, which reads exactly like a loop that cannot converge.
 - **Ask nothing.** The base is pinned and the source is settled; the questions in this step belong to round one only.
 
-Everything else is unchanged — same splitting, same story/manual path intersection, same validation.
+Everything else is unchanged — same path selection and validation.
 
 ### Validate
 

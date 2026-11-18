@@ -22,7 +22,7 @@ Carried in context across rounds; there is no state file, because the whole loop
 
 - `round` — review rounds completed so far; the report that just arrived is round `round`, and the first report to reach this step is round 1.
 - `findings[round]` — each round's surviving findings, identified by **file path + checklist item + what is wrong**. Never by line number: fixes shift line numbers, and matching on them would make every recurring finding look new.
-- `fixed[round]` — what step-05's agents reported as actually applied, keyed the same way.
+- `fixed[round]` — applied fixes reported by step-05, keyed the same way.
 
 ## Stop conditions
 
@@ -41,7 +41,7 @@ Set `fixScope = ALL` and hand off. Full is the only scope auto mode uses: passin
 
 ## Communicate
 
-One line before handing off, in `{communication_language}`: round number, findings carried into it, and the budget remaining — `round 2/5 — 7 findings, fixing all`. On a stop, say which condition fired and what is left unfixed. A stopped loop that reads like a finished one is the only genuinely bad outcome here.
+One line before handing off, in `{communication_language}`: round number, findings carried into it, and the budget remaining — `round 2/5 — 7 findings, fixing all`. On a stop, say which condition fired and what is left unfixed.
 
 ## Next
 

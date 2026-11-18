@@ -9,20 +9,20 @@ storyTemplate: '~/.claude/workflows/quick-story/data/story-template.md'
 
 ## Outcome
 
-A unified story document is rendered from the template (Mini PRD + Mini Architecture + Architecture Impact + Conditional Review subsection if applicable + Story / AC / Tasks / Dev Notes), saved to `{implementation_artifacts}/{story_key}.md`, registered in `{sprint_status}` as `ready-for-dev`. The user has approved the rendered document before any file write happens.
+Save one story to `{implementation_artifacts}/{story_key}.md` and register `ready-for-dev`. Small uses the workflow's compact contents and skips the full template/Premise Challenge; full uses the sections below. Write only with supplied save permission or approval here.
 
 ## Approach
 
 ### Inline Mini PRD (4 questions in one round)
 
-Ask all four in a single message:
+Use supplied answers; ask only unanswered items together:
 
 1. **문제/동기** — 이 변경이 왜 필요한가요?
 2. **대상 사용자** — 누가 혜택을 보나요?
 3. **성공 기준** — 관찰 가능한 결과로 어떻게 성공을 판단하나요?
 4. **비범위** — 이번에 절대 건드리지 않을 것은?
 
-Halt for input. For "모르겠어요" / skip / empty answers, fill in a reasonable default from step-01 intent + step-02 patterns + step-03 architecture + the upstream PRD (if `prd_path` was set in step-02), and note which were auto-filled so the user can correct them later.
+Wait only when asking. For unknown answers, propose defaults from intent and code, label them, and confirm any that change scope.
 
 If step-02 surfaced a `prd_path`, the upstream PRD is a strong reference but **never** overrides the user's answers — it just informs defaults and provides cross-check material for step-04b.
 
@@ -67,10 +67,10 @@ Quick-story uses the dedicated `q-` prefix so quick stories stay visually distin
 Read `{storyTemplate}` and substitute:
 
 - `{{story_key}}`, `{{title}}` (5–8 word title from intent), `{{date}}`, `{{user_name}}`.
-- `{{change_type}}` — the value settled in step-01, verbatim. It rides in the frontmatter because `dev-story` reads it to pick its acceptance track: `ui` means the story is verified by the project's own tests rather than by Gherkin scenarios under a BDD runner.
+- `{{change_type}}` — verbatim from step-01; dev-story selects project tests for `ui`, Gherkin otherwise.
 - `{{complexity}}` — `S` / `M` / `L` judgment call weighing touchpoint count, blast radius, risk level, test work. No formula.
 - **Mini PRD fields** — the user's four answers (or auto-filled defaults), incorporating any Premise Challenge subtext.
-- **Mini Architecture** — five fields from step-03.
+- **Mini Architecture** — five fields from step-03; map Structure answers to `arch_placement`, `arch_policy`, `arch_meaning`.
 - **Architecture Impact** — four points from step-03.
 - **Conditional Review subsection** (Fix-Specific / UI / DX) — from step-03 if applicable; otherwise omit cleanly (don't leave an empty placeholder).
 - **Story** — generate `As a / I want / So that` from intent + PRD answers.
@@ -99,7 +99,7 @@ Complexity: …
 (R) AC나 Tasks 다시 생성
 ```
 
-Halt for input. On `E`, accept edits and re-present. On `R`, regenerate AC/Tasks and re-present. On `Y`, write the story file with Write tool.
+With supplied save permission, write directly. Otherwise wait for approval: `E` edits, `R` regenerates AC/Tasks, `Y` writes.
 
 ### Register in sprint-status
 

@@ -11,34 +11,17 @@ validatorInvocation: '~/.claude/skills/grr-spec-validate/invocation-template.md'
 
 ## Outcome
 
-The composed story has passed an independent quality gate before routing — checked in a **fresh sub-agent context** so the writing context cannot defend its own output. On `PROCEED`, the workflow advances to step-05. On `REVISE`, the user chooses to re-compose, edit inline, or override.
-
-## Why a separate step
-
-The story drafted in step-04 was authored in this session's context. Asking the same context to validate it would mask sycophancy and anchoring. The `grr-spec-validate` skill is read-only and **dispatched via `Agent` — one sub-agent per rubric** so each validator only sees the artifact, its own rubric, the checklist (user-provided), and the upstream PRD (if found in step-02). Nothing else.
+Validate independently in a fresh context before routing. PROCEED advances to step-05; REVISE uses the choices below.
 
 ## Approach
 
-### 1. Ask the user for the checklist path
+### 1. Resolve checklist input
 
-In `{communication_language}`:
+Use the supplied `checklist_path` or `skip`. Ask only if neither is known. Read a supplied file; if missing/empty, report it and ask once for a valid path or `skip`.
 
-```
-스토리 검증을 위해 코드베이스 컨벤션 체크리스트가 있다면 절대 경로를 알려주세요.
-없으면 `skip`이라고 입력하시면 됩니다 — 체크리스트 rubric만 빠지고 나머지는 그대로 돌립니다.
-```
+### 2. Dispatch independent validation
 
-Halt for input. Save as `checklist_path` (or `null` if `skip`).
-
-If the path was given but the file does not exist or is empty, tell the user briefly and re-ask once. After one retry, default to `skip`.
-
-### 2. Dispatch grr-spec-validate — one sub-agent per rubric
-
-Follow Step 2 of `{validatorInvocation}` — its prompt, used verbatim, one `Agent` call per rubric, all in a single message — and its "Merge the results" rules. The inputs from this workflow:
-
-- `artifact_path` — the absolute path of the story composed in step-04.
-- `reference_paths` — `prd_path` from step-02; omit when null.
-- Rubrics: `ambiguity`, `ac-measurability`, `three-stage`; `checklist` with `checklist_path` unless the user said `skip`; and `brownfield-grounding` with `project_root` (and the touchpoint paths as `brownfield_areas`) whenever step-02's touchpoints include existing files — which is nearly every quick-story.
+Follow `{validatorInvocation}`: pass absolute `artifact_path`, optional `prd_path`, and `ambiguity`, `ac-measurability`, `three-stage`, plus `checklist` unless skipped and `brownfield-grounding` for existing code (`project_root`, touchpoints). Small/full both use one fresh validator for all criteria; add a second only for contradicted code claims, scope expansion or increased risk. No drafting conversation. Return missing score/verdict rows for completion; keep REVISE until every criterion is scored.
 
 ### 3. Present the verdict to the user
 
@@ -48,8 +31,8 @@ Render in `{communication_language}`:
 🧪 스토리 검증 결과
 
 Verdict: <PROCEED | REVISE>
-{rubric}: <score> [✓ / ✗]
-...
+| rubric | score | verdict |
+| ... | ... | PROCEED / REVISE |
 
 (when REVISE)
 수정 포인터:
@@ -58,7 +41,7 @@ Verdict: <PROCEED | REVISE>
 ...
 ```
 
-Show only requested rubrics. For `ambiguity_offenders`, list each with location. For `ac_measurability` NO entries, list with issue. For `three_stage`, name the `weakest` stage. For `checklist_violations`, list HIGH-severity violations and their quotes.
+Show all requested rows from `rubric_results`. Include offender locations, NO ACs, weakest stage, HIGH checklist quotes and contradicted code claims with source paths.
 
 ### 4. Branch on verdict
 
@@ -76,7 +59,7 @@ Show only requested rubrics. For `ambiguity_offenders`, list each with location.
 
 - **`R`** — Load `{recomposeStepFile}` with the revision pointers attached as additional context. The user's previous Mini PRD answers can be reused; only the sections covered by the pointers need re-thinking. After re-compose, step-04 routes back here (idempotent).
 
-- **`E`** — Tell the user the story file path. They edit directly with their editor (or via the main session's Edit tool on small fixes). When they confirm "done", **re-dispatch the full rubric set from step 2 above** — fresh sub-agents each time, no shared state across dispatches.
+- **`E`** — Give the story path for editing. After confirmation, revalidate only affected/new criteria per `{validatorInvocation}`; R uses the same rule. Retain unaffected scores; unclear impact requires all criteria.
 
 - **`O`** — Append to the story file's Dev Notes:
 

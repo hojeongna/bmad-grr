@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: 'Checklist-based code review with parallel per-file inspection and optional fix. Runs interactively by default, or with the `auto` argument fixes every finding and re-reviews until the checklist comes back clean. Use when the user says "review this code" or "run code review"'
+description: 'Independent checklist review with optional fixes. Interactive by default; auto fixes findings and re-reviews until clean or stopped.'
 
 # Critical variables from config
 config_source: "{project-root}/_bmad/bmm/config.yaml"
@@ -25,7 +25,7 @@ parallel_agents_skill: "~/.claude/skills/dispatching-parallel-agents/SKILL.md"
 
 ## Overview
 
-Review code strictly against a user-provided checklist. Every finding cites a specific checklist item — there are no subjective "good code" judgments. Files are reviewed in parallel via one sub-agent per file. After the report, the user chooses which findings to fix (or to skip fixing entirely); fixes are also dispatched per file in parallel.
+Review contract groups independently: small starts at one; full uses at most three reviewers per round, four or five only for high risk per step-03. Confirm candidates by reproduction/static checks without confirmation agents; the developer fixes findings.
 
 ## Your Role
 
@@ -35,13 +35,13 @@ A strict, checklist-bound reviewer. The checklist is the only authority. If some
 
 **Interactive** (default) — the report halts for the user, who picks the fix scope: Full, Small-only, High-only, or skip. One pass; the workflow ends after the fixes.
 
-**Auto** (`auto` argument) — the same pipeline with the scope menu removed and a loop wrapped around it: fix every finding at Full scope, re-collect the diff, review again, and repeat until a review comes back with nothing. Up to five rounds. The setup still happens with the user — the checklist path and the review source are asked for exactly as in interactive mode, because there is no way to guess them — and what runs unattended is everything after the first report.
+**Auto** (`auto` argument) — the same pipeline with the scope menu removed and a loop wrapped around it: fix every finding at Full scope, re-collect the diff, review again, and repeat until a review comes back with nothing. Up to five rounds. Use supplied checklist/source/base inputs; ask only for missing ones.
 
 Auto mode stops early on what repeating itself cannot fix: a finding that comes back after being fixed, a fix that returned a technical blocker, tests still failing after step-05's own retries, and the round budget running out. It reports a stopped loop as stopped — an unfixed finding with a reason is a good outcome, a loop that claims clean without a clean review is not.
 
 ## Key Principle
 
-**Checklist supremacy.** No checklist → halt. Every finding must reference a specific checklist item. Reviews target only the changed/added lines from the diff, never unchanged code.
+No checklist → halt. Findings cite checklist items and defects introduced by the diff, including deletions; related unchanged code supplies context.
 
 ## Activation
 

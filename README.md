@@ -31,12 +31,12 @@ Story implementation with an **acceptance outer loop** + a **TDD inner loop**.
 - **Resume in step-01** — in-progress story detection routes back to the right stage automatically.
 - **Dry-run fallback** — on the scenario track, if no BDD runner is available, scenarios are still authored; verification falls back to reasoning + unit tests. Distinct from the UI track, where there are no scenarios to author in the first place.
 
-### 2. `code-review` — Checklist-driven, parallel per-file
+### 2. `code-review` — Checklist and responsibility review
 
-Strict checklist-based code review — no subjective judgment.
+Checklist-based independent review.
 
 - **Checklist supremacy** — must provide a checklist `.md` file; halts otherwise.
-- **One file = one sub-agent** for parallel review; at 10+ files it asks how many agents to use and splits by changed-line count. Every finding cites a specific checklist item.
+- **Contract groups:** small starts at one; full ≤3 per round, 4–5 only for high risk (permissions/payments/concurrency/external APIs). No confirmation agents.
 - **3 review sources** — story, git diff, manual file list.
 - **Priority × Scope** — every finding gets HIGH/MEDIUM/LOW × SMALL/LARGE.
 - **Fix scope choice** — `[F]` Full / `[S]` Small / `[H]` High / `[X]` Skip.
@@ -236,10 +236,12 @@ In **brownfield mode** (extending existing code), each `create-*` workflow asks 
 
 | Workflow | Pre-flight | Mid-workflow guidance | Post-flight (on_complete) |
 | --- | --- | --- | --- |
-| `/bmad-create-prd` | skill check + ask for checklist path | block vague answers / non-measurable ACs | one sub-agent per rubric (4 rubrics) |
-| `/bmad-create-architecture` | skill check | block soft NFRs, require trade-off rationale | one sub-agent per rubric (3 rubrics; AC skipped) |
-| `/bmad-create-epics-and-stories` | skill check | per-story anti-vagueness + scope-overlap check | parallel dispatch — one sub-agent per (story × rubric) pair |
-| `/bmad-create-story` | skill check + checklist | per-AC measurability + task atomicity + edge cases | one sub-agent per rubric (4 rubrics) |
+| `/bmad-create-prd` | skill + checklist | measurable goals/ACs | one validator, all rubrics |
+| `/bmad-create-architecture` | skill | numeric NFRs, trade-offs | one validator, AC skipped |
+| `/bmad-create-epics-and-stories` | skill | measurable ACs, no overlap | one validator per story |
+| `/bmad-create-story` | skill + checklist | measurable ACs, atomic tasks, edge cases | one validator, all rubrics |
+
+Results include every criterion/score/verdict; return missing scores. Add a second validator only for code contradictions, wider scope or higher risk. Revalidate affected/new criteria.
 
 These are **per-project** because BMAD's `resolve_customization.py` only merges from `<project-root>/_bmad/custom/`.
 
@@ -483,8 +485,8 @@ step-01-init                  Load checklist (HALT if none) · Pick source [S/D/
    ↓
 step-02-collect               Collect files + per-file diffs
    ↓
-step-03-review                Parallel sub-agent per file vs full checklist
-   │ 10+ files → ask agent count (default: one per file)
+step-03-review                Independent contract groups vs full checklist
+   │ small: 1 reviewer; concurrent maximum: 5
    ↓
 step-04-report                Priority × Scope · Receiving-code-review on pushback
    │ [F]ull / [S]mall / [H]igh / [X]Skip     (interactive)
@@ -493,7 +495,7 @@ step-04-report                Priority × Scope · Receiving-code-review on push
 step-04a-auto-loop            Round gate: budget 5 · recurrence / blocker / red tests → stop
    │ otherwise fixScope = ALL
    ↓
-step-05-fix (parallel)        Per-file fix agents · Auto test runs + retry
+step-05-fix                   Developer / independent groups · Checks + retry
    │ auto mode → back to step-02 (git diff {base_sha}, working tree included)
    ↓
 step-06-complete (END)        Story-status update · Reflect changes back to story doc
