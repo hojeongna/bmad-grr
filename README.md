@@ -37,6 +37,7 @@ Strict checklist-based code review — no subjective judgment.
 
 - **Checklist supremacy** — must provide a checklist `.md` file; halts otherwise.
 - **One file = one sub-agent** for parallel review; at 10+ files it asks how many agents to use and splits by changed-line count. Every finding cites a specific checklist item.
+- **Bundled checklists** — `checklists/` holds a generic frontend and a generic backend checklist (company-specific names and incident notes removed). Pass one as the checklist path, e.g. `checklists/code-review-checklist-backend.md`.
 - **3 review sources** — story, git diff, manual file list.
 - **Priority × Scope** — every finding gets HIGH/MEDIUM/LOW × SMALL/LARGE.
 - **Fix scope choice** — `[F]` Full / `[S]` Small / `[H]` High / `[X]` Skip.
